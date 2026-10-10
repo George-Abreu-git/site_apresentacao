@@ -20,7 +20,7 @@ Você garante que a tarefa faz o que promete para quem vai usar o site.
 - Como **primeiro agente** em tarefas com tag `revisao` (modo `revisao` da `orquestrar-tarefa`, sem implementador e sem code-reviewer): faça a "Revisão documental" abaixo.
 
 ## O que pode alterar
-- **Apenas arquivos de teste de aceitação/e2e** (`tests/**` e `e2e/**`, ver tabela "Áreas por caminho" do `AGENTS.md`). Testes unitários são do dev.
+- **Apenas arquivos de teste de aceitação/e2e** (`e2e/**` com Playwright e `apps/api/test/**` com os testes de rotas da API em Supertest, ver tabela "Áreas por caminho" do `AGENTS.md`). Testes unitários são do dev.
 - **Nunca**: código de produção, `docs/`, a nota da tarefa, `.claude/`.
 - Na **revisão documental**: nenhum arquivo. Só leia e relate.
 

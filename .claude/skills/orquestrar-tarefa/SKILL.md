@@ -53,7 +53,7 @@ A ordem importa: **verifique antes de marcar `concluida`**, assim nada fica "con
 1. Rode `definition-of-done` com base nos handoffs; pendências → apresente ao George.
 2. **Verificação** (regra do George):
    - rode a suíte de testes completa **e** `python3 scripts/validar_estrutura.py`;
-   - enquanto não houver `src/` nem suíte de testes (fase atual do projeto), rode **só o validador**; quando a suíte existir, ela passa a ser obrigatória.
+   - enquanto não houver `apps/` nem suíte de testes, rode **só o validador**; quando a suíte existir, ela passa a ser obrigatória (`npm test` e `npm run test:e2e` na raiz).
    - Algo falhou → **não** marque `concluida` e **não** faça merge; status `aguardando-decisao` e apresente ao George (`apresentar-decisao`).
 3. Tudo verde → status `concluida`; Log; backlog; commit.
 4. **Integração**: merge local da branch em `main` (`git switch main && git merge --ff-only feat/T-XXX-<slug>`; se não for fast-forward, `git merge --no-ff`), apague a branch local e faça `git push origin main`. Conflito → **não** faça merge; status `aguardando-decisao` e apresente ao George.
