@@ -24,8 +24,8 @@ Montar a estrutura de arquivos de contexto, subagentes, skills e comandos que pe
 |---|---|
 | Ferramenta | Claude Code como motor; `AGENTS.md` espelha regras para outras ferramentas |
 | Obsidian | Vault = pasta inteira do projeto |
-| Instrutor | Modo `eu-faco` (mentor), `/estudar` e consolidação dos diários (`/estudar-consolidar`). Desde a T-014 não explica mais no fim do `agente-faz` |
-| Documentação de estudo (T-014) | Fora do caminho crítico: **o fluxo da tarefa termina quando o QA passa** (verificação → `concluida` → merge → push); aí o orquestrador dispara o `documentador` em paralelo (`background: true`) num git worktree isolado (`isolation: worktree`, criado a partir de `origin/main` já com a tarefa) e a próxima tarefa começa sem esperar por ele (ex.: o QA passa a T-006 → o documentador documenta a T-006 enquanto a T-007 já começa). O produto dele é o **diário** `docs/04-estudos/tarefas/T-XXX.md`; como instrutor e documentador leem e gravam em `docs/04-estudos/**`, ele também pode consultar e, se necessário, atualizar outras notas de estudo. O resultado entra na `main` pela branch `estudos/T-XXX`, só com o validador (exceção registrada no `AGENTS.md`), sem interromper a tarefa seguinte; conflito no rebase vai ao George, sem forçar. Falha do documentador só vai para o Log. Notas por conceito nascem sob demanda (`/estudar-consolidar`) |
+| Instrutor | Mentor no modo `eu-faco` e tira-dúvidas interativo no `/estudar`. Desde a T-014 não explica mais no fim do `agente-faz`, não fecha o `eu-faco` e não consolida (decisão Q3-B do George) |
+| Documentação de estudo (T-014) | Fora do caminho crítico: **o fluxo da tarefa termina quando o QA passa** (verificação → `concluida` → merge → push); aí o orquestrador dispara o `documentador` em paralelo (`background: true`) num git worktree isolado (`isolation: worktree`, criado a partir de `origin/main` já com a tarefa) e a próxima tarefa começa sem esperar por ele (ex.: o QA passa a T-006 → o documentador documenta a T-006 enquanto a T-007 já começa). O produto dele é o **diário** `docs/04-estudos/tarefas/T-XXX.md`; como instrutor e documentador leem e gravam em `docs/04-estudos/**`, ele também pode consultar e, se necessário, atualizar outras notas de estudo. O resultado entra na `main` pela branch `estudos/T-XXX`, só com o validador (exceção registrada no `AGENTS.md`), sem interromper a tarefa seguinte; conflito no rebase vai ao George, sem forçar. Falha do documentador só vai para o Log. Notas por conceito nascem sob demanda: no `/estudar` (instrutor) ou na consolidação dos diários (`/estudar-consolidar`), também feita pelo documentador, do mesmo jeito (segundo plano, worktree a partir de `origin/main`), e integrada pela branch `estudos/consolidacao-AAAA-MM-DD` com o mesmo procedimento (Q3-B) |
 | Stack | Definida no levantamento de requisitos, registrada como ADR |
 | Orquestrador | A sessão principal do Claude Code (subagentes não chamam outros subagentes) |
 | Idioma | Português |
@@ -59,7 +59,7 @@ Site_Apresentação_George/
 │   ├── 01-requisitos/     # funcionais, não funcionais, histórias
 │   ├── 02-arquitetura/    # ADRs e specs
 │   ├── 03-tarefas/        # backlog.md + uma nota por tarefa
-│   ├── 04-estudos/        # notas por conceito (Instrutor) + tarefas/T-XXX.md (diários do Documentador)
+│   ├── 04-estudos/        # notas por conceito (Instrutor no /estudar; Documentador no /estudar-consolidar) + tarefas/T-XXX.md (diários do Documentador)
 │   └── _templates/        # tarefa.md, adr.md, nota-estudo.md, diario-estudo.md
 ├── .obsidian/             # config mínima: templates em docs/_templates, ignorar node_modules/dist/build
 └── src/                   # criado após a ADR de stack
@@ -72,8 +72,8 @@ Site_Apresentação_George/
 | dev | Implementa a tarefa com TDD seguindo ADRs e AGENTS.md | Read, Grep, Glob, Edit, Write, Bash | Seção "Dev" na nota da tarefa: arquivos alterados, decisões, pendências |
 | code-reviewer | Revisa o diff: convenções, segurança, legibilidade, aderência à tarefa | Read, Grep, Glob, Bash (somente git diff/log) — sem edição | `APROVADO` ou `AJUSTES` com lista numerada |
 | qa | Valida critérios de aceite, responsividade, acessibilidade; escreve/roda testes de aceitação; faz a revisão documental nas tarefas `revisao` | Read, Grep, Glob, Bash, Edit/Write apenas em pastas de teste de aceitação/e2e (nenhuma na revisão documental) | `PASSOU` ou `FALHOU` com bugs reproduzíveis; na revisão, achados com arquivo e severidade |
-| instrutor | `eu-faco`: guia o George passo a passo sem escrever o código. Sob demanda: `/estudar <tema>` e `/estudar-consolidar` (diários → notas por conceito) | Read, Grep, Glob, Edit, Write apenas em `docs/04-estudos/` | Guia em `## Estudo`; notas por conceito com links `[[ ]]` |
-| documentador | Disparado no fim do encerramento, em paralelo à tarefa seguinte e num worktree isolado: escreve o diário da tarefa a partir da nota dela; pode consultar e, se necessário, atualizar outras notas de estudo | Read, Grep, Glob, Write, Edit apenas em `docs/04-estudos/` (igual ao instrutor); `background: true`, `isolation: worktree` | Diário `docs/04-estudos/tarefas/T-XXX.md` (`consolidado: false`) |
+| instrutor | `eu-faco`: mentor que guia o George passo a passo sem escrever o código (não fecha a tarefa). Sob demanda: `/estudar <tema>`, tira-dúvidas interativo | Read, Grep, Glob, Edit, Write apenas em `docs/04-estudos/` | Guia em `## Estudo`; nota por conceito com links `[[ ]]` no `/estudar` |
+| documentador | Sempre em segundo plano e num worktree isolado. (1) Disparado no fim do encerramento de toda tarefa (inclusive `eu-faco`), em paralelo à tarefa seguinte: escreve o diário da tarefa a partir da nota dela; pode consultar e, se necessário, atualizar outras notas de estudo. (2) `/estudar-consolidar`: consolida os diários pendentes em notas por conceito | Read, Grep, Glob, Write, Edit apenas em `docs/04-estudos/` (igual ao instrutor); `background: true`, `isolation: worktree` | Diário `docs/04-estudos/tarefas/T-XXX.md` (`consolidado: false`); na consolidação, notas por conceito e diários `consolidado: true` |
 | devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`; dono da plataforma (CI, ambientes, deploy, hooks, orquestração, `scripts/**`, configs da raiz, `docs/**` exceto `03-tarefas`/`04-estudos`) | Read, Grep, Glob, Edit/Write na área de plataforma, Bash | Configuração ou checklist de deploy |
 
 Cada agente: descrição clara de quando é usado, lista do que lê (via skill `carregar-contexto`), formato fixo de saída e retorno obrigatório em bloco `## Handoff` (formato de `atualizar-tarefa`). Agentes não editam a nota da tarefa; o orquestrador transcreve.
@@ -96,7 +96,7 @@ Conduzido pela sessão principal com a skill `orquestrar-tarefa`, disparada por 
 **Modo `eu-faco`**
 1. Instrutor guia; George codifica.
 2. Quando George sinaliza que terminou: Reviewer → QA (ajustes voltam para George, com dicas do Instrutor).
-3. Encerramento (dispara o Documentador, que lê os guias do Instrutor).
+3. Encerramento logo após o QA passar, igual ao `agente-faz` (dispara o Documentador em paralelo, que lê os guias do Instrutor). O Instrutor não fecha o `eu-faco` nem escreve nota de estudo no fechamento.
 
 **Encerramento (todos os modos):** primeiro a verificação (suíte de testes + `scripts/validar_estrutura.py`; sem `apps/` nem suíte, só o validador); só se estiver verde o status vira `concluida`, o backlog é atualizado e a branch é integrada em `main` (merge + push). Falhou → `aguardando-decisao`, sem `concluida` e sem merge. Por último, o orquestrador dispara o Documentador e não espera por ele. **O fluxo da tarefa termina aqui**, quando o QA passa e a tarefa é integrada: a próxima tarefa pode começar enquanto o Documentador trabalha em paralelo.
 
@@ -119,7 +119,7 @@ Compartilhadas:
 | atualizar-tarefa | Contrato do bloco `## Handoff` que os agentes devolvem (as regras de escrita do orquestrador ficam em `orquestrar-tarefa`) | todos |
 | definition-of-done | Checklist único de "pronto" | dev, code-reviewer, qa |
 | registrar-decisao | Criar ADR a partir do template | sessão principal |
-| nota-de-estudo | Os dois formatos Obsidian: diário por tarefa (`tarefas/T-XXX.md`) e nota por conceito (conceito, por que, exemplo do projeto, links) | documentador (diário), instrutor (nota por conceito); os outros sugerem conceitos |
+| nota-de-estudo | Os dois formatos Obsidian: diário por tarefa (`tarefas/T-XXX.md`) e nota por conceito (conceito, por que, exemplo do projeto, links) | documentador (diário e consolidação em notas por conceito), instrutor (nota por conceito no `/estudar`); os outros sugerem conceitos |
 | commit-convencional | Conventional Commits e nomes de branch | dev, devops, sessão principal |
 | apresentar-decisao | Formato obrigatório de decisão: 3 opções, 3 prós e 3 contras cada, recomendação; perguntas numeradas em rodadas (estilo grilling). Subagentes registram e devolvem; só a sessão principal pergunta ao George | todos |
 
@@ -133,8 +133,8 @@ Exclusivas da sessão principal:
 
 - `/nova-tarefa` — cria nota em `docs/03-tarefas/` a partir do template; pergunta título, critérios de aceite, modo (`eu-faco`/`agente-faz`) e tags.
 - `/executar-tarefa <id>` — roda `orquestrar-tarefa`.
-- `/estudar <tema>` — chama o Instrutor sob demanda.
-- `/estudar-consolidar [T-XXX ...]` — o Instrutor transforma os diários com `consolidado: false` em notas por conceito e marca os diários como `consolidado: true` (branch `estudos/consolidacao-AAAA-MM-DD`).
+- `/estudar <tema>` — chama o Instrutor sob demanda para tirar uma dúvida na hora (interativo).
+- `/estudar-consolidar [T-XXX ...]` — o Documentador, em segundo plano e num worktree a partir de `origin/main`, transforma os diários com `consolidado: false` em notas por conceito e marca os diários como `consolidado: true`; o orquestrador integra pela branch `estudos/consolidacao-AAAA-MM-DD`, com o mesmo procedimento da branch de estudos.
 
 ## 8. Nota de tarefa (template)
 

@@ -1,6 +1,6 @@
 ---
 name: nota-de-estudo
-description: Use para escrever material de estudo em docs/04-estudos — o diário por tarefa (documentador) ou a nota por conceito (instrutor, em /estudar e /estudar-consolidar).
+description: Use para escrever material de estudo em docs/04-estudos — o diário por tarefa (documentador) ou a nota por conceito (instrutor no /estudar; documentador no /estudar-consolidar).
 ---
 
 # Nota de estudo
@@ -10,13 +10,13 @@ Há **dois formatos**, cada um com um autor principal. Instrutor e documentador 
 | Formato | Caminho | Quem escreve | Quando |
 |---|---|---|---|
 | Diário por tarefa | `docs/04-estudos/tarefas/T-XXX.md` | `documentador` | No encerramento de cada tarefa, em segundo plano (worktree isolado) |
-| Nota por conceito | `docs/04-estudos/<conceito>.md` | `instrutor` | Sob demanda: `/estudar <tema>` e `/estudar-consolidar` |
+| Nota por conceito | `docs/04-estudos/<conceito>.md` | `instrutor` no `/estudar <tema>` (interativo, na hora); `documentador` no `/estudar-consolidar` (em segundo plano, worktree isolado) | Sob demanda |
 
-O diário é rápido e barato (um arquivo novo por tarefa, escrito a partir da nota dela). A nota por conceito acumula o conhecimento entre tarefas e nasce da consolidação dos diários.
+O diário é rápido e barato (um arquivo novo por tarefa, escrito a partir da nota dela). A nota por conceito acumula o conhecimento entre tarefas: nasce de uma dúvida do George (`/estudar`) ou da consolidação dos diários (`/estudar-consolidar`).
 
 ## Diário por tarefa
 
-1. Um arquivo por tarefa: `docs/04-estudos/tarefas/T-XXX.md`, escrito pelo documentador (na consolidação, o instrutor só muda o campo `consolidado`).
+1. Um arquivo por tarefa: `docs/04-estudos/tarefas/T-XXX.md`, escrito pelo documentador (na consolidação, ele só muda o campo `consolidado` do diário).
 2. Use o template `docs/_templates/diario-estudo.md`:
    - frontmatter: `tipo: diario`, `tarefa: T-XXX`, `data`, `consolidado: false`, `conceitos: [conceito-a, conceito-b]` (kebab-case, os nomes que as notas por conceito terão);
    - **O que foi feito**: resumo da tarefa para quem está aprendendo;
@@ -24,7 +24,7 @@ O diário é rápido e barato (um arquivo novo por tarefa, escrito a partir da n
    - **Onde aparece no projeto**: caminhos de arquivo;
    - **Exercícios**: 1-2 para fixar;
    - **Links**: `[[docs/03-tarefas/T-XXX-<slug>]]`.
-3. Fonte: a nota da tarefa e os arquivos citados nela. O documentador pode consultar outras notas de estudo (ex.: para reaproveitar em `conceitos` o nome de uma nota por conceito que já existe) e, se necessário, atualizar uma delas com uma mudança pontual (regras de "Nota por conceito" abaixo). Criar e enriquecer notas por conceito continua sendo trabalho da consolidação.
+3. Fonte: a nota da tarefa e os arquivos citados nela. O documentador pode consultar outras notas de estudo (ex.: para reaproveitar em `conceitos` o nome de uma nota por conceito que já existe) e, se necessário, atualizar uma delas com uma mudança pontual (regras de "Nota por conceito" abaixo). Criar e enriquecer notas por conceito a partir dos diários fica para a consolidação (outro disparo do documentador).
 
 ## Nota por conceito
 
@@ -38,7 +38,7 @@ O diário é rápido e barato (um arquivo novo por tarefa, escrito a partir da n
    - **Para aprofundar**: próximos passos de estudo (perguntas, exercícios).
    - **Links**: `[[docs/03-tarefas/T-XXX-<slug>]]`, o diário de origem `[[docs/04-estudos/tarefas/T-XXX]]` (quando vier da consolidação) e notas relacionadas `[[<conceito>]]`.
 4. Frontmatter: `tarefa: T-XXX`, `tags` com a área (`front-end`, `back-end`, `api`, `devops`, `orquestracao`).
-5. Na consolidação, depois de criar/atualizar as notas de um diário, marque-o com `consolidado: true`.
+5. Na consolidação (documentador), depois de criar/atualizar as notas de um diário, marque-o com `consolidado: true`. No `/estudar` (instrutor), o campo `consolidado` dos diários não muda.
 
 ## Nos dois formatos
 

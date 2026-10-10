@@ -25,7 +25,7 @@ docs/00-visao/          visão, objetivos, público
 docs/01-requisitos/     requisitos funcionais (RF-XX) e não funcionais (RNF-XX)
 docs/02-arquitetura/    ADRs, specs e planos
 docs/03-tarefas/        backlog.md + uma nota por tarefa (T-XXX-<slug>.md)
-docs/04-estudos/        notas por conceito (instrutor) e tarefas/ com o diário de cada tarefa (documentador)
+docs/04-estudos/        notas por conceito (instrutor no /estudar; documentador no /estudar-consolidar) e tarefas/ com o diário de cada tarefa (documentador)
 docs/_templates/        templates (tarefa, ADR, nota de estudo, diário de estudo)
 scripts/                utilitários (ex.: validar_estrutura.py)
 apps/web/               front-end (React + Vite + TypeScript)
@@ -58,7 +58,7 @@ Qualquer tecnologia fora desta lista é decisão do George (nova ADR).
 - Commits convencionais em português (detalhes na skill `commit-convencional`).
 - Quem commita é o orquestrador (sessão principal). Agentes sugerem a mensagem no handoff.
 - Integração: com todos os testes e o validador passando, o orquestrador faz merge local em `main` e depois `git push origin main`. Se algo falhar, não há merge — o George decide.
-- **Exceção — branches de estudo** (decisão do George na T-014): `estudos/T-XXX` (diário do documentador) e `estudos/consolidacao-AAAA-MM-DD` (`/estudar-consolidar`) entram na `main` **só com o validador verde, sem a suíte de testes**, porque só alteram Markdown (`docs/04-estudos/**` e a nota da tarefa) e o worktree do documentador não tem `node_modules`. Sempre por fast-forward; conflito ou validador vermelho → não há merge (passo a passo na skill `orquestrar-tarefa`).
+- **Exceção — branches de estudo** (decisão do George na T-014): `estudos/T-XXX` (diário do documentador) e `estudos/consolidacao-AAAA-MM-DD` (consolidação do documentador, `/estudar-consolidar`) entram na `main` **só com o validador verde, sem a suíte de testes**, porque só alteram Markdown (`docs/04-estudos/**` e a nota da tarefa) e o worktree do documentador não tem `node_modules`. Sempre por fast-forward; conflito ou validador vermelho → não há merge (passo a passo na skill `orquestrar-tarefa`).
 - Remoto: `origin` → https://github.com/George-Abreu-git/site_apresentacao
 
 ## Definition of Done
@@ -79,8 +79,8 @@ Subagentes não decidem: registram a decisão no handoff e devolvem com `AGUARDA
 | dev | Implementa a tarefa com TDD | Código e testes da tarefa |
 | code-reviewer | Revisa o diff (convenções, segurança, legibilidade, área de cada agente) | Nada (somente leitura) |
 | qa | Valida critérios de aceite, responsividade e acessibilidade | Apenas arquivos de teste |
-| instrutor | Guia o George no modo `eu-faco` (mentor); sob demanda explica um tema (`/estudar`) e consolida os diários em notas por conceito (`/estudar-consolidar`) | Apenas `docs/04-estudos/` |
-| documentador | Disparado no fim do encerramento de toda tarefa, em segundo plano e num git worktree isolado: escreve o diário de estudo da tarefa (`docs/04-estudos/tarefas/T-XXX.md`) a partir da nota dela; pode consultar e, se necessário, atualizar outras notas de estudo | Apenas `docs/04-estudos/` |
+| instrutor | Mentor do George no modo `eu-faco` (guia sem escrever o código; não fecha a tarefa); sob demanda tira dúvidas na hora, de forma interativa (`/estudar`), e cria ou atualiza a nota por conceito. Não consolida | Apenas `docs/04-estudos/` |
+| documentador | Sempre em segundo plano e num git worktree isolado. (1) Disparado no fim do encerramento de toda tarefa (`agente-faz`, `eu-faco` e `revisao`): escreve o diário de estudo da tarefa (`docs/04-estudos/tarefas/T-XXX.md`) a partir da nota dela; pode consultar e, se necessário, atualizar outras notas de estudo. (2) `/estudar-consolidar`: consolida os diários pendentes em notas por conceito (branch `estudos/consolidacao-AAAA-MM-DD`) | Apenas `docs/04-estudos/` |
 | devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`. **Dono da plataforma**: CI, ambientes, deploy, hooks, orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz e `docs/**` (exceto `03-tarefas` e `04-estudos`). Não cria ADRs (`docs/02-arquitetura/ADR-*`): devolve `AGUARDANDO-DECISAO` e o orquestrador cria via `registrar-decisao`. `docs/00-visao/**` e `docs/01-requisitos/**` nascem do levantamento de requisitos, conduzido pela sessão principal | Apenas a área de plataforma (tabela abaixo) |
 
 O **orquestrador** (sessão principal) não é um subagente: coordena o fluxo, escreve nas notas de tarefa e no backlog e faz os commits.
@@ -96,7 +96,7 @@ Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. De
 | dev | `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (que é do qa). Inclui os **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`), que ficam junto do código, e as configs de cada app/pacote (ex.: `apps/web/vite.config.ts`, `apps/api/package.json`) |
 | qa | **Testes de aceitação/e2e**: `e2e/**` (Playwright) e `apps/api/test/**` (testes de rotas da API com Supertest). Na revisão documental (tag `revisao`), nenhum arquivo |
 | instrutor | `docs/04-estudos/**` (lê e grava) |
-| documentador | `docs/04-estudos/**` (lê e grava, igual ao instrutor), no worktree dele. O produto principal é o diário da tarefa recebida (`docs/04-estudos/tarefas/T-XXX.md`) |
+| documentador | `docs/04-estudos/**` (lê e grava, igual ao instrutor), no worktree dele. Produto: o diário da tarefa recebida (`docs/04-estudos/tarefas/T-XXX.md`) ou, na consolidação, as notas por conceito e o campo `consolidado` dos diários |
 | devops | Plataforma: `.claude/**` (agentes, skills, comandos, `settings.json`, hooks), `AGENTS.md`, `CLAUDE.md`, `scripts/**`, `docs/**` exceto `docs/03-tarefas/**` e `docs/04-estudos/**`. CI e deploy: `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, configs de deploy na raiz (ex.: `render.yaml`, `wrangler.*`). Configs da raiz: `.gitignore`, `.gitattributes`, `.obsidian/**`, `package.json` (workspaces), `package-lock.json`, `.env.example` etc. |
 | orquestrador | `docs/03-tarefas/**` (notas e backlog, inclusive a nota editada dentro do worktree de estudos), os commits, e os arquivos que as skills `registrar-decisao` (ADRs) e `levantar-requisitos` (visão e requisitos) mandam a sessão principal criar |
 | todos os subagentes | nunca `docs/03-tarefas/**` (só o orquestrador) |
