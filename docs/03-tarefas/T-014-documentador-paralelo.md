@@ -56,6 +56,10 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 
 ## Estudo
 
+### README de `docs/04-estudos/` (pendência 1 do devops)
+
+**Resultado:** CONCLUIDO — o instrutor substituiu as linhas 3-4 do README por: uma tabela com os dois formatos (onde fica, quem escreve, quando — a mesma da skill `nota-de-estudo`); um item sobre `tarefas/` (um diário por tarefa, template `docs/_templates/diario-estudo.md`, campo `consolidado`); um item sobre a raiz (nota por conceito em kebab-case, criada por `/estudar` ou `/estudar-consolidar`; notas existentes nunca são movidas nem renomeadas). Título, linha do grafo e links mantidos. Base: o resumo do devops na nota e a skill `nota-de-estudo`.
+
 ## DevOps
 
 ### Rodada 1
@@ -82,3 +86,5 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — implementador devops (tag `orquestracao`)
 - 2026-10-10 — devops: CONCLUIDO — documentador, template, `/estudar-consolidar`, fluxo novo na `orquestrar-tarefa`, áreas e validador; README de estudos e `devops.md` pendentes
+- 2026-10-10 — instrutor: CONCLUIDO — README de `docs/04-estudos/` explica os dois formatos e a pasta `tarefas/`
+- 2026-10-10 — orquestrador: Q1 (`devops.md`) e Q2 (verificação da branch de estudos) apresentadas ao George; revisão aguarda a resposta
