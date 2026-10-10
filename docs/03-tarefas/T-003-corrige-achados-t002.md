@@ -1,7 +1,7 @@
 ---
 id: T-003
 titulo: Corrigir achados médios da T-002, formalizar o modo revisão e normalizar fim de linha
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [orquestracao, docs]
 rodadas: 1
@@ -19,14 +19,14 @@ Os achados baixos (B1–B5, B7–B14) ficam para a ADR de stack ou para uma tare
 
 ## Critérios de aceite
 
-- [ ] **B6 — fim de linha:** `.gitattributes` com `* text=auto eol=lf` + commit de normalização (`git add --renormalize .`); depois disso, `git status` fica limpo
-- [ ] **M5 — encerramento:** a `orquestrar-tarefa` roda testes + validador **antes** de marcar `concluida`; sem `src/`/suíte, roda só o validador (escrito explicitamente)
-- [ ] **M2 / Q2-A — modo revisão:** a `orquestrar-tarefa` tem um modo para a tag `revisao` (QA → Instrutor, sem implementador e sem code-reviewer); o `qa.md` tem o passo "revisão documental" (lista achados com arquivo e severidade, sem alterar arquivos); `nova-tarefa` lista `revisao` entre as tags
-- [ ] **M3 — áreas:** a tabela "Áreas por caminho" do `AGENTS.md` dá dono a `scripts/**`, `.gitignore`, `.gitattributes`, `.obsidian/**`, configs da raiz, `docs/**` (exceto `03-tarefas` e `04-estudos`) e `.claude/agents|skills|commands`; tem a linha do orquestrador; testes unitários são do dev (junto do código) e testes de aceitação/e2e são do qa
-- [ ] **Dono da plataforma:** `AGENTS.md`, `devops.md`, `orquestrar-tarefa` e a spec registram que tag `orquestracao` → implementador devops e a nova área do devops
-- [ ] **M4 — hooks e Bash:** a nota da T-001 ganha critérios para escrita via `Bash` (caminhos protegidos), para o devops e o code-reviewer, para identificar qual subagente está agindo e para exigir aprovação do George em mudanças em `.claude/agents/**` (nenhum agente altera a própria definição sem aprovação)
-- [ ] **M1 — ordem:** o backlog e o `AGENTS.md` deixam explícita a sequência levantamento de requisitos → ADR de stack → T-001; o `AGENTS.md` não cita mais uma "visão completa" inexistente sem dizer que ela vem do levantamento
-- [ ] `python3 scripts/validar_estrutura.py` passa
+- [x] **B6 — fim de linha:** `.gitattributes` com `* text=auto eol=lf` + commit de normalização (`git add --renormalize .`); depois disso, `git status` fica limpo
+- [x] **M5 — encerramento:** a `orquestrar-tarefa` roda testes + validador **antes** de marcar `concluida`; sem `src/`/suíte, roda só o validador (escrito explicitamente)
+- [x] **M2 / Q2-A — modo revisão:** a `orquestrar-tarefa` tem um modo para a tag `revisao` (QA → Instrutor, sem implementador e sem code-reviewer); o `qa.md` tem o passo "revisão documental" (lista achados com arquivo e severidade, sem alterar arquivos); `nova-tarefa` lista `revisao` entre as tags
+- [x] **M3 — áreas:** a tabela "Áreas por caminho" do `AGENTS.md` dá dono a `scripts/**`, `.gitignore`, `.gitattributes`, `.obsidian/**`, configs da raiz, `docs/**` (exceto `03-tarefas` e `04-estudos`) e `.claude/agents|skills|commands`; tem a linha do orquestrador; testes unitários são do dev (junto do código) e testes de aceitação/e2e são do qa
+- [x] **Dono da plataforma:** `AGENTS.md`, `devops.md`, `orquestrar-tarefa` e a spec registram que tag `orquestracao` → implementador devops e a nova área do devops
+- [x] **M4 — hooks e Bash:** a nota da T-001 ganha critérios para escrita via `Bash` (caminhos protegidos), para o devops e o code-reviewer, para identificar qual subagente está agindo e para exigir aprovação do George em mudanças em `.claude/agents/**` (nenhum agente altera a própria definição sem aprovação)
+- [x] **M1 — ordem:** o backlog e o `AGENTS.md` deixam explícita a sequência levantamento de requisitos → ADR de stack → T-001; o `AGENTS.md` não cita mais uma "visão completa" inexistente sem dizer que ela vem do levantamento
+- [x] `python3 scripts/validar_estrutura.py` passa
 
 ## Contexto relevante
 
@@ -38,6 +38,8 @@ Os achados baixos (B1–B5, B7–B14) ficam para a ADR de stack ou para uma tare
 - 2026-10-09 — George: tratar os achados numa única tarefa (M1–M5 + B6); formalizar o modo revisão (opção A); `.gitattributes` entra nesta tarefa (opção B).
 - 2026-10-09 — George (opção B): o **DevOps é dono da plataforma** — orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz (`.gitignore`, `.gitattributes`, `.obsidian/**`) e `docs/**` exceto `03-tarefas` e `04-estudos`. Tarefas com tag `orquestracao` são implementadas pelo **devops**. **Nesta tarefa** essa área já vale para o devops (a tabela do `AGENTS.md` é atualizada no critério M3).
 - 2026-10-09 — orquestrador: as edições em `.claude/agents/` desta tarefa decorrem de critérios definidos pelo George — `qa.md` (M2, revisão documental) e `devops.md` (dono da plataforma); `dev.md` foi ajustado como consequência do M3 (testes unitários do dev). **Pendente:** o George confirmar explicitamente a alteração do `dev.md` ao fechar a tarefa, já que a regra nova exige aprovação dele para `.claude/agents/**`.
+- 2026-10-10 — George (Q1-A): aprova a alteração do `.claude/agents/dev.md` como está (testes unitários do dev em `src/**`).
+- 2026-10-10 — George (Q2-B): versionar `.obsidian/appearance.json` e `.obsidian/core-plugins.json` (configuração do vault compartilhada no repositório).
 
 ## Dev
 
@@ -149,3 +151,4 @@ Arquivos alterados: `AGENTS.md`, `.claude/agents/devops.md`, spec da orquestraç
 - 2026-10-10 — code-reviewer: APROVADO — ajustes conferidos, sem contradição nova; 4 opcionais registrados
 - 2026-10-10 — qa: PASSOU — 8 critérios atendidos; validador OK; nenhum arquivo alterado
 - 2026-10-10 — instrutor: CONCLUIDO — 2 notas de estudo atualizadas e 3 criadas
+- 2026-10-10 — orquestrador: decisões Q1-A (`dev.md` aprovado) e Q2-B (`.obsidian/` versionado); validador OK (sem `src/`/suíte); tarefa concluída
