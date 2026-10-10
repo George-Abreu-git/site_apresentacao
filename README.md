@@ -16,7 +16,7 @@ Monorepo com npm workspaces:
 
 ## Pré-requisitos
 
-- Node.js 24 e npm 11
+- Node.js 24 ou mais recente (declarado em `engines` no `package.json`; a API usa `process.loadEnvFile`) e npm 11
 
 ## Como rodar
 
@@ -27,12 +27,19 @@ npm install
 # 2. Baixar os navegadores usados pelo Playwright (só na primeira vez)
 npx playwright install
 
-# 3. Configurar a API: copie o modelo e preencha (o .env nunca vai para o git)
+# 3. Compilar tudo uma vez (gera o dist/ do packages/shared, usado pela API e pelo front)
+npm run build
+
+# 4. Configurar a API: copie o modelo e preencha (o .env nunca vai para o git)
 cp .env.example apps/api/.env
 
-# 4. Subir a API e o front juntos (Ctrl+C encerra os dois)
+# 5. Subir a API e o front juntos (Ctrl+C encerra os dois)
 npm run dev
 ```
+
+Sobre o passo 3: a API e o front importam `@site-apresentacao/shared` a partir da pasta compilada `packages/shared/dist/`, que não vai para o git.
+Num clone novo, antes do primeiro `npm run build`, o editor marca erro nesse import e `npm run build -w apps/api` (ou `-w apps/web`) sozinho falha.
+Depois de mudar algo em `packages/shared`, rode `npm run build -w packages/shared` de novo.
 
 ## Comandos
 
@@ -42,13 +49,14 @@ npm run dev
 | `npm run build` | Gera o build de cada workspace (`packages/shared` primeiro) |
 | `npm test` | Roda os testes unitários e de rotas de todos os workspaces |
 | `npm run test:e2e` | Roda os testes de aceitação do Playwright (`e2e/`) |
-| `npm run lint` | Roda o ESLint em cada workspace |
+| `npm run lint` | Roda o ESLint em cada workspace e depois em `e2e/`, `scripts/` e `eslint.config.mjs` |
 
 Para rodar um comando em um workspace só, use `--workspace` (ou `-w`), por exemplo `npm test -w apps/api`.
 
 ## Lint
 
 O ESLint tem uma configuração única para o monorepo, em [`eslint.config.mjs`](eslint.config.mjs) ([ADR-0002](docs/02-arquitetura/ADR-0002-lint.md)): regras de JavaScript e TypeScript em tudo e regras de hooks do React só em `apps/web`.
-Cada workspace roda `eslint .` e o ESLint encontra a configuração subindo até a raiz. Para corrigir automaticamente o que for possível: `npx eslint . --fix` dentro do workspace.
+Cada workspace roda `eslint .` e o ESLint encontra a configuração subindo até a raiz.
+O que não é workspace (`e2e/`, `scripts/` e o próprio `eslint.config.mjs`) é analisado pelo `npm run lint` da raiz, logo depois dos workspaces; a opção `--no-error-on-unmatched-pattern` evita erro enquanto uma dessas pastas não existe (ex.: `e2e/` antes dos primeiros testes). Para corrigir automaticamente o que for possível: `npx eslint . --fix` dentro do workspace.
 
 O `typescript` fica na raiz em `~6.0`, porque o typescript-eslint ainda não suporta o TypeScript 7.

@@ -12,7 +12,10 @@
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present && eslint --no-error-on-unmatched-pattern e2e scripts eslint.config.mjs"
+  },
+  "engines": {
+    "node": ">=24"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
