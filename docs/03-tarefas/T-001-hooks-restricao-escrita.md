@@ -94,6 +94,17 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
     - ✅ A T-001 fecha agora com o que foi pedido nas rodadas. ✅ A reestruturação vira tarefa com escopo e revisão próprios. ✅ Respeita a observação da D5.
     - ❌ Fecha a T-001 com brechas conhecidas que permitem escrever em `docs/03-tarefas/**` (critérios 25, 27, 28 abertos). ❌ O code-reviewer continua podendo executar comandos via `sed .../e`. ❌ Contraria a Definition of Done (critérios de aceite atendidos).
   - **Escolha: A.** É a única que deixa os critérios atendidos e ataca a causa das rodadas repetidas; a rede de segurança deve excluir leituras conhecidas (`cat`, `grep`, `head`, `less`, `git show`...) para não travar fluxos legítimos. Se a próxima revisão ainda devolver `AJUSTES`, a tarefa fica `bloqueada` e o George decide (a C e a reestruturação por lista de permissões ficam registradas como alternativas).
+- 2026-10-10 — **D7 — Opcionais da revisão final (decidido pelo orquestrador, delegação).** O code-reviewer aprovou na rodada 4 e listou 7 opcionais, todos com construção obscura e intenção deliberada: (1, recomendado) `powershellViaBash` perdeu a negação por caminho protegido do `codigoInline` (pequena regressão); (2) opções longas abreviadas do GNU getopt (`sed --in`, `--expr=`, `sort --out=`); (3) script do `sed` vindo de variável; (4) `vim -e -s`/`-s`/`-S`/`-y`; (5) rede de segurança ignora a pasta atual (`cd docs/03-tarefas && <desconhecido>`); (6) falsos positivos da rede (`for ... in docs/03-tarefas/*`, `[ -f ... ]`, `[[ ]]`, `case`); (7) contradição no README.
+  - **A) Aplicar agora 1, 4, 6 e 7 (pequenos, seguros e de baixo risco de regressão); deixar 2, 3 e 5 para uma tarefa futura de endurecimento, junto com a divisão do `politica.mjs`**
+    - ✅ Corrige a única regressão (1) e um caso trivial de fechar (4: negar `vim` sempre — o Bash da ferramenta não tem terminal). ✅ Tira falsos positivos plausíveis para o devops em tarefas de orquestração (6) e a contradição do README (7). ✅ Mudanças de uma linha ou quase, sem nova revisão pesada.
+    - ❌ 2, 3 e 5 seguem abertos (documentados como limites). ❌ Mais uma ida ao devops. ❌ Mudanças depois da aprovação não voltam ao code-reviewer (o QA roda os testes).
+  - **B) Não aplicar nada; fechar como aprovado**
+    - ✅ Zero atraso. ✅ Encerra uma tarefa já longa (4 rodadas). ✅ Nada novo para revisar.
+    - ❌ Deixa a regressão (1) que o próprio revisor recomenda corrigir. ❌ Mantém falsos positivos plausíveis. ❌ README contraditório.
+  - **C) Aplicar os 7 agora**
+    - ✅ Nada pendente. ✅ Fecha os prefixos do getopt e o script dinâmico do sed. ✅ Rede de segurança mais completa.
+    - ❌ 2, 3 e 5 exigem lógica nova (prefixos, análise parcial de script dinâmico, pasta atual), com risco real de regressão sem revisão. ❌ `politica.mjs` (~1600 linhas) cresce ainda mais antes da divisão. ❌ Escopo além do que a T-001 precisa para os critérios.
+  - **Escolha: A.** Fecha a regressão e o que é trivial; o que exige lógica nova vai para uma tarefa de endurecimento (sugestão ao George: "endurecer e dividir o hook de restrição de escrita" — itens 2, 3 e 5 desta revisão + item 6 da D4). Não conta rodada (não é `AJUSTES`).
 
 ## Dev
 
@@ -140,6 +151,18 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
 Critérios reabertos: 25, 26 e 28 (itens 1–4) e 27 (item 2).
 
 **Opcionais:** (5) rede de segurança para quem escreve — comando sem análise com trecho protegido em argumento/atribuição → negar (fecharia `npx rimraf docs/03-tarefas/...`, `sort -o`, `uniq`...); (6) restringir a negação de `HOME`/`XDG_CONFIG_HOME`/`CURL_HOME`/`WGETRC` a `curl`/`wget`/`git`; (7) divisão do `politica.mjs` (~1460 linhas) segue para depois. Ver D6.
+
+### Rodada 4
+
+**Resultado:** APROVADO — os 4 bloqueantes da rodada 3 e os opcionais 5 e 6 da D6 estão aplicados e testados no `2584c19`, sem regressão nos fluxos legítimos; varredura adversarial do devops correta.
+
+**Verificações (hooks valendo para o revisor):** `test:hooks` 380/380; `npm test` verde; lint verde; validador OK (`PYTHONUTF8=1` e `python -X utf8`); `git status` limpo; área só `.claude/hooks/**`; lock inalterado; sem segredos. Ao vivo, permitidos: `GIT_PAGER=cat git log -1`, `timeout 60 git log -1`, `grep -n T-001 docs/03-tarefas/backlog.md`, `git diff ... | while IFS= read -r l; ...`, `sed -n '1,3p'`, `sed 's/x/the bar/'`, `npm run build`, `CI=1 npm run test:e2e -- --list`, `npm run test:e2e` completo (8/8). Dev e qa conferidos pelos testes e código (`timeout 60 npm test`, `HOME=/tmp npm test`, `env -i FOO=1 npm test`, `mkdir -p apps/web/src/{a,b}`, `git add apps/...`, `npm install`, `npx playwright`). `git -c` negado para todos não afeta fluxo listado.
+
+**Conferido:** `timeout` dinâmico (`:451-455`, `:486-489`, `:400`); parser do `sed` (endereços, `!`, `{}`, `s///` com flags, `y`, `a/i/c/r/R/b/t/T/:`, `-f`) — negados ao vivo `sed -n '1w /dev/null'` e `sed 's/.*/echo y/e'`; executores do Windows (inclusive `.exe`); git executando programas (exceção `GIT_PAGER=cat`/`PAGER=cat`, inclusive em `export`); rede de segurança; `HOME` restrito; `sort`/`shuf -o` (inclusive `-uo`), `ex`/`ed`/`red`, `vim -c`/`+cmd`.
+
+**Critérios:** 22 a 32 atendidos (31 pela D2), lidos com D1–D6.
+
+**Opcionais (nenhum bloqueante; todos com construção obscura e intenção deliberada):** (1, recomendado) `powershellViaBash` (`:756-767`) perdeu a negação por caminho protegido — `powershell -c "(gi docs/03-tarefas/T-001.md).Delete()"`, `powershell -c "clc docs/03-tarefas/x"`, `echo ... | powershell -Command -` passam; negar quando o texto juntado casa com `TRECHO_PROTEGIDO_REDE` e negar `-Command -`. (2) opções longas abreviadas (`sed --in`, `--expr=`, `--fil=`, `sort`/`shuf --out=`) — `sed --in` aceito e `sed --expr='e ...'` executou ao vivo. (3) script do `sed` vindo de variável (`:877`; executou ao vivo; anterior a este commit). (4) `vim -e -s`/`-s`/`-S`/`-y` escapam — negar `vi`/`vim`/`nvim`/`view` sempre. (5) rede ignora a pasta atual (`cd docs/03-tarefas && npx prettier --write T-001.md`). (6) falsos positivos da rede: `for f in docs/03-tarefas/*.md`, `[ -f ... ]`, `[[ ]]`, `case`, `sort`/`uniq` lendo — incluir `[`, `[[`, `for`, `case`, `select`, `read` na isenção. (7) README: linha 32 contradiz a 53; registrar que `export HOME=` voltou a passar (sem efeito real, limite da linha 54). Ver D7.
 
 ## QA
 
@@ -220,3 +243,5 @@ Arquivos: `.claude/hooks/politica.mjs`, `tests/politica.test.mjs`, `README.md`.
 - 2026-10-10 — code-reviewer: AJUSTES — 4 bloqueantes (`timeout` dinâmico; `sed` `e`/`w`; `powershell`/`cmd`/`winpty`/`start`; `GIT_EXTERNAL_DIFF`/`git -c`); rodadas = 3 (última volta antes do limite)
 - 2026-10-10 — orquestrador: D6 (delegação) — corrigir os 4 bloqueantes + rede de segurança para comando não analisado em caminho protegido + restrição do `HOME`
 - 2026-10-10 — devops: CONCLUIDO — 4 bloqueantes, rede de segurança, `HOME` restrito e varredura adversarial (`sort -o`, `ex`/`ed`/`vim -c`); 380 testes; test/lint/validador OK
+- 2026-10-10 — code-reviewer: APROVADO — bloqueantes fechados, sem regressão nos fluxos legítimos; 7 opcionais
+- 2026-10-10 — orquestrador: D7 (delegação) — aplicar opcionais 1, 4, 6 e 7 antes do QA; 2, 3 e 5 sugeridos para tarefa futura de endurecimento
