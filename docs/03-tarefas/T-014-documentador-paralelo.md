@@ -1,10 +1,10 @@
 ---
 id: T-014
 titulo: Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda
-status: aguardando-decisao
+status: em-andamento
 modo: agente-faz
 tags: [orquestracao]
-rodadas: 0
+rodadas: 1
 criada: 2026-10-10
 ---
 
@@ -52,6 +52,7 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 - 2026-10-10 — George (esclarecimento, **altera o 1º critério e o de áreas**): **instrutor e documentador podem ler e gravar em `docs/04-estudos/**`** (o documentador não fica restrito ao próprio diário nem proibido de ler outras notas). **O fluxo da tarefa termina quando o QA passa** (verificação → `concluida` → merge → push); nesse momento o documentador é disparado **em paralelo** para documentar a tarefa recém-finalizada, enquanto a próxima tarefa já começa (ex.: o QA passa a T-006 → o documentador documenta a T-006 em paralelo e a T-007 já inicia). O fluxo não espera o documentador terminar.
 - 2026-10-10 — George (Q3-B, **altera o critério do instrutor**): o **instrutor** atua como **mentor no `eu-faco`** e mantém o **`/estudar`** (tirar dúvidas na hora, interativo); **não** consolida. O **documentador** faz o **diário por tarefa** e a **consolidação** (`/estudar-consolidar`). O fechamento do `eu-faco` também passa a disparar o documentador em paralelo (o instrutor não fecha mais com nota de estudo).
 - 2026-10-10 — orquestrador: a Q3-B cobre as alterações em `.claude/agents/instrutor.md` e `documentador.md` necessárias para mover a consolidação; critérios 1, 30 e 34 atualizados na nota conforme o esclarecimento e a Q3-B. A exceção do validador também para `estudos/consolidacao-*` segue o mesmo motivo da Q2-A (só Markdown) — **interpretação do orquestrador**, a confirmar pelo George.
+- 2026-10-10 — George (Q4-A): **confirma** a exceção "só validador" também para a branch `estudos/consolidacao-AAAA-MM-DD` (mesmo motivo da Q2-A: só Markdown, worktree sem `node_modules`). O texto atual do `AGENTS.md`, da spec, da `commit-convencional` e da `orquestrar-tarefa` fica como está.
 
 ## Dev
 
@@ -138,3 +139,4 @@ Arquivos: `.claude/agents/{documentador,instrutor}.md`, `.claude/commands/{estud
 - 2026-10-10 — devops: CONCLUIDO — Q3-B aplicada (após travamento e retomada); validador OK
 - 2026-10-10 — instrutor: CONCLUIDO — README de estudos atribui a consolidação ao documentador e o `/estudar` ao instrutor
 - 2026-10-10 — code-reviewer: AGUARDANDO-DECISAO — critérios atendidos; 1 ajuste (falha de push na seção "Falha"); Q4 (exceção para `estudos/consolidacao-*`) ao George
+- 2026-10-10 — orquestrador: George decidiu Q4-A; ajuste da revisão volta ao devops (rodadas = 1)
