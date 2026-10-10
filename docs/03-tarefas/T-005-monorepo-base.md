@@ -1,7 +1,7 @@
 ---
 id: T-005
 titulo: Montar o monorepo base (workspaces, web, api, shared e ferramentas de teste)
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -77,6 +77,10 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 3. devops (sugestão para o README): num clone novo, rodar `npm run build` uma vez para compilar o `packages/shared`; antes disso o editor marca erro no import `@site-apresentacao/shared` (os testes rodam mesmo assim).
 4. Tema e layout responsivo completos ficam para a T-007; CORS (RNF-05) para a T-013.
 
+### Ajuste pós-revisão (decisão D1, não conta rodada)
+
+**Resultado:** CONCLUIDO — o comentário de `apps/api/src/health/health.controller.ts:10` agora cita `criarApp` e a constante `PREFIXO_DAS_ROTAS` (em `criar-app.ts`), no lugar do inexistente `configurarApp`. `npm run lint -w apps/api` e `npm test -w apps/api` (6/6) passam. Commit `8688db5`.
+
 ## Revisão
 
 ### Rodada 1
@@ -134,6 +138,13 @@ Commits do orquestrador: agentes/skill e raiz (ver Log).
 
 **Para o code-reviewer:** conferir o diff do `package-lock.json` e se fixar TypeScript `~6.0` na raiz está de acordo com a ADR-0002. `npm run lint` na raiz falha com "No workspaces found" até o dev criar os workspaces.
 
+### Ajuste pós-revisão (decisão D1, não conta rodada)
+
+**Resultado:** CONCLUIDO — opcionais 2–4 aplicados; `npm run lint`, `npm test` e o validador passam.
+- **Lint da raiz:** `npm run lint --workspaces --if-present && eslint --no-error-on-unmatched-pattern e2e scripts eslint.config.mjs`. Conferido em modo de depuração que `scripts/dev.mjs` e `eslint.config.mjs` são analisados; sem `e2e/` o comando não falha; um `e2e/tmp-lint-check.ts` temporário com `any` proposital fez o lint acusar `no-explicit-any` (código 1) e foi apagado. O `eslint.config.mjs` já cobria esses caminhos.
+- **README:** passo 3 do "Como rodar" (`npm run build` para gerar `packages/shared/dist/`), com nota sobre o erro de import no editor e a falha de `npm run build -w apps/api` num clone novo; "Comandos" e "Lint" descrevem o lint da raiz.
+- **`engines`:** `"node": ">=24"` e pré-requisitos do README atualizados; `npm install --package-lock-only --ignore-scripts` acrescentou ao lock só as 3 linhas do `engines` (Q4-A).
+
 ## Log
 
 - 2026-10-10 — tarefa criada
@@ -144,3 +155,4 @@ Commits do orquestrador: agentes/skill e raiz (ver Log).
 - 2026-10-10 — dev: CONCLUIDO — etapa 2: web, api e shared com testes unitários; test/build/lint e validador OK
 - 2026-10-10 — code-reviewer: APROVADO — critérios de devops e dev atendidos; lockfile confere; 5 opcionais
 - 2026-10-10 — orquestrador: D1 (delegação) — aplicar opcionais 1–4 antes do QA
+- 2026-10-10 — dev e devops: CONCLUIDO — opcionais 1 (comentário) e 2–4 (lint da raiz, README, `engines`) aplicados; lint/test/validador OK
