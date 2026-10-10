@@ -1,7 +1,7 @@
 ---
 id: T-003
 titulo: Corrigir achados médios da T-002, formalizar o modo revisão e normalizar fim de linha
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [orquestracao, docs]
 rodadas: 0
@@ -48,7 +48,33 @@ Os achados baixos (B1–B5, B7–B14) ficam para a ADR de stack ou para uma tare
 
 ## DevOps
 
+### Rodada 1
+
+**Resultado:** CONCLUIDO — o devops aplicou B6, M1 (parcial), M2, M3, M4, M5 e a regra de dono da plataforma, e atualizou a spec. O validador passou (`OK: base, docs, skills, agentes, comandos`). O devops não fez commits.
+
+**B6 (primeiro passo):** `.gitattributes` com `* text=auto eol=lf` criado; `git add --renormalize .` não gerou mudança (o índice já estava em LF). Sete arquivos (nota da T-002 e as 6 notas de `docs/04-estudos/`) continuam com CRLF no disco e aparecem como modificados só pelo cache de status; não têm diferença de conteúdo e ficam em LF no próximo checkout.
+
+**Por critério:**
+- **M5:** o Encerramento da `orquestrar-tarefa` agora é DoD → verificação (testes + validador) → `concluida` + backlog + commit → merge/push. Sem `src/` nem suíte, roda só o validador. Se a verificação falhar: `aguardando-decisao`, sem `concluida` e sem merge.
+- **M2:** `orquestrar-tarefa` ganhou a seção "Modo `revisao`" (QA → Instrutor, sem implementador nem code-reviewer); `qa.md` ganhou "Revisão documental" (achados com arquivo e severidade, sem alterar arquivos); `nova-tarefa` lista `orquestracao`, `docs` e `revisao` entre as tags.
+- **M3:** tabela de áreas do `AGENTS.md` reescrita: dev com `src/**` (incluindo testes unitários), qa com `tests/**` e `e2e/**` na raiz, devops com a área de plataforma completa, linha do orquestrador (`docs/03-tarefas/**`) e linha "todos os subagentes: nunca `docs/03-tarefas/**`"; regra de que `.claude/agents/**` exige aprovação do George. Ajustados também `dev.md` e `carregar-contexto`.
+- **Dono da plataforma:** `AGENTS.md`, `devops.md`, `orquestrar-tarefa` e a spec registram tag `orquestracao` → devops e a nova área. A spec ganhou linhas nas tabelas de decisões e de agentes, um bloco "Modo revisao" no §5, uma nota de encerramento no §5 e ajuste no §9.
+- **M4:** a nota da T-001 ganhou critérios para `Bash` (matcher com caminhos protegidos, ou retirar `Bash` do qa/code-reviewer por decisão do George), para devops, para code-reviewer, para identificar o subagente e para exigir aprovação do George em `.claude/agents/**`.
+- **M1 (parcial):** `AGENTS.md` não cita mais uma "visão completa" inexistente e ganhou a seção "Sequência inicial (ordem obrigatória)"; a descrição da T-001 registra a ordem. A linha do backlog foi aplicada pelo orquestrador.
+
+**Interpretações do devops para o code-reviewer olhar:**
+- `tests/**` e `e2e/**` na raiz como área do qa, no lugar de `**/tests/**`, `*.test.*`, `*.spec.*` (elimina a sobreposição com o dev); tabela segue provisória até a ADR de stack.
+- No modo `revisao`, `FALHOU` vai ao George como `aguardando-decisao`, sem contar rodada (não há implementador). A nota não definia isso.
+- A tag `revisao` prevalece sobre o campo `modo` da nota.
+
+**Fora do escopo (como pedido):** B1–B5 e B7–B14. O B13 (acentos no console do Windows) continua exigindo `PYTHONUTF8=1`.
+
+Arquivos alterados: `.gitattributes` (novo), `AGENTS.md`, `.claude/agents/{devops,qa,dev}.md`, `.claude/commands/nova-tarefa.md`, `.claude/skills/{orquestrar-tarefa,carregar-contexto}/SKILL.md`, spec da orquestração, `docs/03-tarefas/T-001-hooks-restricao-escrita.md`, `scripts/validar_estrutura.py` (acrescentado `.gitattributes` à lista da base).
+
+Commits feitos pelo orquestrador: `36f0a29` (B6), `3bdcfba` (M2, M3, M5, M1 parcial, dono da plataforma), `92de6bd` (M4).
+
 ## Log
 
 - 2026-10-09 — tarefa criada
 - 2026-10-09 — orquestrador: início — implementador devops (decisão do George), área ampliada vigente nesta tarefa
+- 2026-10-09 — devops: CONCLUIDO — B6, M1–M5 e dono da plataforma aplicados; validador OK
