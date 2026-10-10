@@ -32,6 +32,17 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
 - 2026-10-10 — George delegou ao orquestrador as decisões das tarefas T-005, T-006, T-001 e T-007 (ver T-005). Decisões abaixo marcadas "decidido pelo orquestrador (delegação)", com as opções documentadas, para revisão do George.
+- 2026-10-10 — **D1 — Opcionais da revisão (decidido pelo orquestrador, delegação).** O code-reviewer aprovou e listou: (1) `Menu.tsx:37` usa `estilos.menu`, classe que não existe no CSS Module (atributo `undefined`); (2) comentários dizem "cabeçalho fixo", mas o CSS usa `sticky` (confunde com `position: fixed`); (3) a regex de cor fixa do `tema.test.ts` cobre poucos nomes de cor e não olha `style={{...}}` em `.tsx` (sem caso hoje).
+  - **A) Aplicar 1 e 2 agora, antes do QA; registrar 3 como observação**
+    - ✅ Remove código morto (1) e um comentário enganoso num projeto didático (2). ✅ Mudanças de uma linha, sem risco. ✅ O 3 não tem caso real hoje; fica anotado para quando o tema crescer.
+    - ❌ Mais uma ida ao dev. ❌ Mudança depois da aprovação não volta ao code-reviewer (o QA roda tudo). ❌ O 3 fica pendente.
+  - **B) Não aplicar nada**
+    - ✅ Zero atraso. ✅ Revisão aprovada como está. ✅ Nada novo para conferir.
+    - ❌ Código morto no `Menu.tsx`. ❌ Comentário "fixo" ensina errado quem estuda o projeto. ❌ Pendências pequenas acumuladas.
+  - **C) Aplicar os 3**
+    - ✅ Nada pendente. ✅ Teste do tema mais robusto. ✅ Cobre `style` inline.
+    - ❌ O 3 exige regex/varredura nova sem caso real (risco de falso positivo). ❌ Escopo maior. ❌ Mais tempo.
+  - **Escolha: A.** Corrige o que é trivial e didaticamente relevante; o 3 fica como observação para a tarefa em que o tema crescer.
 
 ## Dev
 
@@ -56,6 +67,22 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 
 ## Revisão
 
+### Rodada 1
+
+**Resultado:** APROVADO — o diff atende aos critérios do dev para RF-01, RNF-01, RNF-02 e RNF-04.
+
+**Verificações:** `npm test` verde (front 26/26 em 9 arquivos, api 8/8, hooks 412/412); `npm run build` verde; `npm run lint` verde; `npm run test:e2e` 8/8 sem mudança no e2e; validador OK.
+
+**Critérios do dev:** RF-01 — seis seções com `id` (`inicio`, `sobre`, `stacks`, `projetos`, `servicos`, `contato`) de uma única lista (`secoes.ts`); cabeçalho `sticky` com `scroll-padding-top`; menu compacto no celular (botão "Menu", lista em posição absoluta), em linha a partir de 48rem. RNF-04 — cores só em `tema.css` (`index.css` sem `#1a1a1a`/`#ffffff`); `tema.test.ts` barra cor fixa em qualquer outro `.css`, inclusive `*.module.css`, ignora comentários e confere que há arquivo para inspecionar. RNF-02 — `header`, `nav` com nome, `main`, `section` com `aria-labelledby`, `footer`; um `h1`, demais `h2`; elementos nativos; `:focus-visible` (contorno de 3px em `--cor-foco`). RNF-01 — mobile-first, `box-sizing: border-box`, `overflow-wrap: break-word`; cobertura de 360–1280px com o qa. Testes por papel (`banner`, `navigation`, `main`, `contentinfo`, `region`, `heading`, `button`, `link`).
+
+**Acessibilidade do menu:** `aria-expanded` acompanha o estado; `aria-controls` aponta para o id da lista (`useId`, confirmado em teste); Esc fecha e devolve o foco (`toHaveFocus`); escolher um link fecha; com a lista fechada, `display: none` tira os links da ordem do Tab.
+
+**`vite.config.ts`:** `css: { include: [/\.css\?raw$/] }` libera só os `?raw`; imports normais seguem vazios (o jsdom não esconde elementos); mudança mínima e correta.
+
+**ADR, área e segurança:** nenhuma dependência nova (`package.json`/lock inalterados); 24 arquivos, todos em `apps/web/**`; sem segredos, sem entrada externa, sem `dangerouslySetInnerHTML`; `App.module.css` virou `Inicio.module.css` sem código morto.
+
+**Opcionais:** (1) `Menu.tsx:37` com `estilos.menu` inexistente; (2) comentários "fixo" em `Cabecalho.tsx:5` e `index.css:11` (o CSS usa `sticky`); (3) regex `COR_FIXA` de `tema.test.ts:15` cobre poucos nomes e não olha `style={{...}}`. Ver D1.
+
 ## QA
 
 ## Estudo
@@ -67,3 +94,5 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — implementador dev (tag `front-end`); e2e com o qa
 - 2026-10-10 — dev: CONCLUIDO — seis seções, menu por âncoras (compacto no celular), tema escuro em variáveis, HTML semântico; 26 testes do front; build/lint/validador OK; e2e atual 8/8
+- 2026-10-10 — code-reviewer: APROVADO — critérios do dev atendidos; 3 opcionais
+- 2026-10-10 — orquestrador: D1 (delegação) — aplicar opcionais 1 e 2 antes do QA; 3 como observação
