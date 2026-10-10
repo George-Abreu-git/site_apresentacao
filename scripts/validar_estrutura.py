@@ -15,16 +15,23 @@ SKILLS = [
     "nota-de-estudo", "commit-convencional", "apresentar-decisao",
     "orquestrar-tarefa", "levantar-requisitos",
 ]
-AGENTES = ["dev", "code-reviewer", "qa", "instrutor", "devops"]
-COMANDOS = ["nova-tarefa", "executar-tarefa", "estudar"]
+AGENTES = ["dev", "code-reviewer", "qa", "instrutor", "devops", "documentador"]
+# Campos de frontmatter obrigatórios só para alguns agentes (valores como texto, como o parser lê).
+# documentador: roda em segundo plano num git worktree isolado (T-014).
+CAMPOS_AGENTE = {"documentador": {"background": "true", "isolation": "worktree"}}
+COMANDOS = ["nova-tarefa", "executar-tarefa", "estudar", "estudar-consolidar"]
 DOCS = [
     "docs/00-visao/README.md", "docs/01-requisitos/README.md", "docs/02-arquitetura/README.md",
     "docs/03-tarefas/backlog.md", "docs/04-estudos/README.md",
     "docs/_templates/tarefa.md", "docs/_templates/adr.md", "docs/_templates/nota-estudo.md",
+    "docs/_templates/diario-estudo.md",
 ]
 CHAVES_TAREFA = ["id", "titulo", "status", "modo", "tags", "rodadas", "criada"]
 SECOES_TAREFA = ["Descrição", "Critérios de aceite", "Contexto relevante", "Decisões",
                  "Dev", "Revisão", "QA", "Estudo", "DevOps", "Log"]
+# Diário de estudo por tarefa (template e arquivos em docs/04-estudos/tarefas/).
+CHAVES_DIARIO = ["tipo", "tarefa", "data", "consolidado", "conceitos"]
+SECOES_DIARIO = ["O que foi feito", "Conceitos", "Onde aparece no projeto", "Exercícios", "Links"]
 
 
 def ler_frontmatter(caminho: Path):
@@ -97,6 +104,30 @@ def validar_docs(erros: list) -> None:
     backlog = RAIZ / "docs/03-tarefas/backlog.md"
     if backlog.is_file() and "T-001" not in backlog.read_text(encoding="utf-8"):
         erros.append("ERRO: backlog.md não contém T-001")
+    if (RAIZ / "docs/_templates/diario-estudo.md").is_file():
+        validar_diario("docs/_templates/diario-estudo.md", erros, template=True)
+    for diario in sorted((RAIZ / "docs/04-estudos/tarefas").glob("*.md")):
+        validar_diario(diario.relative_to(RAIZ).as_posix(), erros)
+
+
+def validar_diario(rel: str, erros: list, template: bool = False) -> None:
+    """Confere o frontmatter e as seções do diário de estudo (template ou diário de uma tarefa)."""
+    fm, corpo = frontmatter(rel, erros)
+    for chave in CHAVES_DIARIO:
+        if chave not in fm:
+            erros.append(f"ERRO: {rel} sem a chave '{chave}'")
+    if fm.get("tipo", "diario") != "diario":
+        erros.append(f"ERRO: {rel} com tipo '{fm.get('tipo')}' (esperado diario)")
+    esperado = ["false"] if template else ["false", "true"]
+    if "consolidado" in fm and fm["consolidado"] not in esperado:
+        erros.append(f"ERRO: {rel} com consolidado '{fm['consolidado']}' (esperado {' ou '.join(esperado)})")
+    if not template:
+        nome = Path(rel).stem
+        if not fm.get("tarefa") or fm.get("tarefa") != nome:
+            erros.append(f"ERRO: {rel} com tarefa '{fm.get('tarefa')}' (esperado {nome})")
+    for secao in SECOES_DIARIO:
+        if not tem_titulo(corpo, f"## {secao}"):
+            erros.append(f"ERRO: {rel} sem a seção '## {secao}'")
 
 
 def validar_skills(erros: list) -> None:
@@ -122,6 +153,9 @@ def validar_agentes(erros: list) -> None:
                 erros.append(f"ERRO: agente {nome} sem '{campo}'")
         if fm.get("model") != "inherit":
             erros.append(f"ERRO: agente {nome} com model '{fm.get('model')}' (esperado inherit)")
+        for campo, valor in CAMPOS_AGENTE.get(nome, {}).items():
+            if fm.get(campo) != valor:
+                erros.append(f"ERRO: agente {nome} com {campo} '{fm.get(campo)}' (esperado {valor})")
         skills = fm.get("skills") or []
         if isinstance(skills, str):
             skills = [skills]

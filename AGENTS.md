@@ -17,15 +17,16 @@ Nomes no código seguem a convenção da stack escolhida.
 
 ```
 AGENTS.md / CLAUDE.md   contexto principal
-.claude/agents/         subagentes (dev, code-reviewer, qa, instrutor, devops)
+.claude/agents/         subagentes (dev, code-reviewer, qa, instrutor, devops, documentador)
 .claude/skills/         skills compartilhadas e de orquestração
-.claude/commands/       /nova-tarefa, /executar-tarefa, /estudar
+.claude/commands/       /nova-tarefa, /executar-tarefa, /estudar, /estudar-consolidar
+.claude/worktrees/      worktrees temporários dos subagentes isolados (ignorado pelo git)
 docs/00-visao/          visão, objetivos, público
 docs/01-requisitos/     requisitos funcionais (RF-XX) e não funcionais (RNF-XX)
 docs/02-arquitetura/    ADRs, specs e planos
 docs/03-tarefas/        backlog.md + uma nota por tarefa (T-XXX-<slug>.md)
-docs/04-estudos/        notas de estudo do Instrutor
-docs/_templates/        templates (tarefa, ADR, nota de estudo)
+docs/04-estudos/        notas por conceito (instrutor) e tarefas/ com o diário de cada tarefa (documentador)
+docs/_templates/        templates (tarefa, ADR, nota de estudo, diário de estudo)
 scripts/                utilitários (ex.: validar_estrutura.py)
 apps/web/               front-end (React + Vite + TypeScript)
 apps/api/               API (NestJS, um módulo por domínio; testes de rotas em apps/api/test/)
@@ -62,7 +63,7 @@ Qualquer tecnologia fora desta lista é decisão do George (nova ADR).
 ## Definition of Done
 
 Uma tarefa só está pronta quando cumpre o checklist da skill `definition-of-done`
-(critérios de aceite, testes verdes, sem segredos, responsivo, acessível, cada agente na sua área, nota de estudo criada).
+(critérios de aceite, testes verdes, sem segredos, responsivo, acessível, cada agente na sua área, diário de estudo disparado).
 
 ## Regra de decisões
 
@@ -77,7 +78,8 @@ Subagentes não decidem: registram a decisão no handoff e devolvem com `AGUARDA
 | dev | Implementa a tarefa com TDD | Código e testes da tarefa |
 | code-reviewer | Revisa o diff (convenções, segurança, legibilidade, área de cada agente) | Nada (somente leitura) |
 | qa | Valida critérios de aceite, responsividade e acessibilidade | Apenas arquivos de teste |
-| instrutor | Guia (modo `eu-faco`) ou explica (modo `agente-faz`) | Apenas `docs/04-estudos/` |
+| instrutor | Guia o George no modo `eu-faco` (mentor); sob demanda explica um tema (`/estudar`) e consolida os diários em notas por conceito (`/estudar-consolidar`) | Apenas `docs/04-estudos/` |
+| documentador | No encerramento de toda tarefa, em segundo plano e num git worktree isolado, escreve o diário de estudo da tarefa a partir da nota dela; não lê outras notas de estudo | Apenas `docs/04-estudos/tarefas/` |
 | devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`. **Dono da plataforma**: CI, ambientes, deploy, hooks, orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz e `docs/**` (exceto `03-tarefas` e `04-estudos`). Não cria ADRs (`docs/02-arquitetura/ADR-*`): devolve `AGUARDANDO-DECISAO` e o orquestrador cria via `registrar-decisao`. `docs/00-visao/**` e `docs/01-requisitos/**` nascem do levantamento de requisitos, conduzido pela sessão principal | Apenas a área de plataforma (tabela abaixo) |
 
 O **orquestrador** (sessão principal) não é um subagente: coordena o fluxo, escreve nas notas de tarefa e no backlog e faz os commits.
@@ -90,9 +92,10 @@ Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. De
 |---|---|
 | dev | `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (que é do qa). Inclui os **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`), que ficam junto do código, e as configs de cada app/pacote (ex.: `apps/web/vite.config.ts`, `apps/api/package.json`) |
 | qa | **Testes de aceitação/e2e**: `e2e/**` (Playwright) e `apps/api/test/**` (testes de rotas da API com Supertest). Na revisão documental (tag `revisao`), nenhum arquivo |
-| instrutor | `docs/04-estudos/**` |
+| instrutor | `docs/04-estudos/**` (nos diários de `tarefas/`, só o campo `consolidado`, na consolidação) |
+| documentador | `docs/04-estudos/tarefas/**` — só o diário da tarefa recebida (`T-XXX.md`), escrito no worktree dele |
 | devops | Plataforma: `.claude/**` (agentes, skills, comandos, `settings.json`, hooks), `AGENTS.md`, `CLAUDE.md`, `scripts/**`, `docs/**` exceto `docs/03-tarefas/**` e `docs/04-estudos/**`. CI e deploy: `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, configs de deploy na raiz (ex.: `render.yaml`, `wrangler.*`). Configs da raiz: `.gitignore`, `.gitattributes`, `.obsidian/**`, `package.json` (workspaces), `package-lock.json`, `.env.example` etc. |
-| orquestrador | `docs/03-tarefas/**` (notas e backlog) os commits, e os arquivos que as skills `registrar-decisao` (ADRs) e `levantar-requisitos` (visão e requisitos) mandam a sessão principal criar |
+| orquestrador | `docs/03-tarefas/**` (notas e backlog, inclusive a nota editada dentro do worktree de estudos), os commits, e os arquivos que as skills `registrar-decisao` (ADRs) e `levantar-requisitos` (visão e requisitos) mandam a sessão principal criar |
 | todos os subagentes | nunca `docs/03-tarefas/**` (só o orquestrador) |
 
 Uma alteração em `.claude/agents/**` (a definição de um agente) exige **aprovação do George**, mesmo dentro da área do devops: nenhum agente altera a própria definição por conta própria. Na tarefa que pedir essa mudança, a aprovação é a decisão do George registrada em `## Decisões`.

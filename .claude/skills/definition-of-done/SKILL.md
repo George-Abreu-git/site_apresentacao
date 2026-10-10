@@ -16,4 +16,4 @@ Itens marcados com *(encerramento)* são verificados pelo orquestrador ao final 
 - [ ] Acessibilidade básica: HTML semântico, contraste adequado, `alt` em imagens, navegação por teclado
 - [ ] O implementador alterou apenas a sua área (ver tabela em `AGENTS.md`)
 - [ ] Código legível, sem código morto ou comentários de debug
-- [ ] *(encerramento)* Nota de estudo criada ou atualizada pelo instrutor
+- [ ] *(encerramento)* Diário de estudo disparado: o `documentador` foi acionado em segundo plano após a integração (passo "Diário de estudo" da `orquestrar-tarefa`). Não exige o diário pronto nem integrado

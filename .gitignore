@@ -17,8 +17,9 @@ test-results/
 .obsidian/workspace*.json
 .obsidian/cache
 
-# Claude Code (configurações locais)
+# Claude Code (configurações locais e worktrees temporários dos subagentes com isolation: worktree)
 .claude/settings.local.json
+.claude/worktrees/
 
 # Sistema
 .DS_Store

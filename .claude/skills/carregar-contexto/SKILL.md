@@ -19,11 +19,12 @@ Leia **somente** o que o seu papel precisa. Contexto enxuto = respostas melhores
 | dev | ADRs em `docs/02-arquitetura/ADR-*.md` citadas na tarefa ou relacionadas à stack; arquivos citados em "Contexto relevante"; testes existentes da área afetada |
 | code-reviewer | `git diff main...HEAD` e `git log main..HEAD --oneline`; skill `definition-of-done`; handoff do dev na tarefa |
 | qa | "Critérios de aceite" da tarefa; `git diff main...HEAD`; requisitos `RF/RNF` citados; testes existentes |
-| instrutor | Seções Dev/Revisão/QA/Estudo da tarefa (handoffs e guias anteriores); notas existentes em `docs/04-estudos/` sobre os conceitos citados |
+| instrutor | Modo mentor (`eu-faco`): seções Dev/Revisão/QA/Estudo da tarefa (handoffs e guias anteriores). Consolidação (`/estudar-consolidar`): os diários `docs/04-estudos/tarefas/T-*.md` com `consolidado: false` e as notas por conceito existentes com os mesmos nomes dos `conceitos` desses diários |
+| documentador | **Só** a nota da tarefa (todas as seções, inclusive os handoffs) e os arquivos citados nela, dentro do seu worktree. Não lê nada de `docs/04-estudos/` (o `AGENTS.md` já chega no contexto inicial do subagente; não precisa lê-lo de novo) |
 | devops | ADRs de stack e infra; arquivos de CI/infra existentes; em tarefas `orquestracao`, os arquivos de plataforma citados na tarefa (`.claude/**`, `scripts/**`, `AGENTS.md`) e a spec da orquestração |
 
 ## Regras
 
 - Não varra o repositório com buscas amplas. Se algo necessário não estiver listado, busque de forma pontual (Grep/Glob por nome) e cite no handoff o que precisou ler a mais.
 - Se a nota da tarefa não existir ou estiver incompleta, pare e devolva `AGUARDANDO-DECISAO` explicando o que falta.
-- **Exceção — pedido avulso (`/estudar`)**: não há tarefa. Leia `AGENTS.md` e as notas relacionadas em `docs/04-estudos/`; use `avulso` como id.
+- **Exceção — pedido avulso (`/estudar`, `/estudar-consolidar`)**: não há tarefa. Leia `AGENTS.md` e as notas relacionadas em `docs/04-estudos/` (na consolidação, o que a linha do instrutor indica); use `avulso` como id.

@@ -24,6 +24,7 @@ Exemplos: `feat(contato): adiciona formulário de contato` · `test(api): cobre 
 
 - `main` é a principal; nunca commitar trabalho de tarefa direto nela. Exceção: a criação da nota de tarefa (`/nova-tarefa`) e atualizações do backlog fora de um fluxo são commitadas em `main`.
 - Uma branch por tarefa: `feat/T-XXX-<slug>` (ou `fix/...`).
+- Branches de estudo: `estudos/T-XXX` (diário do documentador, integrada pelo worktree sem sair da tarefa em andamento — ver `orquestrar-tarefa`) e `estudos/consolidacao-AAAA-MM-DD` (`/estudar-consolidar`). Só alteram Markdown de estudo e a nota da tarefa; entram na `main` com o validador verde, sempre por fast-forward.
 - Merge em `main`: automático quando **todos** os testes e o validador passam (merge local primeiro, depois `git push origin main`). Se algo falhar, nada de merge — decisão do George.
 - Remoto: `origin` = https://github.com/George-Abreu-git/site_apresentacao
 - Sessões do Cowork não têm credenciais do GitHub: lá, faça só commit e merge local e avise o George para rodar `git push` no VS Code. No Claude Code do VS Code, o push é automático.
