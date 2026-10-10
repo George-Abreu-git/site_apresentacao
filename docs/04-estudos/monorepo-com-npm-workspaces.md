@@ -54,7 +54,18 @@ O contra assumido: é um conceito a mais para aprender (workspaces) e há mais p
 - **Áreas por caminho**: a estrutura definiu quem mexe em quê. Código e configs de cada app (`apps/**`, `packages/**`) são do dev; o `package.json` da raiz (a lista de workspaces) e o `package-lock.json` são do devops, por serem configs da raiz. Veja [[areas-por-caminho-de-escrita]].
 - **`.gitignore`**: um único arquivo na raiz cobre todos os workspaces, porque `node_modules/` e `dist/` sem barra no início valem em qualquer nível. Veja [[gitignore-padroes-e-check-ignore]].
 
-O código ainda **não existe**: a criação do monorepo é uma tarefa futura de setup. Nomes de pacotes (ex.: `@site/shared`) e scripts serão definidos lá.
+Na T-004 o código ainda não existia; ele foi criado na **T-005** (abaixo). O mapa completo do que roda onde está em [[mapa-do-monorepo]].
+
+### Na T-005: o monorepo de verdade
+
+- **Nomes reais**: `@site-apresentacao/shared`, `@site-apresentacao/web` e `@site-apresentacao/api` (o exemplo mais abaixo usa `@site/shared`, que era só ilustrativo).
+- **Pacote interno**: `apps/web` e `apps/api` declaram `"@site-apresentacao/shared": "*"` nas `dependencies`. O `*` quer dizer "qualquer versão": o npm encontra o workspace local e cria o link `node_modules/@site-apresentacao/shared` → `packages/shared`. Nada é publicado no npm (todos têm `"private": true`).
+- **Resposta à pesquisa "como o TypeScript lê o shared"**: a T-005 escolheu **compilar antes**. O `packages/shared/package.json` tem um campo `exports` apontando `types` para `./dist/index.d.ts`; o `tsc` do shared gera esse arquivo (`declaration: true`). Por isso, num clone novo, é preciso rodar `npm run build` uma vez antes de o editor reconhecer o import (está no README).
+- **Ordem importa**: o `"workspaces"` da raiz lista `packages/*` **antes** de `apps/*`. O `npm run build --workspaces` segue essa ordem, então o shared é compilado antes de a API e o front precisarem dele.
+- **`--if-present`**: os scripts da raiz (`build`, `test`, `lint`) rodam `npm run <script> --workspaces --if-present`; um workspace sem aquele script é pulado em vez de dar erro.
+- **Limite dos workspaces**: `npm run dev --workspaces` roda um de cada vez e servidor de dev nunca termina. Por isso o `dev` da raiz é `node scripts/dev.mjs`, que abre a API e o front em paralelo.
+- **`package-lock.json`** (Q4-A): é arquivo gerado; dev ou devops podem alterá-lo ao instalar dependências, ninguém edita à mão, e o code-reviewer confere se o diff bate com os `package.json`.
+- **Versões casadas**: o `typescript` está em `~6.0.3` em todos os `package.json`, e o lock tem um único `typescript@6.0.3`, por causa de uma *peer dependency* do typescript-eslint. Veja [[lint-com-eslint-flat-config]].
 
 ## Exemplo
 
@@ -96,12 +107,12 @@ npm test --workspaces       # roda "test" em todos os workspaces
 
 - Pergunta: o front e a API vivem no mesmo repositório, mas vão para plataformas diferentes. O que, exatamente, cada plataforma (Cloudflare Pages, Render) precisa saber para construir só a sua parte? (Dica: pasta raiz do build e comando de build.)
 - Pergunta: por que `packages/shared` deve ter **só tipos** (e não, por exemplo, código que acessa o GitHub)? O que aconteceria com o tamanho do front?
-- Exercício (quando o setup existir): rode `npm ls --workspaces` e explique cada linha. Depois abra `node_modules/@site/` e veja que é um link para `packages/shared`.
+- Exercício (já dá para fazer, desde a T-005): rode `npm ls --workspaces` e explique cada linha. Depois abra `node_modules/@site-apresentacao/` e veja que `shared`, `web` e `api` são links para as pastas do repositório.
 - Pesquisa: o link do workspace resolve **onde** está o pacote, mas o TypeScript do Vite e do NestJS ainda precisa saber **como** ler os arquivos `.ts` de `packages/shared` (compilar antes ou apontar para o código-fonte). Que opções existem? Isso vai aparecer na tarefa de setup e pode virar decisão do George.
 - Pesquisa: o que é *hoisting* no npm e por que, num monorepo, a maioria das dependências fica no `node_modules/` da raiz?
 
 ## Links
 
-- Tarefa: [[docs/03-tarefas/T-004-atualiza-agents-stack]]
+- Tarefas: [[docs/03-tarefas/T-004-atualiza-agents-stack]], [[docs/03-tarefas/T-005-monorepo-base]]
 - ADR: [[docs/02-arquitetura/ADR-0001-stack]]
-- Relacionadas: [[areas-por-caminho-de-escrita]], [[gitignore-padroes-e-check-ignore]], [[adr-como-fonte-unica]]
+- Relacionadas: [[areas-por-caminho-de-escrita]], [[gitignore-padroes-e-check-ignore]], [[adr-como-fonte-unica]], [[mapa-do-monorepo]], [[lint-com-eslint-flat-config]]
