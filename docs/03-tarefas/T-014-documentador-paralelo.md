@@ -1,7 +1,7 @@
 ---
 id: T-014
 titulo: Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda
-status: em-revisao
+status: aguardando-decisao
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -56,6 +56,19 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 ## Dev
 
 ## Revisão
+
+### Rodada 1
+
+**Resultado:** AGUARDANDO-DECISAO — critérios 27 a 36 atendidos; o 37 é executável pela `orquestrar-tarefa`. Arquivos coerentes entre si (nenhuma contradição sobre quem faz o quê; "explicador" só no plano histórico), cada mudança na área de quem a fez, mudanças em `.claude/agents/**` aprovadas em `## Decisões`, nenhuma nota por conceito movida (só o README mudou em `docs/04-estudos/`), validador OK.
+
+**Segurança do procedimento git:** não interrompe a tarefa em andamento (`git -C "$WT" switch main` funciona porque o checkout principal está na `feat/` e a `main` não está aberta em nenhum worktree); limpeza com `merge-base --is-ancestor` antes do `branch -D`; rebase antes do fast-forward; conflito → `rebase --abort` sem forçar; a branch de estudos não toca o backlog.
+
+**Ajuste:**
+1. `orquestrar-tarefa:97-99` (seção "Falha"): o gatilho "algum passo da integração falhou" pega também o `git push origin main` do passo 6 — quando o push falha, a `main` local **já** tem o diário (fast-forward), e a "Falha" registraria falsamente "diário não integrado". Correção: tirar a falha de push do gatilho; com a `main` já avançada, tentar o push de novo ou avisar o George, e seguir a limpeza do passo 7.
+
+**Decisão pendente (Q4):** a exceção "só validador" para `estudos/consolidacao-*` está escrita no `AGENTS.md:61` como "decisão do George na T-014", mas a Q2-A cobre só `estudos/T-XXX` — é interpretação do orquestrador e precisa de confirmação antes do merge.
+
+**Opcionais:** espaço no fim das linhas 3 e 21 de `docs/_templates/diario-estudo.md`; rodar o validador também no registro de FALHOU da seção "Falha"; confirmar na prova como funcionam os pedidos de permissão do subagente em background.
 
 ## QA
 
@@ -124,3 +137,4 @@ Arquivos: `.claude/agents/{documentador,instrutor}.md`, `.claude/commands/{estud
 - 2026-10-10 — orquestrador: George decidiu Q3-B (consolidação com o documentador); devops volta para aplicar
 - 2026-10-10 — devops: CONCLUIDO — Q3-B aplicada (após travamento e retomada); validador OK
 - 2026-10-10 — instrutor: CONCLUIDO — README de estudos atribui a consolidação ao documentador e o `/estudar` ao instrutor
+- 2026-10-10 — code-reviewer: AGUARDANDO-DECISAO — critérios atendidos; 1 ajuste (falha de push na seção "Falha"); Q4 (exceção para `estudos/consolidacao-*`) ao George
