@@ -1,7 +1,7 @@
 ---
 id: T-014
 titulo: Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 1
@@ -24,16 +24,16 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 
 ## Critérios de aceite
 
-- [ ] **Novo subagente `documentador`** (`.claude/agents/documentador.md`): `background: true`, `isolation: worktree`, `model: inherit`; produto principal: `docs/04-estudos/tarefas/T-XXX.md`; **lê e grava em `docs/04-estudos/**`** (pode consultar e, se necessário, atualizar outras notas de estudo) — *alterado pelo esclarecimento do George de 2026-10-10*; termina com `## Handoff`
-- [ ] **Template** `docs/_templates/diario-estudo.md`: frontmatter `tipo: diario`, `tarefa`, `data`, `consolidado: false`, `conceitos: []`; seções O que foi feito, Conceitos (curtos, com o porquê), Onde aparece no projeto (caminhos), Exercícios, Links
-- [ ] **`orquestrar-tarefa`**: no modo `agente-faz` (e no fechamento do `eu-faco`), o fluxo vira implementador → code-reviewer → qa → **encerramento** → **dispara o documentador em background**; regras para integrar `estudos/T-XXX` na `main` (merge + push) quando ele terminar, sem interromper a tarefa em andamento; se o documentador falhar, registrar no Log e seguir (não bloqueia nada)
-- [ ] **`instrutor`**: deixa de ter o modo explicador no fluxo; mantém o modo mentor (`eu-faco`) e o `/estudar`; **não** consolida — *alterado pela decisão Q3-B do George*
-- [ ] **Comando `/estudar-consolidar`** (executado pelo **documentador** — *Q3-B*): lê os diários com `consolidado: false`, cria/atualiza notas por conceito em `docs/04-estudos/` (raiz) e marca os diários como `consolidado: true`
-- [ ] **`nota-de-estudo`** descreve os dois formatos (diário por tarefa e nota por conceito) e quem escreve cada um
-- [ ] **`definition-of-done`**: o item de encerramento vira "diário de estudo disparado" (não exige o diário pronto)
-- [ ] **Áreas por caminho** (`AGENTS.md`): documentador → `docs/04-estudos/**`; instrutor → `docs/04-estudos/**` (os dois leem e gravam — *esclarecimento do George*)
-- [ ] As notas por conceito atuais **ficam onde estão** (nenhum link quebra); `docs/04-estudos/README.md` explica os dois formatos e a pasta `tarefas/`
-- [ ] Spec e `scripts/validar_estrutura.py` incluem o novo agente, o comando e o template
+- [x] **Novo subagente `documentador`** (`.claude/agents/documentador.md`): `background: true`, `isolation: worktree`, `model: inherit`; produto principal: `docs/04-estudos/tarefas/T-XXX.md`; **lê e grava em `docs/04-estudos/**`** (pode consultar e, se necessário, atualizar outras notas de estudo) — *alterado pelo esclarecimento do George de 2026-10-10*; termina com `## Handoff`
+- [x] **Template** `docs/_templates/diario-estudo.md`: frontmatter `tipo: diario`, `tarefa`, `data`, `consolidado: false`, `conceitos: []`; seções O que foi feito, Conceitos (curtos, com o porquê), Onde aparece no projeto (caminhos), Exercícios, Links
+- [x] **`orquestrar-tarefa`**: no modo `agente-faz` (e no fechamento do `eu-faco`), o fluxo vira implementador → code-reviewer → qa → **encerramento** → **dispara o documentador em background**; regras para integrar `estudos/T-XXX` na `main` (merge + push) quando ele terminar, sem interromper a tarefa em andamento; se o documentador falhar, registrar no Log e seguir (não bloqueia nada)
+- [x] **`instrutor`**: deixa de ter o modo explicador no fluxo; mantém o modo mentor (`eu-faco`) e o `/estudar`; **não** consolida — *alterado pela decisão Q3-B do George*
+- [x] **Comando `/estudar-consolidar`** (executado pelo **documentador** — *Q3-B*): lê os diários com `consolidado: false`, cria/atualiza notas por conceito em `docs/04-estudos/` (raiz) e marca os diários como `consolidado: true`
+- [x] **`nota-de-estudo`** descreve os dois formatos (diário por tarefa e nota por conceito) e quem escreve cada um
+- [x] **`definition-of-done`**: o item de encerramento vira "diário de estudo disparado" (não exige o diário pronto)
+- [x] **Áreas por caminho** (`AGENTS.md`): documentador → `docs/04-estudos/**`; instrutor → `docs/04-estudos/**` (os dois leem e gravam — *esclarecimento do George*)
+- [x] As notas por conceito atuais **ficam onde estão** (nenhum link quebra); `docs/04-estudos/README.md` explica os dois formatos e a pasta `tarefas/`
+- [x] Spec e `scripts/validar_estrutura.py` incluem o novo agente, o comando e o template
 - [ ] **Prova:** o encerramento desta própria tarefa já usa o fluxo novo — o diário `docs/04-estudos/tarefas/T-014.md` é gerado em background e integrado na `main`
 
 ## Contexto relevante
@@ -78,6 +78,14 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 **Opcional:** `orquestrar-tarefa:100` — quem chega a "Push falhou" pelo registro do FALHOU lê "o diário foi integrado"; poderia ser "o resultado (diário, consolidação ou registro de falha) já está na `main` local". Efeito prático já correto.
 
 ## QA
+
+### Rodada 2
+
+**Resultado:** PASSOU — critérios 27 a 36 atendidos no estado atual da branch (já com esclarecimento, Q3-B e Q4-A); o 37 fica para o encerramento, e a `orquestrar-tarefa` deixa disparo e integração executáveis passo a passo (pré-condição de push, comandos concretos, lock do worktree, limpeza segura, conflito, push falho e falha). Diff de 21 arquivos, todos nas áreas certas; o qa não alterou nada.
+
+**Verificação:** validador OK; `npm test` verde (api 8, web 3); em `docs/04-estudos/` só o README mudou, `--diff-filter=DR` vazio (nenhuma nota apagada/renomeada), as 17 notas por conceito seguem na raiz; nenhum link `[[...]]` ou `](*.md)` quebrado nos arquivos alterados.
+
+**Observações (baixa, fora do escopo):** o plano histórico de 2026-10-09 (linha 123) ainda diz "nota de estudo criada"; a spec (linha "Áreas de dev e qa (T-003)") ainda cita `src/**` e `tests/**` — texto anterior à T-014.
 
 ## Estudo
 
@@ -158,3 +166,5 @@ Arquivo: `.claude/skills/orquestrar-tarefa/SKILL.md`. Opcionais não aplicados.
 - 2026-10-10 — orquestrador: George decidiu Q4-A; ajuste da revisão volta ao devops (rodadas = 1)
 - 2026-10-10 — devops: CONCLUIDO — "Push falhou" separado da "Falha" na integração de estudos; validador OK
 - 2026-10-10 — code-reviewer: APROVADO — ajuste conferido, sem contradições; 1 opcional de texto
+- 2026-10-10 — qa: PASSOU — critérios 27 a 36 atendidos; validador e `npm test` verdes; nenhuma nota movida, nenhum link quebrado
+- 2026-10-10 — orquestrador: concluida — verificação verde (`npm test`, `npm run test:e2e` 8/8, validador); diário de estudo disparado após a integração (prova do critério 37)

@@ -17,6 +17,6 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-011-api-modulo-github|T-011]] | API: módulo github com cache e fallback | backlog | eu-faco | back-end, api |
 | [[docs/03-tarefas/T-012-front-cards-projetos|T-012]] | Front: cards de projetos consumindo a API | backlog | eu-faco | front-end, api |
 | [[docs/03-tarefas/T-013-deploy-v1|T-013]] | Deploy da v1: Cloudflare Pages, Render, CORS e SEO básico | backlog | agente-faz | release |
-| [[docs/03-tarefas/T-014-documentador-paralelo|T-014]] | Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda | em-qa | agente-faz | orquestracao |
+| [[docs/03-tarefas/T-014-documentador-paralelo|T-014]] | Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda | concluida | agente-faz | orquestracao |
 
 > Ordem: T-004 → T-005 → **T-014** → T-006 → T-001 → T-007 → T-008 → T-009 → T-010 → T-011 → T-012 → T-013. Requisitos e ADR de stack já concluídos ([[docs/02-arquitetura/ADR-0001-stack|ADR-0001]]); a T-001 agora depende só da T-005 (pastas criadas).
