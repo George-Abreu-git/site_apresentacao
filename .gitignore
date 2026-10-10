@@ -1,0 +1,19 @@
+# Dependências e builds
+node_modules/
+dist/
+build/
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Obsidian (estado local)
+.obsidian/workspace*.json
+.obsidian/cache
+
+# Claude Code (configurações locais)
+.claude/settings.local.json
+
+# Sistema
+.DS_Store
+Thumbs.db
