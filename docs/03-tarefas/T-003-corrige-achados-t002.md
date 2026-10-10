@@ -72,6 +72,21 @@ Os achados baixos (B1–B5, B7–B14) ficam para a ADR de stack ou para uma tare
 
 ## QA
 
+### Rodada 2
+
+**Resultado:** PASSOU — os 8 critérios de aceite estão atendidos no estado atual da branch (diff contra `main`: 13 arquivos, 9 commits); o QA não alterou nenhum arquivo. Responsividade e acessibilidade não se aplicam (tarefa documental).
+
+- **B6:** `.gitattributes` no commit `36f0a29`; `git ls-files --eol` todo em `i/lf`; `git diff` vazio; `git status` só com os 2 `.obsidian/` não rastreados.
+- **M5:** verificação antes de `concluida`; "sem `src/` nem suíte, só o validador" por escrito; falha → `aguardando-decisao`, sem merge.
+- **M2:** modo `revisao` na `orquestrar-tarefa`; "Revisão documental" no `qa.md`; `revisao` nas tags do `nova-tarefa`.
+- **M3:** devops dono de `scripts/**`, configs da raiz, `docs/**` (exceto `03-tarefas` e `04-estudos`) e `.claude/**`; linha do orquestrador; testes unitários do dev (`src/**`), aceitação/e2e do qa (`tests/**`, `e2e/**`).
+- **Dono da plataforma:** registrado em `AGENTS.md`, `devops.md`, `orquestrar-tarefa` e spec.
+- **M4:** T-001 com critérios para `Bash`, devops, code-reviewer, identificação do subagente e aprovação do George em `.claude/agents/**`.
+- **M1:** seção "Sequência inicial (ordem obrigatória)" no `AGENTS.md` e nota no backlog; "visão completa" corrigida.
+- **Validador:** `OK: estrutura válida (base, docs, skills, agentes, comandos)`, código 0.
+
+**Fora do escopo (não bloqueiam):** o plano histórico `docs/02-arquitetura/planos/2026-10-09-estrutura-orquestracao-plano.md:146` ainda descreve as áreas antigas; a nota de estudo `docs/04-estudos/areas-por-caminho-de-escrita.md` (linhas 28 e 40) também (pode ser atualizada pelo instrutor); a linha 37 da spec já está entre os opcionais da revisão.
+
 ## Estudo
 
 ## DevOps
@@ -117,3 +132,4 @@ Arquivos alterados: `AGENTS.md`, `.claude/agents/devops.md`, spec da orquestraç
 - 2026-10-09 — code-reviewer: AJUSTES — 2 ajustes de coerência (área do orquestrador; ressalva de ADR do devops); rodadas = 1
 - 2026-10-09 — devops: CONCLUIDO — 2 ajustes aplicados (rodada 2); validador OK
 - 2026-10-10 — code-reviewer: APROVADO — ajustes conferidos, sem contradição nova; 4 opcionais registrados
+- 2026-10-10 — qa: PASSOU — 8 critérios atendidos; validador OK; nenhum arquivo alterado
