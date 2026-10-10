@@ -1,9 +1,9 @@
 ---
 id: T-002
 titulo: QA revisa todos os arquivos atuais antes da ADR de stack
-status: backlog
+status: em-andamento
 modo: agente-faz
-tags: [infra, release]
+tags: [qa]
 rodadas: 0
 criada: 2026-10-09
 ---
@@ -28,6 +28,8 @@ O objetivo é chegar à ADR com a base de orquestração e documentação coeren
 
 ## Decisões
 
+- 2026-10-09 — George escolheu a opção C: fluxo reduzido, sem implementador nem code-reviewer. O QA revisa e entrega os achados no handoff; o instrutor fecha com a nota de estudo. As tags passaram de `infra, release` para `qa`, porque a tarefa é uma revisão e não implementação de infra.
+
 ## Dev
 
 ## Revisão
@@ -41,3 +43,4 @@ O objetivo é chegar à ADR com a base de orquestração e documentação coeren
 ## Log
 
 - 2026-10-09 — tarefa criada
+- 2026-10-09 — orquestrador: início — decisão do George (opção C), tags `qa`, fluxo reduzido (QA → instrutor)
