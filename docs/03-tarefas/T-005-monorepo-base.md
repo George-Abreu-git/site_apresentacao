@@ -1,7 +1,7 @@
 ---
 id: T-005
 titulo: Montar o monorepo base (workspaces, web, api, shared e ferramentas de teste)
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -33,6 +33,9 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 ## Decisões
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
+- 2026-10-10 — orquestrador: o teste unitário da API usa **Vitest**, conforme a ADR-0001 (decisão 6); a dúvida do critério da `apps/api` está coberta pela ADR.
+- 2026-10-10 — George (Q1-B): implementação **dividida por área**, sem exceção: (1) **devops** cria a raiz (`package.json` com workspaces e scripts, `tsconfig` base, `.env.example`, README); (2) **dev** cria `apps/web`, `apps/api` e `packages/shared` com os testes unitários; (3) **code-reviewer** revisa o diff dos dois; (4) **qa** escreve o Playwright (com `playwright.config.ts` dentro de `e2e/`) e o teste de rota com Supertest em `apps/api/test/`, e roda tudo. Ajustes voltam ao agente dono do arquivo.
+- 2026-10-10 — George (Q2-A): aprova que o **devops alinhe `.claude/agents/dev.md`, `qa.md` e `devops.md`** às áreas do `AGENTS.md` (sem `src/**`/`tests/**`) e o gatilho da suíte na `orquestrar-tarefa` ("sem `src/`" → "sem `apps/`"), como primeiro passo desta tarefa.
 
 ## Dev
 
@@ -47,3 +50,4 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-10 — orquestrador: início — decisões Q1-B (fluxo devops → dev → code-reviewer → qa) e Q2-A (alinhar agentes)
