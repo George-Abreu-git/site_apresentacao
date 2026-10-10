@@ -102,6 +102,24 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 
 ## QA
 
+### Rodada 1
+
+**Resultado:** PASSOU — todos os critérios de aceite conferidos no estado final da branch; o qa escreveu os testes de aceitação (Q1-B), só na sua área.
+
+**Arquivos:**
+- `apps/api/test/health.e2e-spec.ts` (Supertest): `criarApp({ logger: false })` + `app.init()` no `beforeAll`, `app.close()` no `afterAll`; `GET /api/health` → 200, `content-type` JSON, `{ status: "ok" }`; `GET /health` (sem prefixo) → 404.
+- `e2e/playwright.config.ts`: testes em `e2e/testes/`; projetos `celular` (Pixel 7) e `desktop` (1440×900), só Chromium; `webServer` sobe o front sozinho (`npm run dev -w apps/web -- --port 5173 --strictPort`, `cwd: '..'`); fora do CI reaproveita servidor existente; no CI `forbidOnly` e `retries: 2`; relatórios em `e2e/test-results` e `e2e/playwright-report` (ignorados).
+- `e2e/testes/pagina-inicial.spec.ts`: 4 testes × 2 projetos — título da aba, `<h1>` e aviso visíveis; sem rolagem horizontal e `<h1>` inteiro na tela; `lang="pt-BR"`, um `<main>`, um `<h1>`, nenhuma `<img>` sem `alt`, contraste WCAG AA ≥ 4,5:1 calculado no teste (a página dá ~17:1); nenhum erro no console.
+
+**Resultados na raiz:** `npm test` (api 8, web 3); `npm run test:e2e` 8/8 com a porta 5173 livre (a config sobe o front sozinha); `npm run build` (o `tsc --noEmit` da api checa `test/`; `dist/` sem `test/`); `npm run lint` (analisa `e2e/**` e `apps/api/test/**`, 0 erros); validador OK. Mutação manual: uma cópia esperando `lang="en"` falhou como devia (apagada). Chromium instalado com `npx playwright install chromium`, fora do repositório.
+
+**Critérios:** 1 raiz ok; 2 web ok; 3 api (incluindo Supertest) ok; 4 `Projeto` compartilhado ok; 5 Playwright celular/desktop ok; 6 `.env.example` ok e nenhum `.env` versionado; 7 `npm test` e `npm run test:e2e` verdes e README ok. Sem elementos interativos, não houve teclado/foco a testar.
+
+**Pendências:**
+1. (devops, baixa) README: `npx playwright install chromium` basta (mais leve que todos os navegadores) — levar para a T-006.
+2. (devops, T-006) CI precisa de `npx playwright install --with-deps chromium` antes de `npm run test:e2e`; a config já trata `CI`.
+3. (futuro, T-007) testes de teclado e foco quando houver interação; checagem automática de acessibilidade (ex.: `@axe-core/playwright`) seria dependência nova.
+
 ## Estudo
 
 ## DevOps
@@ -156,3 +174,4 @@ Commits do orquestrador: agentes/skill e raiz (ver Log).
 - 2026-10-10 — code-reviewer: APROVADO — critérios de devops e dev atendidos; lockfile confere; 5 opcionais
 - 2026-10-10 — orquestrador: D1 (delegação) — aplicar opcionais 1–4 antes do QA
 - 2026-10-10 — dev e devops: CONCLUIDO — opcionais 1 (comentário) e 2–4 (lint da raiz, README, `engines`) aplicados; lint/test/validador OK
+- 2026-10-10 — qa: PASSOU — Supertest e Playwright (celular/desktop) criados; test, test:e2e (8/8), build, lint e validador OK
