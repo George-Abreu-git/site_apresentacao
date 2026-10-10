@@ -180,6 +180,12 @@ Critérios reabertos: 25, 26 e 28 (itens 1–4) e 27 (item 2).
 
 ## Estudo
 
+### Diário de estudo (documentador, em paralelo)
+
+**Resultado:** CONCLUIDO — diário [[docs/04-estudos/tarefas/T-001|T-001]] escrito em segundo plano, no worktree isolado: hook `PreToolUse` por agente, identificação do subagente por `agent_id`/`agent_type`, análise do Bash (chaves, curingas, embrulhos, `sed` com `e`/`w`, rede de segurança), regras `deny` e as decisões D1–D7 com as 4 rodadas de revisão. 10 conceitos (`hooks-pretooluse-e-bypass-via-bash`, `areas-por-caminho-de-escrita`, `identificacao-do-subagente-no-hook`, `falha-aberta-e-falha-fechada`, `analise-de-comandos-shell`, `lista-de-permissoes-e-lista-de-bloqueio`, `defesa-em-profundidade`, `permissoes-deny-do-claude-code`, `dono-da-plataforma-e-aprovacao-humana`, `limite-de-retrabalho`) e 2 exercícios ("seja o hook"; falha aberta × fechada).
+
+Nota por conceito atualizada: [[docs/04-estudos/hooks-pretooluse-e-bypass-via-bash|Hooks PreToolUse e bypass via Bash]] — bloco de atualização: a escolha "analisar o Bash ou retirar o Bash" foi tomada (ficou a análise), com link para o diário.
+
 ## DevOps
 
 ### Rodada 1
@@ -270,3 +276,4 @@ Arquivos: `.claude/hooks/politica.mjs`, `tests/politica.test.mjs`, `README.md`.
 - 2026-10-10 — devops: CONCLUIDO — `powershell` via Bash, `vim` negado, isenções da rede e README; 412 testes; test/lint/validador OK
 - 2026-10-10 — qa: PASSOU — critérios 22 a 32 atendidos; hooks conferidos ao vivo na área do qa e por agente via script
 - 2026-10-10 — orquestrador: concluida — verificação verde (`npm test` com 412 testes de hooks, `npm run test:e2e` 8/8, validador); diário de estudo disparado após a integração
+- 2026-10-10 — documentador: CONCLUIDO — diário integrado (branch `estudos/T-001`; 1 nota por conceito atualizada)
