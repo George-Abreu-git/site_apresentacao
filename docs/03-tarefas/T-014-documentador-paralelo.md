@@ -1,7 +1,7 @@
 ---
 id: T-014
 titulo: Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -46,6 +46,7 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 
 - 2026-10-10 — George (Q1-A): tirar a documentação do caminho crítico; formato **diário por tarefa** + consolidação sob demanda (`/estudar-consolidar`); execução em paralelo num worktree.
 - 2026-10-10 — consequência registrada na abertura: o diário fica com um **novo agente** (`documentador`), porque o instrutor em modo mentor precisa ler a branch da tarefa e não pode rodar isolado a partir da `main`. Se o George preferir manter um agente só, o orquestrador apresenta a alternativa (`apresentar-decisao`) antes de implementar.
+- 2026-10-10 — orquestrador: as alterações em `.claude/agents/**` desta tarefa (novo `documentador.md`; `instrutor.md` sem o modo explicador) estão **aprovadas pelo George** por constarem explicitamente nos critérios de aceite que ele definiu (decisão Q1-A).
 
 ## Dev
 
@@ -60,3 +61,4 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-10 — orquestrador: início — implementador devops (tag `orquestracao`)
