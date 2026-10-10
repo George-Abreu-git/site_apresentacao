@@ -58,7 +58,27 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 
 ## DevOps
 
+### Rodada 1
+
+**Resultado:** CONCLUIDO — todos os critérios implementados, exceto o README de `docs/04-estudos/` (área do instrutor; texto pronto) e a "Prova" (encerramento, orquestrador). Validador OK; as checagens novas foram testadas numa cópia e pegam `background`/`isolation` errados, comando faltando, diário com `tipo`/`tarefa`/`consolidado` inválidos ou sem seções, template com `consolidado: true`.
+
+**Frontmatter conferido na documentação do Claude Code** (`sub-agents.md`, `worktrees.md`): `background: true` (fica em segundo plano), `isolation: worktree` (worktree temporário em `.claude/worktrees/<nome>/`, branch `worktree-<nome>`), `model: inherit`. Pontos que mudaram o desenho:
+1. Com `worktree.baseRef: "fresh"` (padrão), o worktree nasce de `origin/main`, não do `HEAD` → o disparo só acontece **depois do `git push origin main`** (sem push, não disparar; avisar o George).
+2. A branch criada é `worktree-<nome>`; na integração o orquestrador roda `git -C "$WT" switch -c estudos/T-XXX` e commita (o documentador não tem Bash).
+3. `.claude/worktrees/` entrou no `.gitignore` (recomendação da documentação; evita ruído na conferência de área).
+- A sessão vigia `.claude/agents/`, então o `documentador` é reconhecido sem reiniciar. Antes de escrever, ele confere se está em `.claude/worktrees/` e se a nota no worktree está `concluida` (senão `FALHOU`).
+
+**Disparo e integração** (passo a passo na `orquestrar-tarefa`, seção "Diário de estudo em paralelo"): disparo depois do push, só com id, caminho e modo, sem esperar; aprovar só a escrita do diário dentro de `.claude/worktrees/`. Integração com `git -C "$WT"` (sem trocar a branch do checkout principal): conferir que só o diário mudou, `switch -c estudos/T-XXX`, commits do diário e da nota (`## Estudo` + Log), validador, `rebase main` → `merge --ff-only` → `git push origin main`, remover o worktree e apagar as branches com `git merge-base --is-ancestor ... main && git branch -D`. Falha não bloqueia: descartar o worktree e registrar no Log via worktree próprio.
+
+**Arquivos:** `.claude/agents/documentador.md` (novo), `.claude/agents/instrutor.md` (sem modo explicador; ganha a consolidação), `.claude/commands/estudar-consolidar.md` (novo), `estudar.md`, `nova-tarefa.md`, skills `orquestrar-tarefa`, `nota-de-estudo` (dois formatos), `definition-of-done` ("diário de estudo disparado"), `atualizar-tarefa`, `carregar-contexto`, `commit-convencional`, `docs/_templates/diario-estudo.md` (novo), spec, `scripts/validar_estrutura.py`, `AGENTS.md` (estrutura, papéis, áreas), `CLAUDE.md`, `.gitignore`. Nenhuma nota por conceito movida ou renomeada. Na spec, "sem `src/`" virou "sem `apps/`".
+
+**Pendências:**
+1. `docs/04-estudos/README.md` (área do instrutor) — texto proposto pelo devops para as linhas 3-4, explicando o diário por tarefa (`tarefas/T-XXX.md`, documentador) e a nota por conceito (instrutor, `/estudar` e `/estudar-consolidar`).
+2. `.claude/agents/devops.md` com dois trechos desatualizados (linha 18: "code-reviewer → qa → instrutor" → "→ encerramento (documentador)"; linha 26: `docs/04-estudos/**` "do instrutor" → "do instrutor e do documentador"); exige aprovação do George.
+3. Leitura do devops: a branch `estudos/T-XXX` entra na `main` só com o validador (sem a suíte), porque só altera Markdown e o worktree não tem `node_modules`.
+
 ## Log
 
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — implementador devops (tag `orquestracao`)
+- 2026-10-10 — devops: CONCLUIDO — documentador, template, `/estudar-consolidar`, fluxo novo na `orquestrar-tarefa`, áreas e validador; README de estudos e `devops.md` pendentes
