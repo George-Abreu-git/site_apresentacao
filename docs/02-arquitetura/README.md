@@ -7,3 +7,7 @@ Decisões técnicas e documentos de desenho.
 - **Planos**: [[2026-10-09-estrutura-orquestracao-plano|Plano da estrutura de orquestração]]
 
 Quem escreve: a sessão principal (orquestrador), sempre com a decisão tomada pelo George.
+
+## ADRs aceitas
+
+- [[docs/02-arquitetura/ADR-0001-stack|ADR-0001 — Stack da v1]]
