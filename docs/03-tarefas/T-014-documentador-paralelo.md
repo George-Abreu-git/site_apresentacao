@@ -1,7 +1,7 @@
 ---
 id: T-014
 titulo: Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 1
@@ -126,6 +126,16 @@ Arquivos: `.claude/agents/{documentador,instrutor}.md`, `.claude/commands/{estud
 
 **Pendência:** `docs/04-estudos/README.md` (linha ~8) ainda diz que o instrutor escreve no `/estudar-consolidar` — enviada ao instrutor.
 
+### Rodada 2 (ajuste da revisão)
+
+**Resultado:** CONCLUIDO — só o ajuste da Rodada 1 do code-reviewer, na `orquestrar-tarefa`; validador OK.
+- **Passo 6 da Integração:** se o `git push origin main` falhar, a `main` local já tem o diário → não é Falha; vai para a seção nova "Push falhou".
+- **"Push falhou"** (antes de "Falha"): tentar o push de novo; se continuar falhando, avisar o George para rodar `git push` no VS Code; seguir a limpeza do passo 7 (o `merge-base --is-ancestor` confirma que as branches já estão na `main`); não registrar "diário não integrado".
+- **Gatilho da "Falha":** só passos antes do fast-forward (1 a 5 e o merge do passo 6), exceto conflito no rebase.
+- **Tabela da Consolidação:** linha "Push falhou" com o mesmo caminho.
+
+Arquivo: `.claude/skills/orquestrar-tarefa/SKILL.md`. Opcionais não aplicados.
+
 ## Log
 
 - 2026-10-10 — tarefa criada
@@ -140,3 +150,4 @@ Arquivos: `.claude/agents/{documentador,instrutor}.md`, `.claude/commands/{estud
 - 2026-10-10 — instrutor: CONCLUIDO — README de estudos atribui a consolidação ao documentador e o `/estudar` ao instrutor
 - 2026-10-10 — code-reviewer: AGUARDANDO-DECISAO — critérios atendidos; 1 ajuste (falha de push na seção "Falha"); Q4 (exceção para `estudos/consolidacao-*`) ao George
 - 2026-10-10 — orquestrador: George decidiu Q4-A; ajuste da revisão volta ao devops (rodadas = 1)
+- 2026-10-10 — devops: CONCLUIDO — "Push falhou" separado da "Falha" na integração de estudos; validador OK
