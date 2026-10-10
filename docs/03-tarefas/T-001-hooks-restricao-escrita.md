@@ -1,10 +1,10 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-revisao
+status: em-andamento
 modo: agente-faz
 tags: [infra, orquestracao]
-rodadas: 1
+rodadas: 2
 criada: 2026-10-09
 ---
 
@@ -72,6 +72,17 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
     - ✅ Código mais organizado. ✅ Nada pendente. ✅ Melhor leitura para o estudo.
     - ❌ Refatoração junto com correção de segurança aumenta o risco de regressão. ❌ Diff difícil de revisar. ❌ Rodada bem mais longa.
   - **Escolha: A.** Os itens 2–5 melhoram diretamente o que a T-001 promete (restrição de escrita sem travar fluxos legítimos); a refatoração (6) fica como melhoria futura, para não misturar com correção de segurança. O item 6 do code-reviewer sobre o texto do handoff (PowerShell sem `rm -rf` no `deny`) já está correto nesta nota.
+- 2026-10-10 — **D5 — Rodada 2 da revisão: embrulhos e opcionais (decidido pelo orquestrador, delegação).** Bloqueante: opções de comandos-embrulho (`env -u/-C/-S`, `timeout -s/-k`, `exec -a`, `stdbuf`, `nice`, `time -p`) viram o "nome do comando", e o `rm` que vem depois passa para dev, qa e devops (critérios 25, 28 e 30). Opcionais: (1) `IFS` nas variáveis seguras do code-reviewer (falso positivo em `while IFS= read`); (2) `tar --remove-files`; (3) `curl -K`, `wget --config`, gawk `@include "inplace"`; (4) negar `GIT_DIR`/`GIT_WORK_TREE`/`GIT_INDEX_FILE` como `--git-dir`/`--work-tree`. Com `rodadas = 2`, mais um `AJUSTES` leva a 3 e o quarto bloqueia a tarefa.
+  - **A) Bloqueante pela sugestão do revisor (opções com valor consomem o valor; `env -S` e opção de embrulho desconhecida negadas para subagentes; `time -p` tratado) + os 4 opcionais**
+    - ✅ Fecha a classe inteira de embrulhos, não só os exemplos (a regra "opção desconhecida = negar" é uma lista de permissões). ✅ Os opcionais são pequenos e fecham brechas da mesma família (2–4) ou um falso positivo real (1). ✅ Reduz a chance de um terceiro `AJUSTES`.
+    - ❌ Rodada maior. ❌ Mais regras no `politica.mjs` antes da divisão. ❌ Risco de falso positivo em embrulhos legítimos raros.
+  - **B) Só o bloqueante**
+    - ✅ Rodada menor. ✅ Menos risco de regressão. ✅ Escopo estrito.
+    - ❌ `tar --remove-files`, `curl -K` e `GIT_DIR=` seguem abertos. ❌ O falso positivo de `while IFS= read` continua travando o revisor. ❌ Mais chance de a próxima revisão achar a mesma família.
+  - **C) Trocar a abordagem: para subagentes que escrevem, comando desconhecido passa a ser negado (lista de permissões geral)**
+    - ✅ Robusto contra qualquer comando novo ou embrulho não previsto. ✅ Acaba com a caça a brechas. ✅ Alinha com o que já vale para o code-reviewer.
+    - ❌ Trava fluxos legítimos que ninguém listou (`npx <ferramenta>`, scripts do projeto, utilitários). ❌ Mudança grande no meio da rodada de ajustes, com risco alto de regressão. ❌ Exige catalogar todos os comandos legítimos de dev, qa e devops.
+  - **Escolha: A.** Fecha a família de embrulhos com uma lista de opções conhecidas (sem a explosão de falsos positivos da C) e aproveita a rodada para os opcionais baratos. Se a próxima revisão ainda achar brechas desta família, a C fica registrada como alternativa para uma tarefa própria.
 
 ## Dev
 
@@ -90,6 +101,18 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
 **Ajuste (bloqueante):** curingas e chaves com `..` escapam da conferência de área (`politica.mjs:133-139`, `shell.mjs:258` e `:117`): (a) curinga seguido de `..` — `rm apps/web/*/../../../docs/03-tarefas/T-001.md` (dev) é permitido; (b) chaves não reconhecidas — `touch docs/{02-arquitetura,03-tarefas}/x.md` (devops) e `touch apps/{web/a,../docs/03-tarefas/b}` (dev) permitidos; (c) `$'...'` com escapes (`apps/$'\x2e\x2e'/docs/...`). Correção: marcar `{` com `,`/`..` fora de aspas como glob e `$'` como dinâmico; incluir `{` no corte do curinga; negar curinga com segmento `..` depois do corte; testes negados para cada forma e permitido para `mkdir -p apps/web/src/{components,hooks}` (dev).
 
 **Opcionais:** (2) `curl -o`, `wget -O/-P`, `rsync`, `tar -x/-C`, `unzip -d`, `awk -i inplace`; (3) code-reviewer: negar `--fix`, `-u/--update`, `node --test --import/--require`, `git -c`; (4) liberar para o code-reviewer laços `for`, `awk` de leitura e `python -X utf8`; (5) README: `permissions.deny` tem precedência sobre o "permitir" do hook (ex.: `rm -rf apps/web/dist` passa no teste do hook, mas a regra nega); (6) dividir `politica.mjs` e tirar `separarArgs` duplicado; texto do handoff do devops citava `rm -rf` no PowerShell (o `settings.json` só tem `git push` no PowerShell). Ver D4.
+
+### Rodada 2
+
+**Resultado:** AJUSTES — o bloqueante da rodada 1 e os opcionais 2–5 da D4 estão aplicados e testados, sem regressão; há um novo bloqueante (anterior a este commit, não visto na rodada 1).
+
+**Verificações (com os hooks valendo para o revisor):** `test:hooks` 236/236; `npm test` verde; lint verde; validador OK com `PYTHONUTF8=1` e com `python -X utf8`. Fluxos legítimos rodados ao vivo: git de leitura (inclusive `HEAD@{1}..HEAD`, chave literal), `awk '{print $1}'` em pipe, laço `for` com `wc`, `npm run build`, `CI=1 npm run test:e2e -- --list`. `env -S 'GIT_EXTERNAL_DIFF=x git diff'` negado. Fluxos do qa e do dev conferidos pelo código e pelos testes. Área: só `.claude/hooks/**`.
+
+**Extensões além do pedido:** corretas — expansão de chaves (necessária; aspas misturadas negadas; limite de 256; `HEAD@{1}` literal); variáveis seguras (fecha `GIT_EXTERNAL_DIFF`/`NODE_OPTIONS`, inclusive via `env`/`env -S`; `GIT_PAGER`/`PAGER` só `cat`); `find -exec` (fecha `-exec sh -c 'rm "$1"'`; `-execdir` = pasta desconhecida; não trava `-exec grep`).
+
+**Bloqueante:** `politica.mjs:307-320` (`desembrulhar`) e `shell.mjs:299` (`time` reservado): o valor de uma opção do embrulho vira o nome do comando e o comando de escrita seguinte não é analisado (comando desconhecido é permitido para dev, qa e devops). Passam: `env -u X rm -f docs/03-tarefas/T-001.md`, `env -C docs/03-tarefas rm T-001.md`, `env -S 'rm -f docs/03-tarefas/x'`/`env -Srm ...`, `timeout -s KILL 5 rm ...`, `exec -a nome rm ...`, `time -p rm -f .claude/agents/dev.md`. Correção: opções com valor consomem o valor (`env -u/--unset`, `-C/--chdir`, `timeout -s/--signal`, `-k/--kill-after`, `exec -a`, `stdbuf -i/-o/-e`, `nice --adjustment`); negar `env -S`/`--split-string` e opção de embrulho desconhecida para subagentes; pular `time -p`; testes negados para cada forma e permitidos para `env -i FOO=1 npm test` e `timeout 60 npm test` (dev).
+
+**Opcionais:** (1) `IFS` em `VARIAVEIS_SEGURAS` (`while IFS= read -r l` negado ao vivo; atribuição solta `n=0` também); (2) `tar -c --remove-files`; (3) `curl -K/--config`, `wget --config`, gawk `@include "inplace"`; (4) negar `GIT_DIR=`, `GIT_WORK_TREE=`, `GIT_INDEX_FILE=` como `--git-dir`/`--work-tree`. Ver D5.
 
 ## QA
 
@@ -138,3 +161,5 @@ Arquivos: `.claude/hooks/shell.mjs`, `politica.mjs`, `tests/politica.test.mjs`, 
 - 2026-10-10 — code-reviewer: AJUSTES — curingas/chaves com `..` e `$'...'` escapam da análise do Bash (critérios 25 e 28); rodadas = 1
 - 2026-10-10 — orquestrador: D4 (delegação) — aplicar o bloqueante e os opcionais 2–5; refatoração fica para depois
 - 2026-10-10 — devops: CONCLUIDO — brechas fechadas (chaves expandidas, `$'...'`, curinga com `..`, escrita por opção, code-reviewer); 236 testes; test/lint/validador OK
+- 2026-10-10 — code-reviewer: AJUSTES — opções de comandos-embrulho (`env`, `timeout`, `exec`, `time -p`) escondem o comando de escrita; rodadas = 2
+- 2026-10-10 — orquestrador: D5 (delegação) — corrigir os embrulhos (opções conhecidas; desconhecida = negar) e aplicar os 4 opcionais
