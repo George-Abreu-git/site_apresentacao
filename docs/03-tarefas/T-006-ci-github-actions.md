@@ -57,3 +57,4 @@ Pipeline de integração contínua que roda em cada push e pull request para `ma
 
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — implementador devops (tag `infra`); D1 (delegação): simular CI localmente e deixar a confirmação no GitHub para o George
+- 2026-10-10 — orquestrador: **pausada a pedido do George** (ajuste no fluxo dos subagentes); devops interrompido antes de alterar arquivos; agendamento de retomada cancelado. Retomar do passo 1 (devops) com `/executar-tarefa T-006`.
