@@ -4,4 +4,4 @@ Notas de estudo geradas pelo agente **instrutor** (skill `nota-de-estudo`) a par
 Uma nota por conceito, nomeada em kebab-case (ex.: `api-rest.md`), sempre ligada à tarefa de origem e a notas relacionadas.
 Use a visualização de grafo do Obsidian para enxergar a trilha de aprendizado.
 
-Relacionados: [[03-tarefas/backlog|Backlog]]
+Relacionados: [[docs/03-tarefas/backlog|Backlog]]
