@@ -372,6 +372,96 @@ casosDeBash('Bash: comandos que escrevem por opção (curl, wget, rsync, tar, un
   ['dev', 'find apps -name "*.ts" -exec grep -l x {} +', 'permitir'],
 ]);
 
+casosDeBash('Bash: comandos-embrulho e suas opções (revisão da rodada 2)', [
+  // Casos pedidos na revisão.
+  ['dev', 'env -u X rm -f docs/03-tarefas/T-001.md', 'negar'],
+  ['dev', 'env -C docs/03-tarefas rm T-001.md', 'negar'],
+  ['dev', "env -S 'rm -f docs/03-tarefas/x'", 'negar'],
+  ['dev', 'env -Srm docs/03-tarefas/x', 'negar'],
+  ['dev', 'timeout -s KILL 5 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'exec -a nome rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'time -p rm -f .claude/agents/dev.md', 'negar'],
+  ['devops', 'time -p rm -f .claude/agents/dev.md', 'perguntar'],
+  ['dev', 'env -i FOO=1 npm test', 'permitir'],
+  ['dev', 'timeout 60 npm test', 'permitir'],
+  // env: formas longas, pasta trocada e opção desconhecida.
+  ['dev', 'env --unset=X rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'env --chdir=docs rm 03-tarefas/x', 'negar'],
+  ['dev', 'env -C apps/web rm -f dist/x.js', 'permitir'],
+  ['dev', 'env -C apps/web rm ../api/test/x.ts', 'negar'],
+  ['dev', 'env -C $PASTA rm x', 'negar'],
+  ['dev', 'env -X rm docs/03-tarefas/x', 'negar'],
+  ['dev', "env --split-string='rm x'", 'negar'],
+  ['dev', 'env - FOO=1 bash -c "rm docs/03-tarefas/x"', 'negar'],
+  // timeout, stdbuf, nice, nohup, command, builtin, sudo.
+  ['dev', 'timeout -k 5 10 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'timeout --signal=KILL 5 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'timeout -vs KILL 5 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'stdbuf -o L rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'stdbuf -oL rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'stdbuf -oL npm test', 'permitir'],
+  ['dev', 'nice -n 5 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'nice --adjustment 5 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'nice -10 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'nohup rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'nohup --x rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'command rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'command -v wget', 'permitir'],
+  ['dev', 'builtin -x rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'sudo -u root rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'sudo -e docs/03-tarefas/x', 'negar'],
+  // time: `-o` grava arquivo; `time { ...; }` ainda é analisado.
+  ['dev', 'time -o docs/03-tarefas/x npm test', 'negar'],
+  ['dev', 'time -o apps/web/dist/tempo.txt npm test', 'permitir'],
+  ['dev', 'time { rm docs/03-tarefas/x; }', 'negar'],
+  // xargs: opções conhecidas e embrulhos dentro dele.
+  ['dev', 'ls | xargs -0n 1 rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'ls docs/03-tarefas | xargs env rm', 'negar'],
+  ['dev', 'ls | xargs nice -n 1 rm', 'negar'],
+  ['dev', 'ls | xargs --x rm', 'negar'],
+  ['dev', 'ls | xargs -I{} echo {}', 'permitir'],
+  // Embrulhos não analisados.
+  ['dev', 'setsid rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'watch ls', 'negar'],
+  // code-reviewer: embrulhos de leitura passam; opções que gravam ou escondem, não.
+  ['code-reviewer', 'time npm test', 'permitir'],
+  ['code-reviewer', 'time -p git status', 'permitir'],
+  ['code-reviewer', 'timeout 60 npm test', 'permitir'],
+  ['code-reviewer', "env -S 'git diff'", 'negar'],
+  ['code-reviewer', 'time -o x.txt git status', 'negar'],
+]);
+
+casosDeBash('Bash: opcionais da D5', [
+  // (1) IFS e atribuição solta no code-reviewer.
+  ['code-reviewer', 'git diff --name-only | while IFS= read -r l; do wc -l "$l"; done', 'permitir'],
+  ['code-reviewer', 'n=0; for f in a b; do echo $f; done', 'permitir'],
+  ['code-reviewer', 'PATH=/tmp/x; git status', 'negar'],
+  ['code-reviewer', 'n=0 git status', 'negar'],
+  // (2) tar --remove-files apaga as origens.
+  ['dev', 'tar -czf apps/web/dist/a.tgz docs/03-tarefas --remove-files', 'negar'],
+  ['dev', 'tar czf apps/web/dist/a.tgz docs --remove-files', 'negar'],
+  ['dev', 'tar -cf apps/web/dist/a.tar -C docs 03-tarefas --remove-files', 'negar'],
+  ['dev', 'tar --remove-files -cf apps/web/dist/a.tar apps/web/src', 'permitir'],
+  // (3) arquivos de configuração do curl/wget e inclusões do gawk.
+  ['dev', 'curl -K apps/web/x.cfg https://exemplo.dev', 'negar'],
+  ['dev', 'curl --config=apps/web/x.cfg https://exemplo.dev', 'negar'],
+  ['dev', 'wget --config apps/web/x.rc -P apps/web/dist https://exemplo.dev', 'negar'],
+  ['dev', "gawk '@include \"inplace\"; {print}' docs/03-tarefas/T-001.md", 'negar'],
+  ['dev', "gawk '@load \"inplace\"; {print}' apps/web/src/a.ts", 'negar'],
+  ['dev', "gawk -l inplace '{print}' apps/web/src/a.ts", 'negar'],
+  ['dev', 'gawk -f apps/web/x.awk docs/03-tarefas/T-001.md', 'negar'],
+  ['dev', "gawk -i apps/web/x.awk '{print}' docs/03-tarefas/T-001.md", 'negar'],
+  ['dev', 'awk -f apps/web/x.awk apps/web/src/a.ts', 'permitir'],
+  // (4) variáveis que trocam o repositório do git (e a configuração de curl/wget).
+  ['dev', 'GIT_DIR=/tmp/x git add apps/web/src/a.ts', 'negar'],
+  ['dev', 'GIT_WORK_TREE=docs git add 03-tarefas/x', 'negar'],
+  ['dev', 'GIT_INDEX_FILE=/tmp/i git add apps/web/src/a.ts', 'negar'],
+  ['dev', 'env GIT_WORK_TREE=docs git checkout -- x', 'negar'],
+  ['dev', 'export GIT_DIR=/tmp/x && git status', 'negar'],
+  ['dev', 'HOME=apps/web curl https://exemplo.dev', 'negar'],
+  ['dev', 'CI=1 npm test', 'permitir'],
+]);
+
 casosDeBash('Bash: agente fora da tabela', [
   ['Explore', 'ls -la && cat AGENTS.md', 'permitir'],
   ['Explore', 'rm apps/web/src/App.tsx', 'negar'],

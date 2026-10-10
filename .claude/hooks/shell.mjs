@@ -296,7 +296,8 @@ export function tokenizar(texto) {
 }
 
 // Palavras reservadas que podem abrir um comando simples sem serem o comando.
-const PREFIXOS_RESERVADOS = new Set(['then', 'do', 'else', 'elif', '!', '{', '}', 'time']);
+// `time` não entra aqui: tem opções (`time -p`) e é tratado como embrulho na política.
+const PREFIXOS_RESERVADOS = new Set(['then', 'do', 'else', 'elif', '!', '{', '}']);
 const ABRE_BLOCO_SEM_COMANDO = new Set(['if', 'while', 'until']);
 // Fecham um bloco; sozinhas, não são comando (`done > saida.txt` ainda redireciona).
 const FECHA_BLOCO = new Set(['done', 'fi', 'esac']);

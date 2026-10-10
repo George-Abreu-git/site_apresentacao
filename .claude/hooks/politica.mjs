@@ -280,9 +280,10 @@ function valorDe(opcoes, nomes) {
 const ATRIBUICAO = /^[A-Za-z_][A-Za-z0-9_]*=/;
 
 // Variáveis de ambiente que o code-reviewer pode definir antes de um comando.
+// `IFS` só muda a separação de palavras do próprio shell (`while IFS= read -r l`).
 const VARIAVEIS_SEGURAS = new Set([
   'PYTHONUTF8', 'PYTHONIOENCODING', 'CI', 'FORCE_COLOR', 'NO_COLOR', 'LANG', 'LC_ALL', 'LC_CTYPE',
-  'TZ', 'TERM', 'COLUMNS',
+  'TZ', 'TERM', 'COLUMNS', 'IFS',
 ]);
 
 function atribuicaoSegura(a) {
@@ -292,35 +293,190 @@ function atribuicaoSegura(a) {
   return (nome === 'GIT_PAGER' || nome === 'PAGER') && !a.dinamico && valor.join('=') === 'cat';
 }
 
-// Tira atribuições (`VAR=x cmd`) e "embrulhos" (`nohup cmd`, `timeout 5 cmd`).
-// As atribuições tiradas vão para `atribuicoes` (o code-reviewer confere).
-function desembrulhar(palavras, atribuicoes = []) {
-  let p = palavras.slice();
-  const tirarAtribuicao = () => {
-    atribuicoes.push(p[0]);
-    p = p.slice(1);
-  };
-  for (;;) {
-    while (p.length && ATRIBUICAO.test(p[0].texto)) tirarAtribuicao();
-    if (!p.length) return p;
-    const nome = nomeDoComando(p[0]);
-    if (['command', 'builtin', 'exec', 'nohup', 'time', 'stdbuf', 'sudo'].includes(nome)) {
-      p = p.slice(1);
-      while (p.length && p[0].texto.startsWith('-')) p = p.slice(1);
-    } else if (nome === 'nice' || nome === 'timeout') {
-      p = p.slice(1);
-      while (p.length && p[0].texto.startsWith('-')) p = p.slice(p[0].texto === '-n' ? 2 : 1);
-      if (nome === 'timeout' && p.length) p = p.slice(1); // a duração
-    } else if (nome === 'env') {
-      p = p.slice(1);
-      while (p.length && (p[0].texto.startsWith('-') || ATRIBUICAO.test(p[0].texto))) {
-        if (ATRIBUICAO.test(p[0].texto)) tirarAtribuicao();
-        else p = p.slice(1);
-      }
-      if (!p.length) return [palavra('env')];
-    } else {
-      return p;
+// Atribuição solta (`n=0`, sem comando) de variável em minúsculas: fica só no
+// shell. As variáveis que mudam o que um programa executa (PATH, GIT_*,
+// NODE_OPTIONS, PAGER...) são maiúsculas e algumas já vêm exportadas; essas não.
+const VARIAVEL_LOCAL = /^[a-z][a-z0-9_]*=/;
+
+// Variáveis negadas a todo subagente: apontam o git para outro repositório,
+// árvore ou índice (como `--git-dir`/`--work-tree`, já negados) ou mudam de
+// onde curl e wget leem a configuração (como `curl -K`/`wget --config`).
+const VARIAVEIS_PROIBIDAS = /^(GIT_DIR|GIT_WORK_TREE|GIT_INDEX_FILE|GIT_NAMESPACE|CURL_HOME|WGETRC|HOME|XDG_CONFIG_HOME)(=|$)/;
+// Comandos que definem ou exportam variáveis do shell.
+const DEFINEM_VARIAVEIS = new Set(['export', 'declare', 'typeset', 'local', 'readonly']);
+
+// Embrulhos: comandos que executam o comando seguinte. Cada um tem uma lista
+// de opções conhecidas; opção fora da lista é negada para subagentes (o valor
+// dela poderia virar o "nome do comando" e esconder um `rm`).
+//   curtas: letras sem valor (podem vir agrupadas: `-iv`);
+//   comValor: letras que consomem um valor (o resto do grupo ou o próximo argumento);
+//   coladas: letras cujo valor opcional só vem colado (`xargs -i{}`);
+//   longas / longasComValor: idem para opções longas (`--x=valor` ou `--x valor`);
+//   numerica: aceita a forma antiga `-10` (nice);
+//   posicionais: argumentos antes do comando (a duração do `timeout`);
+//   atribuicoes: aceita `VAR=valor` antes do comando (env);
+//   pasta: opções que trocam a pasta do comando (`env -C`, `sudo -D`);
+//   saida: opções cujo valor é um arquivo gravado (`time -o`);
+//   negadas: opções que o hook não analisa (`env -S` divide um texto em comando);
+//   naoExecuta: opções que só mostram algo (`command -v`).
+// `--help` e `--version` nunca executam o comando.
+const EMBRULHOS = {
+  command: { curtas: 'p', naoExecuta: ['-v', '-V'] },
+  builtin: {},
+  exec: { curtas: 'cl', comValor: 'a' },
+  nohup: {},
+  time: {
+    curtas: 'pvqa',
+    comValor: 'of',
+    longas: ['--portability', '--verbose', '--quiet', '--append'],
+    longasComValor: ['--output', '--format'],
+    saida: ['-o', '--output'],
+  },
+  stdbuf: { comValor: 'ioe', longasComValor: ['--input', '--output', '--error'] },
+  nice: { comValor: 'n', longasComValor: ['--adjustment'], numerica: true },
+  timeout: {
+    curtas: 'v',
+    comValor: 'sk',
+    longas: ['--verbose', '--preserve-status', '--foreground'],
+    longasComValor: ['--signal', '--kill-after'],
+    posicionais: 1,
+  },
+  env: {
+    curtas: 'iv0',
+    comValor: 'uC',
+    longas: ['--ignore-environment', '--null', '--debug', '--block-signal', '--default-signal', '--ignore-signal', '--list-signal-handling'],
+    longasComValor: ['--unset', '--chdir'],
+    atribuicoes: true,
+    pasta: ['-C', '--chdir'],
+    negadas: ['-S', '--split-string'],
+  },
+  sudo: {
+    curtas: 'EHnkSb',
+    comValor: 'ugpD',
+    longas: ['--preserve-env', '--set-home', '--non-interactive', '--reset-timestamp', '--stdin', '--background'],
+    longasComValor: ['--user', '--group', '--prompt', '--chdir'],
+    pasta: ['-D', '--chdir'],
+  },
+  doas: { curtas: 'n', comValor: 'u' },
+  xargs: {
+    curtas: '0rtpxo',
+    comValor: 'adEILnPs',
+    coladas: 'iel',
+    longas: ['--null', '--no-run-if-empty', '--verbose', '--interactive', '--exit', '--open-tty', '--replace', '--eof', '--max-lines'],
+    longasComValor: ['--arg-file', '--delimiter', '--max-args', '--max-procs', '--max-chars', '--process-slot-var'],
+  },
+};
+// Embrulhos que o hook não analisa (opções e efeitos variados): negados para subagentes.
+const EMBRULHOS_NAO_ANALISADOS = new Set([
+  'chroot', 'chrt', 'flock', 'ionice', 'ltrace', 'nsenter', 'parallel', 'script', 'setsid',
+  'strace', 'taskset', 'unbuffer', 'unshare', 'watch',
+]);
+
+// Lê as opções de um embrulho. Devolve { resto, executa, negada, atribuicoes, opcoes }
+// em que `resto` é o comando embrulhado e `opcoes` as opções com valor.
+function lerEmbrulho(spec, args) {
+  const r = { resto: [], executa: true, negada: null, atribuicoes: [], opcoes: [] };
+  const curtas = spec.curtas ?? '';
+  const comValor = spec.comValor ?? '';
+  const coladas = spec.coladas ?? '';
+  let i = 0;
+  for (; i < args.length; i++) {
+    const a = args[i];
+    const t = a.texto;
+    if (spec.atribuicoes && ATRIBUICAO.test(t)) {
+      r.atribuicoes.push(a);
+      continue;
     }
+    if (a.dinamico) break; // vira o nome do comando (dinâmico → negado)
+    if (r.atribuicoes.length || !t.startsWith('-')) break; // depois de `VAR=x`, não há mais opções
+    if (t === '--') {
+      i++;
+      break;
+    }
+    if (t === '-') {
+      if (!spec.atribuicoes) break; // `env -` é o mesmo que `env -i`
+      continue;
+    }
+    if (t.startsWith('--')) {
+      const igual = t.indexOf('=');
+      const nome = igual === -1 ? t : t.slice(0, igual);
+      if (nome === '--help' || nome === '--version') {
+        r.executa = false;
+        return r;
+      }
+      if (spec.negadas?.includes(nome)) {
+        r.negada = nome;
+        return r;
+      }
+      if (spec.longasComValor?.includes(nome)) {
+        r.opcoes.push({ nome, valor: igual === -1 ? (args[++i] ?? null) : palavra(t.slice(igual + 1), a) });
+      } else if (!spec.longas?.includes(nome)) {
+        r.negada = nome;
+        return r;
+      }
+      continue;
+    }
+    if (spec.numerica && /^-[-+]?\d+$/.test(t)) continue;
+    for (let j = 1; j < t.length; j++) {
+      const c = t[j];
+      const nome = `-${c}`;
+      if (spec.negadas?.includes(nome)) {
+        r.negada = nome;
+        return r;
+      }
+      if (spec.naoExecuta?.includes(nome)) {
+        r.executa = false;
+        return r;
+      }
+      if (curtas.includes(c)) continue;
+      if (coladas.includes(c)) break; // o resto do grupo é o valor
+      if (comValor.includes(c)) {
+        r.opcoes.push({ nome, valor: j + 1 < t.length ? palavra(t.slice(j + 1), a) : (args[++i] ?? null) });
+        break;
+      }
+      r.negada = nome;
+      return r;
+    }
+  }
+  i += Math.min(spec.posicionais ?? 0, args.length - i);
+  r.resto = args.slice(i);
+  return r;
+}
+
+// Tira atribuições (`VAR=x cmd`), palavras reservadas que sobram depois de um
+// `time` (`time { ...; }`) e embrulhos (`nohup cmd`, `env -C pasta cmd`).
+// Devolve { palavras, atribuicoes, cwd, saidas, negacao, embrulhado }:
+//   cwd → a pasta em que o comando roda (muda com `env -C`; null = desconhecida);
+//   saidas → arquivos gravados pelo embrulho ({ alvo, cwd });
+//   negacao → motivo, quando há opção de embrulho que o hook não analisa.
+function desembrulhar(entrada, cwdInicial) {
+  const r = { palavras: entrada.slice(), atribuicoes: [], cwd: cwdInicial, saidas: [], negacao: null, embrulhado: false };
+  for (;;) {
+    let p = r.palavras;
+    while (p.length && ATRIBUICAO.test(p[0].texto)) r.atribuicoes.push(p.shift());
+    while (p.length && !p[0].citada && !p[0].dinamico && (p[0].texto === '{' || p[0].texto === '!')) p.shift();
+    if (!p.length || p[0].dinamico) return r;
+    const nome = nomeDoComando(p[0]);
+    if (EMBRULHOS_NAO_ANALISADOS.has(nome)) {
+      r.negacao = `${nome} executa outro comando e não é analisado`;
+      return r;
+    }
+    const spec = EMBRULHOS[nome];
+    if (!spec || nome === 'xargs') return r; // o xargs tem análise própria
+    r.embrulhado = true;
+    const lido = lerEmbrulho(spec, p.slice(1));
+    if (lido.negada) {
+      r.negacao = `${nome} ${lido.negada}: opção de embrulho fora da lista conhecida não é analisada`;
+      return r;
+    }
+    r.atribuicoes.push(...lido.atribuicoes);
+    for (const { nome: opcao, valor } of lido.opcoes) {
+      if (spec.saida?.includes(opcao) && valor) r.saidas.push({ alvo: valor, cwd: r.cwd });
+      if (spec.pasta?.includes(opcao)) {
+        r.cwd = !valor || valor.dinamico || valor.glob || valor.chaves ? null : resolverCaminho(valor.texto, r.cwd);
+      }
+    }
+    r.palavras = lido.executa ? lido.resto : [];
   }
 }
 
@@ -362,16 +518,33 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
     }
     for (const e of lista) expandidas.push(palavra(e, { dinamico: p.dinamico, glob: /[*?[]/.test(e) }));
   }
-  const atribuicoes = [];
-  const palavras = desembrulhar(expandidas, atribuicoes);
+  const { palavras, atribuicoes, cwd, saidas, negacao, embrulhado } = desembrulhar(expandidas, local.cwd);
+  if (negacao) {
+    achados.push(negar(negacao));
+    return achados;
+  }
+  const nomeDaVariavel = (a) => a.texto.split('=')[0];
+  const proibida = atribuicoes.find((a) => VARIAVEIS_PROIBIDAS.test(a.texto));
+  if (proibida) {
+    achados.push(negar(`variável ${nomeDaVariavel(proibida)} (outro repositório do git ou outra configuração de curl/wget) não é verificada`));
+    return achados;
+  }
   if (estado.leitura) {
     // Variáveis como GIT_EXTERNAL_DIFF, GIT_PAGER ou NODE_OPTIONS fazem um comando
-    // de leitura executar outro programa: o code-reviewer só usa as da lista.
-    const insegura = atribuicoes.find((a) => !atribuicaoSegura(a));
+    // de leitura executar outro programa: o code-reviewer só usa as da lista
+    // (e, em atribuição solta, variáveis locais em minúsculas).
+    const solta = !palavras.length && !embrulhado;
+    const insegura = atribuicoes.find((a) => !atribuicaoSegura(a) && !(solta && VARIAVEL_LOCAL.test(a.texto)));
     if (insegura) {
-      achados.push(negar(`o ${estado.agente} é somente leitura: variável "${insegura.texto.split('=')[0]}" não está na lista de variáveis seguras`));
+      achados.push(negar(`o ${estado.agente} é somente leitura: variável "${nomeDaVariavel(insegura)}" não está na lista de variáveis seguras`));
       return achados;
     }
+    if (saidas.length) {
+      achados.push(negar(`o ${estado.agente} é somente leitura: time -o grava arquivo (${saidas[0].alvo.texto})`));
+      return achados;
+    }
+  } else {
+    for (const s of saidas) achados.push(conferirAlvo(s.alvo, estado, s.cwd));
   }
   if (!palavras.length) return achados;
   if (palavras[0].dinamico) {
@@ -381,6 +554,18 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
   const nome = nomeDoComando(palavras[0]);
   const args = palavras.slice(1);
 
+  if (DEFINEM_VARIAVEIS.has(nome)) {
+    const exportada = args.find((a) => VARIAVEIS_PROIBIDAS.test(a.texto));
+    if (exportada) {
+      achados.push(negar(`${nome} ${nomeDaVariavel(exportada)}: variável proibida para subagentes`));
+      return achados;
+    }
+  }
+  if (embrulhado && ['cd', 'pushd', 'popd'].includes(nome)) {
+    // `command cd x` muda a pasta; `env cd x` não roda. Na dúvida, desconhecida.
+    local.cwd = null;
+    return achados;
+  }
   if (nome === 'cd' || nome === 'pushd') {
     const destino = args.find((a) => !a.texto.startsWith('-') || a.texto === '-');
     if (!destino) local.cwd = process.env.HOME || process.env.USERPROFILE || null;
@@ -393,7 +578,7 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
     return achados;
   }
 
-  const contexto = { estado, cwd: local.cwd, profundidade };
+  const contexto = { estado, cwd, profundidade };
   if (estado.leitura) achados.push(...avaliarLeitura(nome, args, contexto));
   else achados.push(...avaliarEscrita(nome, args, contexto));
   return achados;
@@ -661,6 +846,8 @@ const CURL_LONGAS_COM_VALOR = new Set([
 function curl(args, contexto) {
   const { estado, cwd } = contexto;
   const { opcoes } = separarOpcoesGnu(args, CURL_CURTAS_COM_VALOR, CURL_LONGAS_COM_VALOR);
+  // O arquivo de configuração pode trazer `output = ...`: não é lido pelo hook.
+  if (temAlguma(opcoes, ['-K', '--config'])) return [negar('curl -K/--config: as opções do arquivo de configuração não são verificadas')];
   const pasta = valoresDe(opcoes, ['--output-dir'])[0];
   const achados = [];
   for (const { nome, valor } of opcoes) {
@@ -675,19 +862,21 @@ function curl(args, contexto) {
 }
 
 // wget: grava na pasta atual (ou em `-P PASTA`) com o nome da URL; `-O ARQUIVO`
-// grava num arquivo só; `-o`/`-a` gravam o log. `-e` roda comandos do wgetrc.
+// grava num arquivo só; `-o`/`-a` gravam o log. `-e` roda comandos do wgetrc
+// e `--config` lê um wgetrc: ambos negados.
 const WGET_CURTAS_COM_VALOR = 'OoaPeitTwQlARDIXUB';
 const WGET_LONGAS_COM_VALOR = new Set([
   '--output-document', '--output-file', '--append-output', '--directory-prefix', '--execute',
   '--input-file', '--tries', '--timeout', '--wait', '--quota', '--level', '--accept', '--reject',
   '--domains', '--include-directories', '--exclude-directories', '--user-agent', '--base', '--header',
-  '--user', '--password', '--post-data',
+  '--user', '--password', '--post-data', '--config',
 ]);
 
 function wget(args, contexto) {
   const { estado, cwd } = contexto;
   const { opcoes } = separarOpcoesGnu(args, WGET_CURTAS_COM_VALOR, WGET_LONGAS_COM_VALOR);
   if (temAlguma(opcoes, ['-e', '--execute'])) return [negar('wget -e/--execute: comandos do wgetrc não são verificados')];
+  if (temAlguma(opcoes, ['--config'])) return [negar('wget --config: as opções do arquivo de configuração não são verificadas')];
   const achados = valoresDe(opcoes, ['-o', '--output-file', '-a', '--append-output'])
     .filter((v) => !ehSaidaPadrao(v))
     .map((v) => conferirAlvo(v, estado, cwd));
@@ -739,7 +928,8 @@ function rsync(args, contexto) {
 }
 
 // tar: extrair (`-x`) grava na pasta atual ou em `-C PASTA`; criar ou alterar
-// um pacote (`-c`, `-r`, `-u`, `-A`, `--delete`) grava o arquivo de `-f`.
+// um pacote (`-c`, `-r`, `-u`, `-A`, `--delete`) grava o arquivo de `-f`;
+// `--remove-files` apaga as origens depois de empacotar.
 const TAR_CURTAS_COM_VALOR = 'fCTXbLgNKVHI';
 const TAR_LONGAS_COM_VALOR = new Set([
   '--file', '--directory', '--files-from', '--exclude-from', '--listed-incremental', '--newer',
@@ -762,7 +952,7 @@ function tar(args, contexto) {
     }
     lista.push(...args.slice(proximo));
   }
-  const { opcoes } = separarOpcoesGnu(lista, TAR_CURTAS_COM_VALOR, TAR_LONGAS_COM_VALOR);
+  const { opcoes, posicionais } = separarOpcoesGnu(lista, TAR_CURTAS_COM_VALOR, TAR_LONGAS_COM_VALOR);
   const tem = (...nomes) => temAlguma(opcoes, nomes);
   const achados = valoresDe(opcoes, ['-g', '--listed-incremental']).map((v) => conferirAlvo(v, estado, cwd));
   if (tem('-x', '--extract', '--get')) {
@@ -781,6 +971,15 @@ function tar(args, contexto) {
   if (tem('-c', '--create', '-r', '--append', '-u', '--update', '-A', '--catenate', '--concatenate', '--delete')) {
     const pacote = valoresDe(opcoes, ['-f', '--file'])[0];
     if (pacote && !ehSaidaPadrao(pacote)) achados.push(conferirAlvo(pacote, estado, cwd));
+  }
+  if (tem('--remove-files')) {
+    // Com `-C` (cada um relativo ao anterior, intercalado com as origens) ou
+    // lista de origens num arquivo, não dá para saber o que é apagado.
+    if (tem('-C', '--directory', '-T', '--files-from')) {
+      return [...achados, negar('tar --remove-files com -C ou -T: as origens apagadas não são verificadas')];
+    }
+    if (!posicionais.length) return [...achados, negar('tar --remove-files sem origem identificável')];
+    for (const o of posicionais) achados.push(conferirAlvo(o, estado, cwd, { subarvore: true }));
   }
   return achados;
 }
@@ -848,16 +1047,26 @@ function separarAwk(args) {
 }
 
 // `awk -i inplace` edita no lugar: os arquivos de entrada são os alvos.
+// `@include`/`@load` no programa e `-l` (extensão) são negados: carregam o
+// `inplace` (ou outra coisa) sem aparecer nas opções. Programa ou inclusão em
+// arquivo (`-f`, `-E`, `-i outro.awk`) não é visível e pode incluir o `inplace`:
+// os arquivos de entrada também são conferidos como alvos.
 function awkEscrita(args, contexto) {
   const { opcoes, programas, arquivos } = separarAwk(args);
   const achados = [];
   if (programas.some((p) => TRECHO_PROTEGIDO.test(p.texto))) {
     achados.push(negar('awk: o programa cita um caminho protegido (docs/03-tarefas ou .claude/agents)'));
   }
+  if (programas.some((p) => p.dinamico || /@\s*(include|load)\b/.test(p.texto))) {
+    return [...achados, negar('awk: programa dinâmico ou com @include/@load não é verificado')];
+  }
+  if (temAlguma(opcoes, ['-l', '--load'])) return [...achados, negar('awk -l/--load: extensões não são verificadas')];
   const inclusoes = valoresDe(opcoes, ['-i', '--include']);
   if (inclusoes.some((v) => v.dinamico)) return [...achados, negar('awk -i com valor dinâmico não pode ser verificado')];
-  if (!inclusoes.some((v) => /^inplace(\.awk)?$/.test(v.texto))) return achados;
-  if (!arquivos.length) return [...achados, negar('awk -i inplace sem arquivo identificável')];
+  const noLugar = inclusoes.some((v) => /^inplace(\.awk)?$/.test(v.texto));
+  const invisivel = inclusoes.length > 0 || temAlguma(opcoes, ['-f', '--file', '-E', '--exec']);
+  if (!noLugar && !invisivel) return achados;
+  if (!arquivos.length) return noLugar ? [...achados, negar('awk -i inplace sem arquivo identificável')] : achados;
   return [...achados, ...arquivos.map((p) => conferirAlvo(p, contexto.estado, contexto.cwd))];
 }
 
@@ -954,17 +1163,17 @@ function find(args, contexto) {
   return achados;
 }
 
-// xargs: os alvos vêm da entrada padrão; se o comando escreve, não dá para verificar.
-const XARGS_COM_VALOR = new Set(['-n', '-I', '-P', '-d', '-L', '-s', '-a', '-E', '--max-args', '--max-procs', '--delimiter', '--arg-file']);
-
+// xargs: os alvos vêm da entrada padrão; se o comando escreve, não dá para
+// verificar. As opções seguem a lista do embrulho `xargs` (desconhecida = negada),
+// e o comando é visto depois de tirar outros embrulhos (`xargs env rm`).
 function xargs(args, contexto) {
-  let i = 0;
-  while (i < args.length && args[i].texto.startsWith('-')) {
-    i += XARGS_COM_VALOR.has(args[i].texto) ? 2 : 1;
-  }
-  const interno = args.slice(i);
+  const lido = lerEmbrulho(EMBRULHOS.xargs, args);
+  if (lido.negada) return [negar(`xargs ${lido.negada}: opção fora da lista conhecida não é analisada`)];
+  const interno = lido.executa ? lido.resto : [];
   if (!interno.length) return [];
-  const nome = nomeDoComando(interno[0]);
+  const { palavras, negacao } = desembrulhar(interno, contexto.cwd);
+  if (negacao) return [negar(negacao)];
+  const nome = palavras.length && !palavras[0].dinamico ? nomeDoComando(palavras[0]) : '';
   if (ESCRITORES.has(nome) && nome !== 'git') {
     return [negar(`xargs ${nome}: os alvos vêm da entrada e não podem ser verificados`)];
   }
