@@ -1,0 +1,25 @@
+// Configuração base do TypeScript, compartilhada por todos os workspaces.
+// Cada workspace tem o próprio tsconfig.json, que começa com
+//   "extends": "../../tsconfig.base.json"
+// e acrescenta só o que é dele (ex.: o front define "jsx" e "moduleResolution": "bundler";
+// a API define "experimentalDecorators" e "emitDecoratorMetadata", exigidos pelo NestJS).
+{
+  "compilerOptions": {
+    // Versão de JavaScript gerada; o Node 24 e os navegadores atuais suportam ES2022.
+    "target": "ES2022",
+
+    // Liga todas as checagens rígidas (ex.: proíbe `any` implícito e trata `null`/`undefined`).
+    "strict": true,
+
+    // Erros comuns que o compilador pega de graça.
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Permite importar pacotes CommonJS com `import x from '...'` e arquivos .json.
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    // Não checa os tipos das bibliotecas em node_modules (compilação mais rápida).
+    "skipLibCheck": true
+  }
+}
