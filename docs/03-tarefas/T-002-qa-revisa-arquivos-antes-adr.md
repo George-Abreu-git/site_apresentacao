@@ -1,7 +1,7 @@
 ---
 id: T-002
 titulo: QA revisa todos os arquivos atuais antes da ADR de stack
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [qa]
 rodadas: 0
@@ -17,10 +17,10 @@ O objetivo é chegar à ADR com a base de orquestração e documentação coeren
 
 ## Critérios de aceite
 
-- [ ] O QA percorre todos os arquivos atuais do repositório (`.claude/`, `docs/`, `scripts/`, `AGENTS.md`, `CLAUDE.md`)
-- [ ] Inconsistências e lacunas encontradas são listadas no handoff, com arquivo e severidade
-- [ ] `python3 scripts/validar_estrutura.py` roda e o resultado é reportado
-- [ ] Nada é alterado fora da área do QA; correções ficam como achados para o George decidir
+- [x] O QA percorre todos os arquivos atuais do repositório (`.claude/`, `docs/`, `scripts/`, `AGENTS.md`, `CLAUDE.md`)
+- [x] Inconsistências e lacunas encontradas são listadas no handoff, com arquivo e severidade
+- [x] `python3 scripts/validar_estrutura.py` roda e o resultado é reportado
+- [x] Nada é alterado fora da área do QA; correções ficam como achados para o George decidir
 
 ## Contexto relevante
 
@@ -100,6 +100,22 @@ Escopo: 34 arquivos versionados e 2 não versionados — `.claude/` (5 agentes, 
 
 ## Estudo
 
+### Rodada 1
+
+**Resultado:** CONCLUIDO — o instrutor (modo explicador) explicou a revisão e criou 6 notas de estudo, uma por conceito, com exemplos reais do projeto, exercícios e links cruzados.
+
+Notas criadas:
+- [[docs/04-estudos/revisao-de-consistencia-documental|Revisão de consistência documental]]
+- [[docs/04-estudos/hooks-pretooluse-e-bypass-via-bash|Hooks PreToolUse e bypass via Bash]]
+- [[docs/04-estudos/areas-por-caminho-de-escrita|Áreas por caminho de escrita]]
+- [[docs/04-estudos/yaml-frontmatter|YAML frontmatter]]
+- [[docs/04-estudos/gitattributes-e-fim-de-linha|.gitattributes e fim de linha]]
+- [[docs/04-estudos/ordem-requisitos-e-adr|Ordem entre requisitos e ADR]]
+
+Exercícios sugeridos: (1) rodar `git ls-files` e apontar o dono de cada pasta pela tabela do `AGENTS.md`, comparando com o M3; (2) validar a linha 3 de `registrar-decisao/SKILL.md` num validador YAML e corrigi-la de duas formas.
+
+Decisões que seguem com o George: formalizar tarefas de revisão (A/B/C, ver `## QA`); ordem entre requisitos, ADR e T-001; como fechar a brecha do `Bash` nos hooks.
+
 ## DevOps
 
 ## Log
@@ -107,3 +123,5 @@ Escopo: 34 arquivos versionados e 2 não versionados — `.claude/` (5 agentes, 
 - 2026-10-09 — tarefa criada
 - 2026-10-09 — orquestrador: início — decisão do George (opção C), tags `qa`, fluxo reduzido (QA → instrutor)
 - 2026-10-09 — qa: PASSOU — 5 achados médios (M1–M5), 14 baixos (B1–B14), validador OK, nenhum arquivo alterado
+- 2026-10-09 — instrutor: CONCLUIDO — 6 notas de estudo em `docs/04-estudos/`
+- 2026-10-09 — orquestrador: tarefa concluída — validador OK (sem suíte de testes, ainda não há `src/`)
