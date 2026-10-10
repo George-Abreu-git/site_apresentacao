@@ -27,9 +27,10 @@ SECOES_TAREFA = ["Descrição", "Critérios de aceite", "Contexto relevante", "D
                  "Dev", "Revisão", "QA", "Estudo", "DevOps", "Log"]
 
 
-def ler_frontmatter(caminho: Path) -> tuple[dict, str]:
-    """Retorna (frontmatter, corpo). Suporta 'chave: valor', listas '- item' e '[a, b]'."""
-    texto = caminho.read_text(encoding="utf-8")
+def ler_frontmatter(caminho: Path):
+    """Retorna (frontmatter, corpo). Suporta 'chave: valor', listas '- item' e '[a, b]'.
+    Frontmatter aberto e não fechado retorna (None, texto)."""
+    texto = caminho.read_text(encoding="utf-8-sig")
     linhas = texto.splitlines()
     if not linhas or linhas[0].strip() != "---":
         return {}, texto
@@ -51,7 +52,19 @@ def ler_frontmatter(caminho: Path) -> tuple[dict, str]:
                 dados[chave_atual] = [v.strip().strip("\"'") for v in valor[1:-1].split(",") if v.strip()]
             else:
                 dados[chave_atual] = valor.strip("\"'")
-    return dados, ""
+    return None, texto
+
+
+def frontmatter(rel: str, erros: list):
+    fm, corpo = ler_frontmatter(RAIZ / rel)
+    if fm is None:
+        erros.append(f"ERRO: {rel} com frontmatter não fechado")
+        return {}, corpo
+    return fm, corpo
+
+
+def tem_titulo(corpo: str, titulo: str) -> bool:
+    return any(linha.strip() == titulo for linha in corpo.splitlines())
 
 
 def existe(rel: str, erros: list) -> bool:
@@ -74,12 +87,12 @@ def validar_docs(erros: list) -> None:
         existe(rel, erros)
     tarefa = RAIZ / "docs/_templates/tarefa.md"
     if tarefa.is_file():
-        fm, corpo = ler_frontmatter(tarefa)
+        fm, corpo = frontmatter("docs/_templates/tarefa.md", erros)
         for chave in CHAVES_TAREFA:
             if chave not in fm:
                 erros.append(f"ERRO: template tarefa.md sem a chave '{chave}'")
         for secao in SECOES_TAREFA:
-            if f"## {secao}" not in corpo.splitlines():
+            if not tem_titulo(corpo, f"## {secao}"):
                 erros.append(f"ERRO: template tarefa.md sem a seção '## {secao}'")
     backlog = RAIZ / "docs/03-tarefas/backlog.md"
     if backlog.is_file() and "T-001" not in backlog.read_text(encoding="utf-8"):
@@ -91,7 +104,7 @@ def validar_skills(erros: list) -> None:
         rel = f".claude/skills/{nome}/SKILL.md"
         if not existe(rel, erros):
             continue
-        fm, _ = ler_frontmatter(RAIZ / rel)
+        fm, _ = frontmatter(rel, erros)
         if fm.get("name") != nome:
             erros.append(f"ERRO: skill {nome} com name '{fm.get('name')}' diferente da pasta")
         if not fm.get("description"):
@@ -103,7 +116,7 @@ def validar_agentes(erros: list) -> None:
         rel = f".claude/agents/{nome}.md"
         if not existe(rel, erros):
             continue
-        fm, corpo = ler_frontmatter(RAIZ / rel)
+        fm, corpo = frontmatter(rel, erros)
         for campo in ["name", "description", "tools"]:
             if not fm.get(campo):
                 erros.append(f"ERRO: agente {nome} sem '{campo}'")
@@ -115,7 +128,7 @@ def validar_agentes(erros: list) -> None:
         for skill in skills:
             if not (RAIZ / f".claude/skills/{skill}/SKILL.md").is_file():
                 erros.append(f"ERRO: agente {nome} referencia skill inexistente {skill}")
-        if "## Handoff" not in corpo:
+        if not tem_titulo(corpo, "## Handoff"):
             erros.append(f"ERRO: agente {nome} sem seção '## Handoff'")
 
 
@@ -123,7 +136,7 @@ def validar_comandos(erros: list) -> None:
     for nome in COMANDOS:
         rel = f".claude/commands/{nome}.md"
         if existe(rel, erros):
-            fm, _ = ler_frontmatter(RAIZ / rel)
+            fm, _ = frontmatter(rel, erros)
             if not fm.get("description"):
                 erros.append(f"ERRO: comando {nome} sem description")
 
