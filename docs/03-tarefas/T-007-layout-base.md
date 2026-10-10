@@ -1,7 +1,7 @@
 ---
 id: T-007
 titulo: Layout base: menu com âncoras, tema escuro e responsividade
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -16,11 +16,11 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 
 ## Critérios de aceite
 
-- [ ] RF-01: seções Início, Sobre, Stacks, Projetos, Serviços e Contato com `id`; menu leva a cada uma; menu acessível ao rolar; no celular, menu compacto que abre a lista
-- [ ] RNF-04: todas as cores em variáveis de CSS do tema escuro; nenhuma cor fixa nos componentes
-- [ ] RNF-01: sem rolagem horizontal de 360px a 1280px+
-- [ ] RNF-02: menu navegável por teclado com foco visível; HTML semântico (`header`, `nav`, `main`, `section`, `footer`)
-- [ ] Testes unitários dos componentes (dev) e e2e de navegação por menu e teclado em celular e desktop (qa)
+- [x] RF-01: seções Início, Sobre, Stacks, Projetos, Serviços e Contato com `id`; menu leva a cada uma; menu acessível ao rolar; no celular, menu compacto que abre a lista
+- [x] RNF-04: todas as cores em variáveis de CSS do tema escuro; nenhuma cor fixa nos componentes
+- [x] RNF-01: sem rolagem horizontal de 360px a 1280px+
+- [x] RNF-02: menu navegável por teclado com foco visível; HTML semântico (`header`, `nav`, `main`, `section`, `footer`)
+- [x] Testes unitários dos componentes (dev) e e2e de navegação por menu e teclado em celular e desktop (qa)
 
 ## Contexto relevante
 
@@ -89,6 +89,24 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 
 ## QA
 
+### Rodada 1
+
+**Resultado:** PASSOU — os cinco critérios atendidos no estado final; o qa escreveu o e2e de navegação, só em `e2e/**`.
+
+**Verificações:** `npm test` (web 26/26, api 8/8, hooks 412/412); `npm run test:e2e` 49 passaram e 7 pulados de propósito (testes só de celular ou só de desktop); suíte de navegação com `--repeat-each 3` duas vezes: 123/123, sem instabilidade; build, lint e validador OK.
+
+**Critérios:**
+- **RF-01:** seis seções com `id`, dentro do `main`, na ordem do menu; cada link leva à seção certa nos dois projetos (começando do fim da página; confere a âncora e espera o título abaixo do cabeçalho, aceitando rolagem suave); abrir em `/#servicos` também posiciona certo; cabeçalho em y = 0 depois de rolar, menu utilizável. Celular: botão "Menu" com `aria-expanded=false`, lista por `aria-controls`, 6 links ocultos; abre/fecha, escolher seção fecha, Esc fecha e devolve o foco. Desktop: botão oculto, links em linha.
+- **RNF-04:** cores só em `tema.css` (`tema.test.ts` + busca sem cor fixa nem `style={{` fora do tema).
+- **RNF-01:** sem rolagem horizontal em 360, 390, 412, 600, 767, 768, 1024, 1280, 1440 e 1920px, nos dois projetos (largura total + elemento passando da borda; abaixo de 768px também com o menu aberto; 767/768 nos dois lados do ponto de troca de 48rem).
+- **RNF-02:** `header` com `nav` "Navegação principal", `main`, `footer`; cada `section` é região com nome (Início = nome do `h1`); Tab percorre marca e links (no celular, marca, botão e links depois de abrir) com contorno de foco ≥ 2px; com a lista fechada, Tab não entra nos links ocultos; Enter leva à seção (no celular, fecha a lista).
+- **Contraste extra:** botão e links ≥ 4,5:1 sobre o cabeçalho/lista; contorno de foco ≥ 3:1.
+- **Testes:** unitários do dev passam; e2e de menu e teclado em celular e desktop escrito e passando.
+
+**Arquivos:** `e2e/testes/navegacao.spec.ts` (novo), `e2e/apoio/cores.ts` (novo — funções de contraste usadas pelos dois specs, fora de `e2e/testes/` porque o Playwright só roda `*.spec.ts`), `e2e/testes/pagina-inicial.spec.ts` (describe "página provisória" → "página inicial").
+
+**Pendências:** (1) diferença cosmética de 1px — o cabeçalho mede `--altura-cabecalho` + 1px de borda e o `scroll-padding-top` usa só a variável; ao seguir "Início", a página para em `scrollY = 1` (nada coberto; o teste aceita 1px e explica) — dono: dev, tarefa futura; (2) seguem abertas a regex `COR_FIXA` (D1, item 3) e o link "Pular para o conteúdo" (decisão do George).
+
 ## Estudo
 
 ## DevOps
@@ -101,3 +119,5 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 - 2026-10-10 — code-reviewer: APROVADO — critérios do dev atendidos; 3 opcionais
 - 2026-10-10 — orquestrador: D1 (delegação) — aplicar opcionais 1 e 2 antes do QA; 3 como observação
 - 2026-10-10 — dev: CONCLUIDO — classe inexistente removida e comentários do cabeçalho sticky corrigidos; test/build/lint OK
+- 2026-10-10 — qa: PASSOU — e2e de navegação por menu e teclado (celular/desktop), sem rolagem horizontal de 360 a 1920px; 49 e2e passando, estáveis em repetição
+- 2026-10-10 — orquestrador: concluida — verificação verde (`npm test`, `npm run test:e2e` 49 + 7 pulados por projeto, validador); diário de estudo disparado após a integração
