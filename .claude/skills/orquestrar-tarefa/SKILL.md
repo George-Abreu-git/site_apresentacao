@@ -82,7 +82,7 @@ Trate a notificação entre duas etapas da tarefa em andamento. **Não interromp
 6. **Atualize e integre** (sempre fast-forward):
    - `git -C "$WT" rebase main` — a `main` pode ter avançado (ex.: outro diário, uma consolidação, ou a tarefa seguinte já integrada). Nos comandos deste passo e do 7, a consolidação usa `estudos/consolidacao-AAAA-MM-DD` no lugar de `estudos/T-XXX`. Conflito → **Conflito no rebase** (abaixo); não siga para o merge.
    - Checkout principal em outra branch (tarefa em andamento): `git -C "$WT" switch main && git -C "$WT" merge --ff-only estudos/T-XXX`. Checkout principal em `main` (nenhuma tarefa em andamento): `git merge --ff-only estudos/T-XXX` nele.
-   - `git push origin main`.
+   - `git push origin main`. Se o push falhar, a `main` local **já** tem o diário (o fast-forward foi feito): não é **Falha** — siga **Push falhou** (abaixo).
 7. **Limpeza**: `git worktree remove "$WT"` (se recusar por lock, `git worktree unlock "$WT"` antes). Apague `estudos/T-XXX` e `worktree-<nome>` só depois de confirmar que já estão na `main` (`git merge-base --is-ancestor <branch> main && git branch -D <branch>`) — `git branch -d` compararia com o `HEAD` do checkout principal, que está na tarefa em andamento.
 8. A tarefa em andamento nasceu de uma `main` sem o diário: no encerramento dela o merge será `--no-ff` (já previsto no passo 4 do Encerramento). Normalmente não há conflito, porque a tarefa não mexe em `docs/04-estudos/**`; se houver (ex.: ela também alterou uma nota de estudo), vale a regra do passo 4: não faça merge e leve ao George.
 
@@ -93,8 +93,14 @@ O documentador roda em paralelo à tarefa seguinte e pode mexer em notas por con
 3. Apresente ao George no próximo ponto de contato (`apresentar-decisao`), com os arquivos em conflito. Opções típicas: resolver o conflito no worktree e seguir do passo 5; integrar só o diário (refazer a branch a partir da `main` sem as outras notas); descartar tudo e redisparar o documentador.
 4. Registre a escolha: se for integrar, em `## Decisões` e `## Log` da nota da T-XXX **dentro do worktree** (commit na própria `estudos/T-XXX`; na consolidação não há nota de tarefa, a escolha vai só no corpo do commit) e siga do passo 5; se for descartar, siga **Falha** (o motivo vai para o Log por lá).
 
+### Push falhou (a `main` local já tem o diário)
+Vale só para o `git push origin main` do passo 6, depois do fast-forward:
+1. Tente o push de novo. Se continuar falhando (ex.: sem credenciais, como no Cowork), avise o George para rodar `git push` no VS Code — igual ao encerramento sem credenciais.
+2. Siga a limpeza do passo 7 normalmente: a branch de estudos já está na `main` local, então o `merge-base --is-ancestor` confirma e as branches podem ser apagadas.
+3. **Não** registre "diário não integrado" nem siga **Falha**: o diário foi integrado; só falta publicar a `main`.
+
 ### Falha (não bloqueia nada)
-Documentador com `FALHOU`, sem diário, com arquivo fora da área, algum passo da integração falhou (exceto conflito no rebase, que vai ao George — seção acima), ou o George escolheu descartar:
+Documentador com `FALHOU`, sem diário, com arquivo fora da área, algum passo da integração antes do fast-forward falhou (passos 1 a 5 e o merge do passo 6; exceto conflito no rebase, que vai ao George — seção acima), ou o George escolheu descartar. A falha do `git push origin main` não entra aqui (seção **Push falhou**, acima):
 1. Descarte o resultado: `git worktree remove --force "$WT"` (se existir; `git worktree unlock "$WT"` antes, se travado) e apague as branches dele (`worktree-<nome>` e, se criada, `estudos/T-XXX`) com `git branch -D`.
 2. Registre no Log da tarefa **sem sair da tarefa em andamento**: `git worktree add .claude/worktrees/estudos-T-XXX -b estudos/T-XXX main`, acrescente em `## Log` da nota nesse worktree `- AAAA-MM-DD — documentador: FALHOU — <motivo>; diário não integrado (não bloqueia)`, commit `docs(tarefas): atualiza T-XXX — diário de estudo falhou` e siga os passos 6 e 7 da Integração com `WT=.claude/worktrees/estudos-T-XXX`.
 3. Avise o George no próximo ponto de contato; ele pode pedir um novo disparo (volte a "Disparo").
@@ -110,6 +116,7 @@ A consolidação dos diários em notas por conceito também é do `documentador`
 | 4. Commits | diário + transcrição na nota da tarefa (dentro do worktree) | um commit só: `git -C "$WT" add docs/04-estudos` e `docs(estudos): consolida diários T-XXX, T-YYY em notas por conceito` (notas criadas e atualizadas no corpo). Não há nota de tarefa nem Log para atualizar |
 | 5 a 7. Validador, rebase, fast-forward, push, limpeza | como na Integração | iguais (só o validador — exceção das branches de estudo no `AGENTS.md`) |
 | Conflito no rebase | seção acima | seção acima (a escolha do George vai no corpo do commit) |
+| Push falhou | seção acima (tentar de novo ou avisar o George; seguir a limpeza) | igual (a consolidação já está na `main` local; não é **Falha**) |
 | Falha | descartar e registrar no Log da tarefa | descartar (passo 1 de **Falha**) e avisar o George; não há Log de tarefa para registrar |
 
 No fim, mostre ao George as notas criadas e as atualizadas (lista do handoff). Um diário redisparado depois da consolidação volta a `consolidado: false` e entra na consolidação seguinte.
