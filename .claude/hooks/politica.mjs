@@ -119,8 +119,83 @@ function analisarTexto(texto, estado, cwdInicial, profundidade) {
   return achados;
 }
 
-// Palavra sintética (ex.: destino/nome-do-arquivo de um `mv`).
-const palavra = (texto, base = {}) => ({ texto, dinamico: !!base.dinamico, glob: !!base.glob });
+// Palavra sintética (ex.: destino/nome-do-arquivo de um `mv`). Herda as marcas da base.
+const palavra = (texto, base = {}) => ({
+  texto, dinamico: !!base.dinamico, glob: !!base.glob, chaves: !!base.chaves, citada: !!base.citada,
+});
+
+const LIMITE_DE_EXPANSOES = 256;
+
+// Expansão de chaves do bash: `a/{b,c}/d` → a/b/d e a/c/d; `f{1..3}` → f1, f2, f3.
+// Devolve null se passar do limite. Chave sem `,` nem sequência fica literal.
+export function expandirChaves(texto, limite = LIMITE_DE_EXPANSOES) {
+  for (let i = 0; i < texto.length; i++) {
+    if (texto[i] !== '{') continue;
+    let profundidade = 0;
+    let fim = -1;
+    const virgulas = [];
+    for (let j = i; j < texto.length; j++) {
+      if (texto[j] === '{') profundidade++;
+      else if (texto[j] === '}' && --profundidade === 0) {
+        fim = j;
+        break;
+      } else if (texto[j] === ',' && profundidade === 1) virgulas.push(j);
+    }
+    if (fim === -1) continue;
+    const miolo = texto.slice(i + 1, fim);
+    let alternativas;
+    if (virgulas.length) {
+      alternativas = [];
+      let inicio = i + 1;
+      for (const v of [...virgulas, fim]) {
+        alternativas.push(texto.slice(inicio, v));
+        inicio = v + 1;
+      }
+    } else {
+      alternativas = sequencia(miolo, limite);
+      if (alternativas === undefined) continue; // `{x}`: literal
+      if (alternativas === null) return null;
+    }
+    const resultado = [];
+    for (const alternativa of alternativas) {
+      const parcial = expandirChaves(texto.slice(0, i) + alternativa + texto.slice(fim + 1), limite);
+      if (!parcial) return null;
+      resultado.push(...parcial);
+      if (resultado.length > limite) return null;
+    }
+    return resultado;
+  }
+  return [texto];
+}
+
+// `1..5`, `5..1..2`, `a..e`: undefined se não for sequência; null se grande demais.
+function sequencia(miolo, limite) {
+  const m = /^(-?\d+|[^.])\.\.(-?\d+|[^.])(?:\.\.(-?\d+))?$/.exec(miolo);
+  if (!m) return undefined;
+  const numerica = /^-?\d+$/.test(m[1]) && /^-?\d+$/.test(m[2]);
+  if (!numerica && (m[1].length !== 1 || m[2].length !== 1)) return undefined;
+  const de = numerica ? Number(m[1]) : m[1].codePointAt(0);
+  const ate = numerica ? Number(m[2]) : m[2].codePointAt(0);
+  const passo = Math.abs(Number(m[3] ?? 1)) || 1;
+  if (Math.abs(ate - de) / passo + 1 > limite) return null;
+  const valores = [];
+  for (let v = de; de <= ate ? v <= ate : v >= ate; v += de <= ate ? passo : -passo) {
+    valores.push(numerica ? String(v) : String.fromCodePoint(v));
+  }
+  return valores;
+}
+
+// Junta decisões de vários alvos: negar > perguntar > permitir.
+const maisRestritiva = (decisoes) => decisoes.find((d) => d.decisao === 'negar')
+  ?? decisoes.find((d) => d.decisao === 'perguntar') ?? PERMITIR;
+
+// Trecho com curinga pode sair da pasta antes do corte? Sim se, a partir do
+// nome que tem o curinga, houver um segmento `..` (`apps/web/*/../../docs`) ou
+// um nome que começa com `.` ou `[` e tem curinga (`.?` e `[.][.]` casam com `..`).
+function curingaPodeSubir(resto) {
+  return resto.split('/').some((segmento) => segmento === '..'
+    || (/^[.[]/.test(segmento) && /[*?[]/.test(segmento)));
+}
 
 // Confere um alvo de escrita. `subarvore` quando a operação atinge o que há dentro.
 function conferirAlvo(alvo, estado, cwd, { subarvore = false, seDiretorio = false } = {}) {
@@ -129,11 +204,24 @@ function conferirAlvo(alvo, estado, cwd, { subarvore = false, seDiretorio = fals
   if (ehDescarte(texto)) return PERMITIR;
   if (!texto) return negar('alvo vazio');
   if (texto.startsWith(':')) return negar(`pathspec especial do git "${texto}" não é verificado`);
+  if (alvo.chaves) {
+    // Chaves viram vários caminhos: confere cada um. Com aspas no meio, só uma
+    // parte das chaves expande; em vez de adivinhar, nega.
+    if (alvo.citada) return negar(`chaves com aspas em "${texto}" não são verificadas`);
+    const expansoes = expandirChaves(texto);
+    if (!expansoes) return negar(`expansão de chaves grande demais em "${texto}"`);
+    return maisRestritiva(expansoes.map((e) => conferirAlvo(
+      palavra(e, { glob: /[*?[]/.test(e) }), estado, cwd, { subarvore, seDiretorio },
+    )));
+  }
   let emSubarvore = subarvore;
   if (alvo.glob) {
     // Com curinga, vale a pasta antes dele inteira: nada proibido pode estar lá dentro.
-    const antes = texto.slice(0, texto.search(/[*?[]/));
+    const antes = texto.slice(0, texto.search(/[*?[{]/));
     const barra = antes.lastIndexOf('/');
+    if (curingaPodeSubir(texto.slice(barra + 1))) {
+      return negar(`curinga em "${texto}" pode sair da pasta (".." ou nome com ponto inicial): não é verificado`);
+    }
     texto = barra === -1 ? '.' : antes.slice(0, barra) || '/';
     emSubarvore = true;
   }
@@ -191,11 +279,29 @@ function valorDe(opcoes, nomes) {
 
 const ATRIBUICAO = /^[A-Za-z_][A-Za-z0-9_]*=/;
 
+// Variáveis de ambiente que o code-reviewer pode definir antes de um comando.
+const VARIAVEIS_SEGURAS = new Set([
+  'PYTHONUTF8', 'PYTHONIOENCODING', 'CI', 'FORCE_COLOR', 'NO_COLOR', 'LANG', 'LC_ALL', 'LC_CTYPE',
+  'TZ', 'TERM', 'COLUMNS',
+]);
+
+function atribuicaoSegura(a) {
+  const [nome, ...valor] = a.texto.split('=');
+  if (VARIAVEIS_SEGURAS.has(nome)) return true;
+  // Paginador só se for o `cat` (o valor é um comando que o git executa).
+  return (nome === 'GIT_PAGER' || nome === 'PAGER') && !a.dinamico && valor.join('=') === 'cat';
+}
+
 // Tira atribuições (`VAR=x cmd`) e "embrulhos" (`nohup cmd`, `timeout 5 cmd`).
-function desembrulhar(palavras) {
+// As atribuições tiradas vão para `atribuicoes` (o code-reviewer confere).
+function desembrulhar(palavras, atribuicoes = []) {
   let p = palavras.slice();
+  const tirarAtribuicao = () => {
+    atribuicoes.push(p[0]);
+    p = p.slice(1);
+  };
   for (;;) {
-    while (p.length && ATRIBUICAO.test(p[0].texto)) p = p.slice(1);
+    while (p.length && ATRIBUICAO.test(p[0].texto)) tirarAtribuicao();
     if (!p.length) return p;
     const nome = nomeDoComando(p[0]);
     if (['command', 'builtin', 'exec', 'nohup', 'time', 'stdbuf', 'sudo'].includes(nome)) {
@@ -207,7 +313,10 @@ function desembrulhar(palavras) {
       if (nome === 'timeout' && p.length) p = p.slice(1); // a duração
     } else if (nome === 'env') {
       p = p.slice(1);
-      while (p.length && (p[0].texto.startsWith('-') || ATRIBUICAO.test(p[0].texto))) p = p.slice(1);
+      while (p.length && (p[0].texto.startsWith('-') || ATRIBUICAO.test(p[0].texto))) {
+        if (ATRIBUICAO.test(p[0].texto)) tirarAtribuicao();
+        else p = p.slice(1);
+      }
       if (!p.length) return [palavra('env')];
     } else {
       return p;
@@ -234,8 +343,36 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
     }
   }
 
-  // 2. O comando em si.
-  const palavras = desembrulhar(item.palavras);
+  // 2. O comando em si. Antes, as chaves viram palavras separadas, como no bash
+  // (`sed -i {s/a/b/,arquivo}` → `sed -i s/a/b/ arquivo`).
+  const expandidas = [];
+  for (const p of item.palavras) {
+    if (!p.chaves) {
+      expandidas.push(p);
+      continue;
+    }
+    if (p.citada) {
+      achados.push(negar(`chaves com aspas em "${p.texto}" não são verificadas`));
+      return achados;
+    }
+    const lista = expandirChaves(p.texto);
+    if (!lista) {
+      achados.push(negar(`expansão de chaves grande demais em "${p.texto}"`));
+      return achados;
+    }
+    for (const e of lista) expandidas.push(palavra(e, { dinamico: p.dinamico, glob: /[*?[]/.test(e) }));
+  }
+  const atribuicoes = [];
+  const palavras = desembrulhar(expandidas, atribuicoes);
+  if (estado.leitura) {
+    // Variáveis como GIT_EXTERNAL_DIFF, GIT_PAGER ou NODE_OPTIONS fazem um comando
+    // de leitura executar outro programa: o code-reviewer só usa as da lista.
+    const insegura = atribuicoes.find((a) => !atribuicaoSegura(a));
+    if (insegura) {
+      achados.push(negar(`o ${estado.agente} é somente leitura: variável "${insegura.texto.split('=')[0]}" não está na lista de variáveis seguras`));
+      return achados;
+    }
+  }
   if (!palavras.length) return achados;
   if (palavras[0].dinamico) {
     achados.push(negar(`nome de comando dinâmico ("${palavras[0].texto || '$…'}") não pode ser verificado`));
@@ -247,7 +384,7 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
   if (nome === 'cd' || nome === 'pushd') {
     const destino = args.find((a) => !a.texto.startsWith('-') || a.texto === '-');
     if (!destino) local.cwd = process.env.HOME || process.env.USERPROFILE || null;
-    else if (destino.dinamico || destino.texto === '-') local.cwd = null;
+    else if (destino.dinamico || destino.glob || destino.texto === '-') local.cwd = null;
     else local.cwd = local.cwd ? resolverCaminho(destino.texto, local.cwd) : resolverCaminho(destino.texto, null);
     return achados;
   }
@@ -270,8 +407,9 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
 // Comandos que escrevem em arquivos e cujos alvos o hook sabe extrair.
 const ESCRITORES = new Set([
   'rm', 'rmdir', 'unlink', 'shred', 'touch', 'mkdir', 'truncate', 'mv', 'cp', 'install',
-  'ln', 'tee', 'sed', 'perl', 'dd', 'chmod', 'chown', 'chgrp', 'git', 'patch',
+  'ln', 'tee', 'sed', 'perl', 'dd', 'chmod', 'chown', 'chgrp', 'git', 'patch', 'rsync',
 ]);
+const AWKS = new Set(['awk', 'gawk', 'mawk', 'nawk']);
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
 
 function avaliarEscrita(nome, args, contexto) {
@@ -325,6 +463,17 @@ function avaliarEscrita(nome, args, contexto) {
     }
     case 'patch':
       return [negar('patch: os arquivos alterados vêm do diff e não podem ser verificados; use Edit/Write')];
+    case 'curl':
+      return curl(args, contexto);
+    case 'wget':
+      return wget(args, contexto);
+    case 'rsync':
+      return rsync(args, contexto);
+    case 'tar':
+    case 'bsdtar':
+      return tar(args, contexto);
+    case 'unzip':
+      return unzip(args, contexto);
     case 'git':
       return git(args, contexto);
     case 'find':
@@ -337,6 +486,7 @@ function avaliarEscrita(nome, args, contexto) {
       break;
   }
   if (SHELLS.has(nome)) return shellComC(args, contexto);
+  if (AWKS.has(nome)) return awkEscrita(args, contexto);
   return codigoInline(nome, args);
 }
 
@@ -369,7 +519,13 @@ function moverOuCopiar(args, contexto, { moveOrigem, link = false }) {
     for (const o of origens) {
       const nomeBase = o.texto.replace(/\/+$/, '').split('/').pop();
       const texto = `${destino.texto.replace(/\/+$/, '')}/${nomeBase}`;
-      achados.push(conferirAlvo(palavra(texto, { dinamico: destino.dinamico || o.dinamico, glob: destino.glob || o.glob }), estado, cwd));
+      const marcas = {
+        dinamico: destino.dinamico || o.dinamico,
+        glob: destino.glob || o.glob,
+        chaves: destino.chaves || o.chaves,
+        citada: destino.citada || o.citada,
+      };
+      achados.push(conferirAlvo(palavra(texto, marcas), estado, cwd));
     }
   } else {
     achados.push(conferirAlvo(destino, estado, cwd));
@@ -430,6 +586,278 @@ function perl(args, contexto) {
   const temScript = opcoes.some(({ nome }) => nome === '-e' || nome === '-E' || /^-[^-]*[eE]$/.test(nome));
   const arquivos = temScript ? posicionais : posicionais.slice(1);
   if (!arquivos.length) return [...achados, negar('perl -i sem arquivo identificável')];
+  return [...achados, ...arquivos.map((p) => conferirAlvo(p, contexto.estado, contexto.cwd))];
+}
+
+// ---------------------------------------------------------------------------
+// Downloads, sincronização, pacotes e awk: comandos que escrevem por opção.
+// ---------------------------------------------------------------------------
+
+// Separa opções no estilo GNU, abrindo grupos de opções curtas (`-sSLo saida` →
+// -s, -S, -L e -o saida). `curtasComValor`: letras que consomem um valor (o resto
+// do grupo ou o próximo argumento); `longasComValor`: opções longas que consomem
+// o próximo argumento quando não vêm com `=`.
+function separarOpcoesGnu(args, curtasComValor = '', longasComValor = new Set()) {
+  const opcoes = [];
+  const posicionais = [];
+  let fimDasOpcoes = false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    const t = a.texto;
+    if (fimDasOpcoes || a.dinamico || t === '-' || !t.startsWith('-')) {
+      posicionais.push(a);
+    } else if (t === '--') {
+      fimDasOpcoes = true;
+    } else if (t.startsWith('--')) {
+      const igual = t.indexOf('=');
+      const nome = igual === -1 ? t : t.slice(0, igual);
+      let valor = igual === -1 ? null : palavra(t.slice(igual + 1), a);
+      if (!valor && longasComValor.has(nome) && i + 1 < args.length) valor = args[++i];
+      opcoes.push({ nome, valor });
+    } else {
+      for (let j = 1; j < t.length; j++) {
+        if (!curtasComValor.includes(t[j])) {
+          opcoes.push({ nome: `-${t[j]}`, valor: null });
+          continue;
+        }
+        const valor = j + 1 < t.length ? palavra(t.slice(j + 1), a) : (args[++i] ?? null);
+        opcoes.push({ nome: `-${t[j]}`, valor });
+        break;
+      }
+    }
+  }
+  return { opcoes, posicionais };
+}
+
+const valoresDe = (opcoes, nomes) => opcoes.filter((o) => nomes.includes(o.nome) && o.valor).map((o) => o.valor);
+const temAlguma = (opcoes, nomes) => opcoes.some((o) => nomes.includes(o.nome));
+const ehSaidaPadrao = (p) => !p.dinamico && p.texto === '-';
+const ehAbsoluto = (texto) => /^([\\/]|[A-Za-z]:)/.test(texto);
+
+// Caminho `relativo` dentro de `base` (ex.: `-o` dentro de `--output-dir`).
+function dentroDe(base, relativo) {
+  const texto = ehAbsoluto(relativo.texto) ? relativo.texto : `${base.texto.replace(/\/+$/, '')}/${relativo.texto}`;
+  return palavra(texto, {
+    dinamico: base.dinamico || relativo.dinamico,
+    glob: base.glob || relativo.glob,
+    chaves: base.chaves || relativo.chaves,
+    citada: base.citada || relativo.citada,
+  });
+}
+
+// curl: `-o/--output ARQUIVO` (e cabeçalhos, cookies, rastros) gravam arquivos;
+// `-O` grava na pasta atual (ou em `--output-dir`) com o nome que vem da URL.
+const CURL_CURTAS_COM_VALOR = 'AbcCdDeEFHKmoPQrtTuUwxXyYz';
+const CURL_ARQUIVOS = [
+  '-o', '--output', '-D', '--dump-header', '-c', '--cookie-jar', '--trace', '--trace-ascii',
+  '--stderr', '--libcurl', '--etag-save', '--hsts', '--alt-svc',
+];
+const CURL_LONGAS_COM_VALOR = new Set([
+  ...CURL_ARQUIVOS.filter((n) => n.startsWith('--')), '--output-dir', '--data', '--data-raw',
+  '--data-binary', '--header', '--request', '--user', '--user-agent', '--url', '--config', '--cookie',
+  '--form', '--upload-file', '--write-out', '--referer', '--proxy', '--max-time', '--range',
+]);
+
+function curl(args, contexto) {
+  const { estado, cwd } = contexto;
+  const { opcoes } = separarOpcoesGnu(args, CURL_CURTAS_COM_VALOR, CURL_LONGAS_COM_VALOR);
+  const pasta = valoresDe(opcoes, ['--output-dir'])[0];
+  const achados = [];
+  for (const { nome, valor } of opcoes) {
+    if (!valor || !CURL_ARQUIVOS.includes(nome) || ehSaidaPadrao(valor)) continue;
+    const ehSaida = nome === '-o' || nome === '--output';
+    achados.push(conferirAlvo(pasta && ehSaida ? dentroDe(pasta, valor) : valor, estado, cwd));
+  }
+  if (temAlguma(opcoes, ['-O', '--remote-name', '--remote-name-all'])) {
+    achados.push(conferirAlvo(pasta ?? palavra('.'), estado, cwd, { subarvore: true }));
+  }
+  return achados;
+}
+
+// wget: grava na pasta atual (ou em `-P PASTA`) com o nome da URL; `-O ARQUIVO`
+// grava num arquivo só; `-o`/`-a` gravam o log. `-e` roda comandos do wgetrc.
+const WGET_CURTAS_COM_VALOR = 'OoaPeitTwQlARDIXUB';
+const WGET_LONGAS_COM_VALOR = new Set([
+  '--output-document', '--output-file', '--append-output', '--directory-prefix', '--execute',
+  '--input-file', '--tries', '--timeout', '--wait', '--quota', '--level', '--accept', '--reject',
+  '--domains', '--include-directories', '--exclude-directories', '--user-agent', '--base', '--header',
+  '--user', '--password', '--post-data',
+]);
+
+function wget(args, contexto) {
+  const { estado, cwd } = contexto;
+  const { opcoes } = separarOpcoesGnu(args, WGET_CURTAS_COM_VALOR, WGET_LONGAS_COM_VALOR);
+  if (temAlguma(opcoes, ['-e', '--execute'])) return [negar('wget -e/--execute: comandos do wgetrc não são verificados')];
+  const achados = valoresDe(opcoes, ['-o', '--output-file', '-a', '--append-output'])
+    .filter((v) => !ehSaidaPadrao(v))
+    .map((v) => conferirAlvo(v, estado, cwd));
+  const documento = valoresDe(opcoes, ['-O', '--output-document'])[0];
+  if (documento) {
+    if (!ehSaidaPadrao(documento)) achados.push(conferirAlvo(documento, estado, cwd));
+  } else if (!temAlguma(opcoes, ['--spider'])) {
+    const pasta = valoresDe(opcoes, ['-P', '--directory-prefix'])[0] ?? palavra('.');
+    achados.push(conferirAlvo(pasta, estado, cwd, { subarvore: true }));
+  }
+  return achados;
+}
+
+// rsync: o destino (último argumento) recebe a origem inteira, com subpastas, e
+// `--delete` apaga lá dentro: confere o destino como pasta inteira.
+const RSYNC_CURTAS_COM_VALOR = 'efTBM';
+const RSYNC_LONGAS_COM_VALOR = new Set([
+  '--rsh', '--filter', '--exclude', '--include', '--exclude-from', '--include-from', '--files-from',
+  '--temp-dir', '--partial-dir', '--backup-dir', '--log-file', '--log-file-format', '--chmod',
+  '--chown', '--suffix', '--compare-dest', '--copy-dest', '--link-dest', '--block-size', '--max-size',
+  '--min-size', '--bwlimit', '--timeout', '--password-file', '--out-format', '--port', '--iconv',
+  '--remote-option', '--usermap', '--groupmap', '--write-batch', '--only-write-batch', '--read-batch',
+  '--info', '--debug', '--modify-window',
+]);
+// `host:caminho`, `usuario@host:caminho`, `host::modulo` ou `rsync://` (não é disco local).
+const ehRemoto = (p) => !p.dinamico && (/^rsync:\/\//.test(p.texto)
+  || (/^[^/\\:]+:/.test(p.texto) && !/^[A-Za-z]:([\\/]|$)/.test(p.texto)));
+
+function rsync(args, contexto) {
+  const { estado, cwd } = contexto;
+  const { opcoes, posicionais } = separarOpcoesGnu(args, RSYNC_CURTAS_COM_VALOR, RSYNC_LONGAS_COM_VALOR);
+  const achados = valoresDe(opcoes, ['--log-file', '--write-batch', '--only-write-batch'])
+    .map((v) => conferirAlvo(v, estado, cwd));
+  if (posicionais.length < 2) return achados; // só a origem: lista os arquivos
+  const destino = posicionais[posicionais.length - 1];
+  if (!ehRemoto(destino)) {
+    achados.push(conferirAlvo(destino, estado, cwd, { subarvore: true }));
+    // Pastas de backup, parciais e temporárias são relativas ao destino.
+    for (const v of valoresDe(opcoes, ['--backup-dir', '--partial-dir', '--temp-dir', '-T'])) {
+      achados.push(conferirAlvo(dentroDe(destino, v), estado, cwd, { subarvore: true }));
+    }
+  }
+  if (temAlguma(opcoes, ['--remove-source-files'])) {
+    for (const o of posicionais.slice(0, -1).filter((p) => !ehRemoto(p))) {
+      achados.push(conferirAlvo(o, estado, cwd, { subarvore: true }));
+    }
+  }
+  return achados;
+}
+
+// tar: extrair (`-x`) grava na pasta atual ou em `-C PASTA`; criar ou alterar
+// um pacote (`-c`, `-r`, `-u`, `-A`, `--delete`) grava o arquivo de `-f`.
+const TAR_CURTAS_COM_VALOR = 'fCTXbLgNKVHI';
+const TAR_LONGAS_COM_VALOR = new Set([
+  '--file', '--directory', '--files-from', '--exclude-from', '--listed-incremental', '--newer',
+  '--label', '--format', '--use-compress-program', '--to-command', '--blocking-factor',
+  '--tape-length', '--starting-file', '--exclude', '--transform', '--xform', '--owner', '--group',
+  '--mode', '--mtime', '--suffix', '--strip-components',
+]);
+
+function tar(args, contexto) {
+  const { estado, cwd } = contexto;
+  // Forma antiga, sem traço (`tar xzf pacote.tar`): cada letra que tem valor
+  // consome o próximo argumento, na ordem.
+  let lista = args;
+  if (args.length && !args[0].dinamico && /^[A-Za-z]+$/.test(args[0].texto)) {
+    lista = [];
+    let proximo = 1;
+    for (const letra of args[0].texto) {
+      lista.push(palavra(`-${letra}`));
+      if (TAR_CURTAS_COM_VALOR.includes(letra) && proximo < args.length) lista.push(args[proximo++]);
+    }
+    lista.push(...args.slice(proximo));
+  }
+  const { opcoes } = separarOpcoesGnu(lista, TAR_CURTAS_COM_VALOR, TAR_LONGAS_COM_VALOR);
+  const tem = (...nomes) => temAlguma(opcoes, nomes);
+  const achados = valoresDe(opcoes, ['-g', '--listed-incremental']).map((v) => conferirAlvo(v, estado, cwd));
+  if (tem('-x', '--extract', '--get')) {
+    if (tem('-O', '--to-stdout')) return achados;
+    if (tem('-P', '--absolute-names', '--transform', '--xform', '--to-command')) {
+      return [...achados, negar('tar com --absolute-names, --transform ou --to-command: os caminhos extraídos não são verificados')];
+    }
+    // Cada `-C` relativo vale a partir do anterior.
+    const pastas = [];
+    for (const v of valoresDe(opcoes, ['-C', '--directory'])) {
+      pastas.push(pastas.length ? dentroDe(pastas[pastas.length - 1], v) : v);
+    }
+    if (!pastas.length) pastas.push(palavra('.'));
+    return [...achados, ...pastas.map((p) => conferirAlvo(p, estado, cwd, { subarvore: true }))];
+  }
+  if (tem('-c', '--create', '-r', '--append', '-u', '--update', '-A', '--catenate', '--concatenate', '--delete')) {
+    const pacote = valoresDe(opcoes, ['-f', '--file'])[0];
+    if (pacote && !ehSaidaPadrao(pacote)) achados.push(conferirAlvo(pacote, estado, cwd));
+  }
+  return achados;
+}
+
+// unzip: extrai na pasta atual ou em `-d PASTA`; `-l`, `-v`, `-t`, `-p`, `-z` e
+// `-Z` só leem. `-:` aceita "../" nos nomes extraídos.
+function unzip(args, contexto) {
+  let destino = null;
+  let soLe = false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    const t = a.texto;
+    if (a.dinamico || t.length < 2 || !t.startsWith('-')) continue;
+    for (let j = 1; j < t.length; j++) {
+      const c = t[j];
+      if (c === 'd' || c === 'P') {
+        const valor = j + 1 < t.length ? palavra(t.slice(j + 1), a) : (args[++i] ?? null);
+        if (c === 'd') destino = valor;
+        break;
+      }
+      if (c === ':') return [negar('unzip -: aceita "../" nos nomes extraídos: não é verificado')];
+      if ('lvtpzZ'.includes(c)) soLe = true;
+    }
+  }
+  if (soLe) return [];
+  return [conferirAlvo(destino ?? palavra('.'), contexto.estado, contexto.cwd, { subarvore: true })];
+}
+
+// awk: lê as opções até o programa. O programa pode vir de `-f ARQUIVO` (não
+// visível), de `-e TEXTO` (gawk) ou do primeiro argumento.
+const AWK_CURTAS_COM_VALOR = new Set(['-f', '-v', '-F', '-i', '-e', '-E', '-l', '-W']);
+const AWK_LONGAS_COM_VALOR = new Set(['--file', '--assign', '--field-separator', '--include', '--source', '--exec', '--load']);
+
+function separarAwk(args) {
+  const opcoes = [];
+  let i = 0;
+  for (; i < args.length; i++) {
+    const a = args[i];
+    const t = a.texto;
+    if (a.dinamico || t === '-' || !t.startsWith('-')) break;
+    if (t === '--') {
+      i++;
+      break;
+    }
+    if (t.startsWith('--')) {
+      const igual = t.indexOf('=');
+      const nome = igual === -1 ? t : t.slice(0, igual);
+      let valor = igual === -1 ? null : palavra(t.slice(igual + 1), a);
+      if (!valor && AWK_LONGAS_COM_VALOR.has(nome)) valor = args[++i] ?? null;
+      opcoes.push({ nome, valor });
+      continue;
+    }
+    const nome = t.slice(0, 2);
+    let valor = null;
+    if (AWK_CURTAS_COM_VALOR.has(nome)) valor = t.length > 2 ? palavra(t.slice(2), a) : (args[++i] ?? null);
+    opcoes.push({ nome, valor });
+  }
+  const resto = args.slice(i);
+  const programaEmOpcao = temAlguma(opcoes, ['-f', '--file', '-e', '--source', '-E', '--exec']);
+  const programas = [...(programaEmOpcao || !resto.length ? [] : [resto[0]]), ...valoresDe(opcoes, ['-e', '--source'])];
+  // Entradas: sem `var=valor` (atribuição do awk) nem `-` (entrada padrão).
+  const arquivos = (programaEmOpcao ? resto : resto.slice(1))
+    .filter((p) => p.dinamico || (p.texto !== '-' && !ATRIBUICAO.test(p.texto)));
+  return { opcoes, programas, arquivos };
+}
+
+// `awk -i inplace` edita no lugar: os arquivos de entrada são os alvos.
+function awkEscrita(args, contexto) {
+  const { opcoes, programas, arquivos } = separarAwk(args);
+  const achados = [];
+  if (programas.some((p) => TRECHO_PROTEGIDO.test(p.texto))) {
+    achados.push(negar('awk: o programa cita um caminho protegido (docs/03-tarefas ou .claude/agents)'));
+  }
+  const inclusoes = valoresDe(opcoes, ['-i', '--include']);
+  if (inclusoes.some((v) => v.dinamico)) return [...achados, negar('awk -i com valor dinâmico não pode ser verificado')];
+  if (!inclusoes.some((v) => /^inplace(\.awk)?$/.test(v.texto))) return achados;
+  if (!arquivos.length) return [...achados, negar('awk -i inplace sem arquivo identificável')];
   return [...achados, ...arquivos.map((p) => conferirAlvo(p, contexto.estado, contexto.cwd))];
 }
 
@@ -507,7 +935,17 @@ function find(args, contexto) {
     if (FIND_EXEC.has(t)) {
       const interno = [];
       for (i++; i < args.length && args[i].texto !== ';' && args[i].texto !== '+'; i++) interno.push(args[i]);
-      if (interno.length && ESCRITORES.has(nomeDoComando(interno[0]))) atingeRaizes = true;
+      if (!interno.length) continue;
+      if (ESCRITORES.has(nomeDoComando(interno[0]))) {
+        atingeRaizes = true;
+      } else {
+        // Outros comandos (`curl -o`, `tar -x`, `sh -c`...) são analisados com
+        // `{}` como caminho desconhecido; no `-execdir` a pasta atual muda.
+        const palavras = interno.map((p) => (p.texto.includes('{}') ? palavra(p.texto, { ...p, dinamico: true }) : p));
+        const cwdInterno = t === '-execdir' || t === '-okdir' ? null : cwd;
+        const item = { tipo: 'comando', palavras, redirecoes: [] };
+        achados.push(...avaliarComandoSimples(item, estado, { cwd: cwdInterno }, contexto.profundidade + 1));
+      }
     }
   }
   if (atingeRaizes) {
@@ -551,13 +989,16 @@ const GIT_COM_CAMINHOS = new Set(['add', 'rm', 'mv', 'restore', 'checkout', 'res
 function separarGit(args, cwd) {
   let i = 0;
   let gitCwd = cwd;
+  let configuracao = null; // `-c`, `--config-env` ou `--exec-path` na linha de comando
   while (i < args.length && args[i].texto.startsWith('-')) {
     const t = args[i].texto;
+    if (/^--(config-env|exec-path)/.test(t)) configuracao = configuracao ?? t.split('=')[0];
     if (t === '-C') {
       const dir = args[i + 1];
-      gitCwd = !dir || dir.dinamico || !gitCwd ? null : resolverCaminho(dir.texto, gitCwd);
+      gitCwd = !dir || dir.dinamico || dir.glob || !gitCwd ? null : resolverCaminho(dir.texto, gitCwd);
       i += 2;
     } else if (t === '-c') {
+      configuracao = configuracao ?? '-c';
       i += 2;
     } else if (/^--(git-dir|work-tree|namespace)/.test(t)) {
       return { erro: `git ${t}: repositório/árvore alternativos não são verificados` };
@@ -566,7 +1007,7 @@ function separarGit(args, cwd) {
     }
   }
   const sub = args[i] ? args[i].texto : '';
-  return { sub, resto: args.slice(i + 1), gitCwd, dinamico: args[i]?.dinamico };
+  return { sub, resto: args.slice(i + 1), gitCwd, dinamico: args[i]?.dinamico, configuracao };
 }
 
 // Formas de leitura de subcomandos que também escrevem (branch, tag, config...).
@@ -601,8 +1042,17 @@ function gitLeituraCondicional(sub, resto) {
 
 function git(args, contexto) {
   const { estado } = contexto;
-  const { sub, resto, gitCwd, erro, dinamico } = separarGit(args, contexto.cwd);
+  const { sub, resto, gitCwd, erro, dinamico, configuracao } = separarGit(args, contexto.cwd);
   if (erro) return [negar(erro)];
+  // Configuração na linha de comando (`-c diff.external=...`, `-c core.pager=...`)
+  // faz um git de leitura executar outro programa.
+  if (estado.leitura && configuracao) {
+    return [negar(`o ${estado.agente} é somente leitura: git ${configuracao} (configuração na linha de comando) não é permitido`)];
+  }
+  // `git grep -O<programa>` abre os arquivos num programa qualquer.
+  if (estado.leitura && sub === 'grep' && resto.some((a) => /^(-O|--open-files-in-pager)/.test(a.texto))) {
+    return [negar(`o ${estado.agente} é somente leitura: git grep -O executa um programa`)];
+  }
   if (!sub || sub === '--version') return [];
   if (dinamico) return [negar('subcomando git dinâmico não pode ser verificado')];
   const alvo = (p, opcoes) => conferirAlvo(p, estado, gitCwd, opcoes);
@@ -653,13 +1103,26 @@ const LEITURA_LIVRE = new Set([
   'printf', 'diff', 'cmp', 'cut', 'tr', 'jq', 'file', 'stat', 'du', 'df', 'tree', 'which',
   'type', 'basename', 'dirname', 'realpath', 'readlink', 'date', 'true', 'false', 'test', '[',
   'nl', 'column', 'comm', 'od', 'sha256sum', 'sha1sum', 'md5sum', 'env', 'exit', 'uniq', 'sort',
+  'read', '[[',
 ]);
 const SCRIPT_NPM_LEITURA = /^(test|lint|build)(:[\w:-]+)?$/;
+// Opções que fazem testes e lint gravarem arquivos (snapshots, relatórios).
+const OPCAO_QUE_GRAVA = /^(-u|--update[\w-]*|--outputFile|--test-reporter-destination)(=|$)/;
+// Opções do node que executam código além dos testes (inclui qualquer opção curta, como `-e` e `-pe`).
+const NODE_EXECUTA = /^(--import|--require|--loader|--experimental-loader|--eval|--print)(=|$)|^-[^-]/;
 
 function avaliarLeitura(nome, args, contexto) {
   const { estado } = contexto;
   const recusa = (detalhe) => [negar(`o ${estado.agente} é somente leitura: ${detalhe}`)];
   const textos = args.map((a) => a.texto);
+
+  // `--fix` (eslint e afins) corrige arquivos, mesmo passado por `npm run lint -- --fix`.
+  const fix = textos.find((t) => /^--fix(=|$)/.test(t));
+  if (fix) return recusa(`${nome} ${fix} altera arquivos`);
+  if (['npm', 'npx', 'node'].includes(nome)) {
+    const grava = textos.find((t) => OPCAO_QUE_GRAVA.test(t));
+    if (grava) return recusa(`${nome} ${grava} grava arquivos (snapshots ou relatórios)`);
+  }
 
   if (LEITURA_LIVRE.has(nome)) {
     if (nome === 'sort' && textos.some((t) => t === '-o' || t.startsWith('--output') || /^-[^-]*o/.test(t))) {
@@ -702,18 +1165,16 @@ function avaliarLeitura(nome, args, contexto) {
       if (ferramenta === 'tsc' && (tem('--noEmit') || tem('-b') || tem('--build'))) return [];
       return recusa(`npx ${posicionais.map((p) => p.texto).join(' ')} não é teste, lint ou checagem de tipos`);
     }
-    case 'node':
+    case 'node': {
       if (textos.every((t) => t === '--version' || t === '-v')) return [];
-      if (textos[0] === '--test') return [];
-      return recusa('node só para --version ou --test');
+      if (textos[0] !== '--test') return recusa('node só para --version ou --test');
+      const executa = textos.find((t) => NODE_EXECUTA.test(t));
+      return executa ? recusa(`node --test com ${executa} executa código além dos testes`) : [];
+    }
     case 'python':
     case 'python3':
-    case 'py': {
-      const posicionais = separarArgs(args).posicionais.map((p) => p.texto.replace(/\\/g, '/'));
-      if (textos.every((t) => t === '--version' || t === '-V')) return [];
-      if (posicionais[0] && posicionais[0].endsWith('scripts/validar_estrutura.py')) return [];
-      return recusa('python só para o validador (scripts/validar_estrutura.py)');
-    }
+    case 'py':
+      return pythonLeitura(args, recusa);
     case 'xargs':
       return xargs(args, contexto);
     default:
@@ -723,8 +1184,43 @@ function avaliarLeitura(nome, args, contexto) {
         return temC ? achados : recusa(`${nome} sem -c (script) não é verificado`);
       }
       if (nome === 'eval') return reanalisar(args, contexto, 'eval');
+      if (AWKS.has(nome)) return awkLeitura(args, recusa);
       return recusa(`"${nome}" não está na lista de leitura (git de leitura, testes, lint, build, validador e utilitários de leitura)`);
   }
+}
+
+// python: só o validador. `-X utf8` e `-W ignore` têm valor; `-c` e `-m`
+// executariam outro código no lugar do script.
+function pythonLeitura(args, recusa) {
+  const textos = args.map((a) => a.texto);
+  if (textos.length && textos.every((t) => t === '--version' || t === '-V')) return [];
+  let i = 0;
+  while (i < args.length && args[i].texto.startsWith('-') && !args[i].dinamico) {
+    const t = args[i].texto;
+    if (t === '-X' || t === '-W') {
+      i += 2;
+      continue;
+    }
+    if (/^-[^-]*[cm]/.test(t)) return recusa(`python ${t} executa outro código no lugar do validador`);
+    i++;
+  }
+  const script = args[i];
+  if (script && !script.dinamico && script.texto.replace(/\\/g, '/').endsWith('scripts/validar_estrutura.py')) return [];
+  return recusa('python só para o validador (scripts/validar_estrutura.py)');
+}
+
+// awk de leitura: só `-F` e `-v`; o programa não pode gravar (`>`), abrir
+// processos (`|`, `system`) nem carregar extensões (`@load`, `@include`).
+function awkLeitura(args, recusa) {
+  const { opcoes, programas } = separarAwk(args);
+  const proibida = opcoes.find((o) => !['-F', '--field-separator', '-v', '--assign'].includes(o.nome));
+  if (proibida) return recusa(`awk ${proibida.nome} (na leitura, só -F e -v)`);
+  const [programa] = programas;
+  if (!programa || programa.dinamico) return recusa('awk sem programa visível');
+  if (/system|@|>|(^|[^|])\|(?!\|)/.test(programa.texto)) {
+    return recusa('programa do awk com system, @, > ou | pode gravar ou executar');
+  }
+  return [];
 }
 
 // ---------------------------------------------------------------------------

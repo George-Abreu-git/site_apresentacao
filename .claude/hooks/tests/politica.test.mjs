@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
-import { avaliar } from '../politica.mjs';
+import { avaliar, expandirChaves } from '../politica.mjs';
 
 const WINDOWS = process.platform === 'win32';
 
@@ -264,6 +264,112 @@ casosDeBash('Bash: code-reviewer somente leitura (critério 27)', [
   ['code-reviewer', 'node -e "1"', 'negar'],
   ['code-reviewer', "sed -i 's/a/b/' apps/web/src/App.tsx", 'negar'],
   ['code-reviewer', 'find . -name x -delete', 'negar'],
+]);
+
+casosDeBash('Bash: code-reviewer — escrita disfarçada (D4, opcional 3)', [
+  ['code-reviewer', 'npm run lint -- --fix', 'negar'],
+  ['code-reviewer', 'npx vitest run -u', 'negar'],
+  ['code-reviewer', 'npm test -- --update', 'negar'],
+  ['code-reviewer', 'npx playwright test --update-snapshots', 'negar'],
+  ['code-reviewer', 'node --test --import ./x.mjs .claude/hooks/tests/', 'negar'],
+  ['code-reviewer', 'node --test --require=./x.cjs', 'negar'],
+  ['code-reviewer', 'node --test -e "1"', 'negar'],
+  ['code-reviewer', 'git -c diff.external=x diff', 'negar'],
+  ['code-reviewer', 'git -c core.pager=x log', 'negar'],
+  ['code-reviewer', 'git grep -Ovim x', 'negar'],
+  ['code-reviewer', 'GIT_EXTERNAL_DIFF=x git diff', 'negar'],
+  ['code-reviewer', 'env NODE_OPTIONS=--require=./x npm test', 'negar'],
+  ['code-reviewer', 'node --test .claude/hooks/tests/', 'permitir'],
+  ['code-reviewer', 'GIT_PAGER=cat git log --oneline', 'permitir'],
+  ['code-reviewer', 'git diff -u main', 'permitir'],
+  ['dev', 'git -c user.name=x log', 'permitir'],
+]);
+
+casosDeBash('Bash: code-reviewer — leituras legítimas (D4, opcional 4)', [
+  ['code-reviewer', 'for f in apps/web/src/*.ts; do grep -c x $f; done', 'permitir'],
+  ['code-reviewer', 'for ((i = 0; i < 3; i++)); do echo $i; done', 'permitir'],
+  ['code-reviewer', 'case "$x" in a|b) echo um;; (c) echo dois;; esac', 'permitir'],
+  ['code-reviewer', 'select x in a b; do echo $x; done', 'permitir'],
+  ['code-reviewer', 'if [[ -f x ]]; then cat x; fi', 'permitir'],
+  ['code-reviewer', 'git diff --name-only | while read f; do wc -l "$f"; done', 'permitir'],
+  ['code-reviewer', "awk '{print $1}' apps/web/package.json", 'permitir'],
+  ['code-reviewer', "awk -F: '$3 == 1 || $4 == 2 {print $1}' arquivo", 'permitir'],
+  ['code-reviewer', 'python -X utf8 scripts/validar_estrutura.py', 'permitir'],
+  ['code-reviewer', 'for f in a; do rm $f; done', 'negar'],
+  ['code-reviewer', "awk -i inplace '{print}' x", 'negar'],
+  ['code-reviewer', "awk 'BEGIN{system(\"rm x\")}'", 'negar'],
+  ['code-reviewer', "awk '{print > \"x\"}' y", 'negar'],
+  ['code-reviewer', "awk '{print | \"sh\"}' y", 'negar'],
+  ['code-reviewer', 'awk -f programa.awk y', 'negar'],
+  ['code-reviewer', 'python -c "import os" scripts/validar_estrutura.py', 'negar'],
+  ['code-reviewer', 'python -m http.server scripts/validar_estrutura.py', 'negar'],
+]);
+
+casosDeBash('Bash: curingas, chaves e $\'...\' (revisão da rodada 1)', [
+  ['dev', 'rm apps/web/*/../../../docs/03-tarefas/x', 'negar'],
+  ['devops', 'touch docs/{02-arquitetura,03-tarefas}/x.md', 'negar'],
+  ['dev', 'touch apps/{web/a,../docs/03-tarefas/b}', 'negar'],
+  ['dev', "touch apps/$'\\x2e\\x2e'/docs/03-tarefas/x", 'negar'],
+  ['dev', 'touch apps/$"web"/x', 'negar'],
+  ['dev', 'mkdir -p apps/web/src/{components,hooks}', 'permitir'],
+  ['dev', 'touch apps/web/src/{App,main}.tsx', 'permitir'],
+  ['dev', 'touch apps/web/src/f{1..3}.ts', 'permitir'],
+  ['dev', 'touch apps/web/.?/x', 'negar'],
+  ['dev', 'touch apps/{,}.{.,}/docs/03-tarefas/x', 'negar'],
+  ['dev', 'touch "apps/web/"{a,b}', 'negar'],
+  ['dev', 'mv apps/web/src/a.ts apps/{web,../docs/03-tarefas}/', 'negar'],
+  ['dev', 'sed -i {s/a/b/,docs/03-tarefas/x}', 'negar'],
+  ['dev', 'cd apps/api/te* && rm -rf x', 'negar'],
+  ['dev', 'echo {} a{b}c', 'permitir'],
+]);
+
+describe('expansão de chaves', () => {
+  test('listas, sequências e aninhamento', () => {
+    assert.deepEqual(expandirChaves('a/{b,c}/d'), ['a/b/d', 'a/c/d']);
+    assert.deepEqual(expandirChaves('f{1..3}'), ['f1', 'f2', 'f3']);
+    assert.deepEqual(expandirChaves('{a,b{x,y}}'), ['a', 'bx', 'by']);
+    assert.deepEqual(expandirChaves('{x}'), ['{x}']);
+  });
+  test('expansão grande demais devolve null', () => {
+    assert.equal(expandirChaves('{1..9999}'), null);
+  });
+});
+
+casosDeBash('Bash: comandos que escrevem por opção (curl, wget, rsync, tar, unzip, awk)', [
+  ['dev', 'curl -sSL https://exemplo.dev/a.json -o apps/web/src/a.json', 'permitir'],
+  ['dev', 'curl -s https://exemplo.dev', 'permitir'],
+  ['dev', 'curl -sSLo docs/03-tarefas/x https://exemplo.dev', 'negar'],
+  ['dev', 'curl --output=docs/03-tarefas/x https://exemplo.dev', 'negar'],
+  ['dev', 'curl -O https://exemplo.dev/a.json', 'negar'],
+  ['dev', 'cd apps/web && curl -O https://exemplo.dev/a.json', 'permitir'],
+  ['dev', 'curl --output-dir apps/web -o ../../docs/03-tarefas/x https://exemplo.dev', 'negar'],
+  ['dev', 'wget -P apps/web/dist https://exemplo.dev/a.zip', 'permitir'],
+  ['dev', 'wget -qO- https://exemplo.dev', 'permitir'],
+  ['dev', 'wget https://exemplo.dev/a.zip', 'negar'],
+  ['dev', 'wget -O docs/03-tarefas/x https://exemplo.dev', 'negar'],
+  ['dev', 'wget -e robots=off https://exemplo.dev', 'negar'],
+  ['dev', 'rsync -a apps/web/src/ apps/web/dist/', 'permitir'],
+  ['dev', 'rsync -a apps/web/dist/ usuario@servidor:/srv/www', 'permitir'],
+  ['dev', 'rsync -a --delete apps/web/dist/ docs/', 'negar'],
+  ['dev', 'ls | xargs rsync -a apps/web/dist/', 'negar'],
+  ['dev', 'tar -xzf a.tar.gz -C apps/web/dist', 'permitir'],
+  ['dev', 'tar -czf apps/web/dist/a.tgz apps/web/dist', 'permitir'],
+  ['dev', 'tar -tzf a.tgz', 'permitir'],
+  ['dev', 'tar -xzf a.tar.gz', 'negar'],
+  ['dev', 'tar xzf a.tar.gz -C docs', 'negar'],
+  ['dev', 'tar cf docs/03-tarefas/a.tar apps', 'negar'],
+  ['dev', 'tar -xf a.tar -C apps/web -C ../../docs', 'negar'],
+  ['dev', 'unzip a.zip -d apps/web/dist', 'permitir'],
+  ['dev', 'unzip -l a.zip', 'permitir'],
+  ['dev', 'unzip a.zip', 'negar'],
+  ['dev', 'unzip -o a.zip -d docs/03-tarefas', 'negar'],
+  ['dev', "gawk -i inplace -v x=1 '{print}' apps/web/src/a.ts", 'permitir'],
+  ['dev', "awk '{print $1}' docs/03-tarefas/T-001.md", 'permitir'],
+  ['dev', "awk -i inplace '{print}' docs/03-tarefas/T-001.md", 'negar'],
+  ['dev', "awk 'BEGIN{print 1 > \"docs/03-tarefas/x\"}'", 'negar'],
+  ['dev', 'find apps -name "*.zip" -exec unzip -d docs {} \\;', 'negar'],
+  ['dev', 'find apps -name x -exec sh -c \'rm "$1"\' _ {} \\;', 'negar'],
+  ['dev', 'find apps -name "*.ts" -exec grep -l x {} +', 'permitir'],
 ]);
 
 casosDeBash('Bash: agente fora da tabela', [

@@ -4,14 +4,18 @@
 // simples (por `&&`, `||`, `;`, `|`, `&`, quebras de linha e parênteses),
 // entende aspas, escapes, redirecionamentos, heredocs e substituições de
 // comando (`$(...)` e crases, analisadas também). Cada palavra sabe se é
-// "dinâmica" (tem `$VAR`, `$(...)`...) ou tem curinga (`*`, `?`, `[`), porque aí
-// o hook não consegue saber o caminho final e trata com mais cuidado.
+// "dinâmica" (tem `$VAR`, `$(...)`, `$'...'`...) ou tem curinga (`*`, `?`, `[`,
+// chaves como `{a,b}` e `{1..3}`), porque aí o hook não consegue saber o caminho
+// final e trata com mais cuidado.
 
 const OPERADORES_SEPARADORES = ['&&', '||', ';;', '|&', ';', '|', '&'];
 
 // Uma palavra em construção: texto já sem aspas + marcas.
+//   glob   → curinga ou expansão de chaves fora de aspas
+//   chaves → expansão de chaves (`{a,b}`, `{1..3}`) fora de aspas
+//   citada → usou aspas ou `\` em alguma parte
 function novaPalavra() {
-  return { texto: '', dinamico: false, glob: false, iniciada: false };
+  return { texto: '', dinamico: false, glob: false, chaves: false, citada: false, iniciada: false, abriuChave: false };
 }
 
 export class ErroDeAnalise extends Error {}
@@ -84,8 +88,25 @@ export function tokenizar(texto) {
   };
 
   // Trata `$` (fora de aspas simples). Retorna o novo índice.
-  const tratarCifrao = (j) => {
+  const tratarCifrao = (j, dentroDeAspas = false) => {
     const prox = texto[j + 1];
+    if (!dentroDeAspas && prox === "'") {
+      // $'...' (aspas ANSI-C): os escapes (`\x2e`...) mudam o texto final.
+      let fim = j + 2;
+      while (fim < texto.length && texto[fim] !== "'") fim += texto[fim] === '\\' ? 2 : 1;
+      if (fim >= texto.length) throw new ErroDeAnalise("$' sem fechamento");
+      palavra.texto += texto.slice(j + 2, fim);
+      palavra.dinamico = true;
+      palavra.citada = true;
+      marcar();
+      return fim + 1;
+    }
+    if (!dentroDeAspas && prox === '"') {
+      // $"..." (tradução de mensagens): o texto final depende do idioma.
+      palavra.dinamico = true;
+      marcar();
+      return j + 1; // as aspas duplas seguem o tratamento normal
+    }
     if (prox === '(' && texto[j + 2] === '(') {
       // Aritmética $(( ... )): não executa comandos, mas o valor é dinâmico.
       const [, fim] = lerAteFechar(texto, j + 2, ')');
@@ -157,6 +178,7 @@ export function tokenizar(texto) {
         continue;
       }
       if (i + 1 < texto.length) palavra.texto += texto[i + 1];
+      palavra.citada = true;
       marcar();
       i += 2;
       continue;
@@ -165,11 +187,13 @@ export function tokenizar(texto) {
       const fim = texto.indexOf("'", i + 1);
       if (fim === -1) throw new ErroDeAnalise('aspas simples sem fechamento');
       palavra.texto += texto.slice(i + 1, fim);
+      palavra.citada = true;
       marcar();
       i = fim + 1;
       continue;
     }
     if (c === '"') {
+      palavra.citada = true;
       marcar();
       i++;
       while (i < texto.length && texto[i] !== '"') {
@@ -178,7 +202,7 @@ export function tokenizar(texto) {
           if (texto[i + 1] !== '\n') palavra.texto += texto[i + 1];
           i += 2;
         } else if (d === '$') {
-          i = tratarCifrao(i);
+          i = tratarCifrao(i, true);
         } else if (d === '`') {
           const [conteudo, fim] = lerAteFechar(texto, i + 1, '`');
           substituicoes.push(conteudo);
@@ -235,7 +259,7 @@ export function tokenizar(texto) {
         const m = /^(['"]?)([^\s'";&|<>()]+)\1/.exec(texto.slice(i));
         if (!m) throw new ErroDeAnalise('heredoc sem delimitador');
         heredocsPendentes.push({ delimitador: m[2], tiraTabs: op === '<<-' });
-        tokens.push({ tipo: 'palavra', texto: m[2], dinamico: false, glob: false, iniciada: true });
+        tokens.push({ tipo: 'palavra', ...novaPalavra(), texto: m[2], iniciada: true });
         i += m[0].length;
       }
       continue;
@@ -256,6 +280,13 @@ export function tokenizar(texto) {
     }
 
     if (c === '*' || c === '?' || c === '[') palavra.glob = true;
+    // Chaves fora de aspas com `,` ou `..` depois do `{` viram várias palavras
+    // (`{a,b}`, `{1..3}`): o caminho final não é o texto escrito.
+    if (c === '{') palavra.abriuChave = true;
+    if (palavra.abriuChave && (c === ',' || (c === '.' && texto[i + 1] === '.'))) {
+      palavra.glob = true;
+      palavra.chaves = true;
+    }
     palavra.texto += c;
     marcar();
     i++;
@@ -267,24 +298,58 @@ export function tokenizar(texto) {
 // Palavras reservadas que podem abrir um comando simples sem serem o comando.
 const PREFIXOS_RESERVADOS = new Set(['then', 'do', 'else', 'elif', '!', '{', '}', 'time']);
 const ABRE_BLOCO_SEM_COMANDO = new Set(['if', 'while', 'until']);
+// Fecham um bloco; sozinhas, não são comando (`done > saida.txt` ainda redireciona).
+const FECHA_BLOCO = new Set(['done', 'fi', 'esac']);
+// Abrem um cabeçalho que não executa nada: `for x in ...`, `select x in ...`, `case x in`.
+const CABECALHOS = new Set(['for', 'select', 'case']);
+const IN = new Set(['in']);
+
+const palavraReservada = (t, conjunto) => t.tipo === 'palavra' && !t.citada && !t.dinamico && conjunto.has(t.texto);
 
 // Agrupa os tokens numa lista de itens, na ordem do comando:
 //   { tipo: 'comando', palavras: [palavra...], redirecoes: [{ op, fd, alvo }] }
 //   { tipo: 'abre' } / { tipo: 'fecha' } — parênteses de subshell, para desfazer
 //   um `cd` feito dentro de `( ... )`.
+// Cabeçalhos de laço (`for f in a b`) e padrões do `case` (`a|b)`) não são
+// comandos: são pulados. As substituições `$(...)` neles já foram analisadas.
 export function separarComandos(tokens) {
   const itens = [];
   let atual = { tipo: 'comando', palavras: [], redirecoes: [] };
+  let cabecalho = null; // 'for', 'select' ou 'case' enquanto lê o cabeçalho
+  let palavrasDoCabecalho = 0;
+  let casesAbertos = 0;
+  let esperaPadrao = false; // dentro de um `case`, antes do `)` de cada padrão
   const fechar = (operador) => {
     if (atual.palavras.length || atual.redirecoes.length) itens.push(atual);
     if (operador === '(') itens.push({ tipo: 'abre' });
     if (operador === ')') itens.push({ tipo: 'fecha' });
     atual = { tipo: 'comando', palavras: [], redirecoes: [] };
+    cabecalho = null;
   };
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
+    if (esperaPadrao) {
+      // Padrão do `case` (`a|b)`, `(a)`) até o `)`; ou o `esac` que fecha o bloco.
+      if (t.tipo === 'operador' && t.valor === ')') esperaPadrao = false;
+      if (palavraReservada(t, FECHA_BLOCO) && t.texto === 'esac') {
+        esperaPadrao = false;
+        casesAbertos = Math.max(0, casesAbertos - 1);
+      }
+      continue;
+    }
     if (t.tipo === 'operador') {
+      if (cabecalho === 'for' && t.valor === '(' && atual.palavras.length === 0 && palavrasDoCabecalho === 0) {
+        // `for ((i = 0; i < 3; i++))`: aritmética, pula até fechar os parênteses.
+        let profundidade = 0;
+        for (; i < tokens.length; i++) {
+          if (tokens[i].tipo !== 'operador') continue;
+          if (tokens[i].valor === '(') profundidade++;
+          if (tokens[i].valor === ')' && --profundidade === 0) break;
+        }
+        continue;
+      }
       fechar(t.valor);
+      if (t.valor === ';;' && casesAbertos > 0) esperaPadrao = true;
       continue;
     }
     if (t.tipo === 'redir') {
@@ -294,9 +359,30 @@ export function separarComandos(tokens) {
       i++;
       continue;
     }
-    // Palavras reservadas no início do comando são ignoradas (`then rm x` → `rm x`).
-    if (atual.palavras.length === 0 && (PREFIXOS_RESERVADOS.has(t.texto) || ABRE_BLOCO_SEM_COMANDO.has(t.texto))) {
+    if (cabecalho) {
+      // `case PALAVRA in`: depois do `in` vêm os padrões.
+      if (cabecalho === 'case' && palavrasDoCabecalho >= 1 && palavraReservada(t, IN)) {
+        atual = { tipo: 'comando', palavras: [], redirecoes: atual.redirecoes };
+        cabecalho = null;
+        esperaPadrao = true;
+        continue;
+      }
+      palavrasDoCabecalho++;
       continue;
+    }
+    if (atual.palavras.length === 0) {
+      if (palavraReservada(t, CABECALHOS)) {
+        cabecalho = t.texto;
+        palavrasDoCabecalho = 0;
+        if (t.texto === 'case') casesAbertos++;
+        continue;
+      }
+      if (palavraReservada(t, FECHA_BLOCO)) {
+        if (t.texto === 'esac') casesAbertos = Math.max(0, casesAbertos - 1);
+        continue;
+      }
+      // Palavras reservadas no início do comando são ignoradas (`then rm x` → `rm x`).
+      if (PREFIXOS_RESERVADOS.has(t.texto) || ABRE_BLOCO_SEM_COMANDO.has(t.texto)) continue;
     }
     atual.palavras.push(t);
   }

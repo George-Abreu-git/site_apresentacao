@@ -25,10 +25,16 @@ Dentro de um worktree de subagente (`.claude/worktrees/<nome>/`), o caminho é a
 ### Bash
 
 `shell.mjs` separa o comando em comandos simples e procura escritas: redirecionamentos (`>`, `>>`, `&>`), `tee`, `sed -i`, `mv`, `cp`, `rm`, `touch`, `mkdir`, `find -delete`, `xargs rm`, `bash -c "..."`, `$(...)` e os comandos `git` que mexem na árvore de trabalho.
-Alvo que não dá para conferir (variável, `cd` para um lugar desconhecido, comando que não analisa) é negado para subagentes.
-O code-reviewer só roda uma lista de leitura: git de leitura, testes, lint, build, o validador e utilitários como `cat` e `grep`.
+Também confere o destino de `curl -o`/`-O`, `wget` (`-O`, `-P` ou a pasta atual), `rsync` (último argumento), `tar -x`/`-C` e `tar -c -f`, `unzip` (`-d` ou a pasta atual) e `awk -i inplace`.
+Chaves viram vários caminhos, como no bash (`apps/web/src/{a,b}` → dois alvos); com curinga, vale a pasta antes dele, e `..` (ou nome que começa com `.`) depois do curinga é negado.
+Alvo que não dá para conferir (variável, `$'...'`, `cd` para um lugar desconhecido, comando que não analisa) é negado para subagentes.
+O code-reviewer só roda uma lista de leitura: git de leitura, testes, lint, build, o validador, laços (`for`, `case`, `while read`), `awk` de leitura e utilitários como `cat` e `grep`.
+Para ele também são negados `--fix`, `-u`/`--update` (snapshots), `node --test --import/--require`, `git -c` e variáveis como `GIT_EXTERNAL_DIFF` e `NODE_OPTIONS`, que fazem um comando de leitura gravar ou executar outro programa.
+
+**Precedência**: as regras `permissions.deny` do `.claude/settings.json` valem antes do "permitir" do hook. Exemplo: `rm -rf apps/web/dist` passa no teste do hook para o dev, mas a regra `deny` de `rm -rf` nega do mesmo jeito.
 
 **Limites conhecidos**: o que um script faz por dentro (`node script.mjs`, `npm run x`) não é analisado.
+Para os agentes que escrevem, comandos fora da lista acima que gravam arquivos (ex.: `gzip`, `zip`, `split`, `npx prettier --write`) também não são analisados.
 O hook é uma grade de proteção contra o engano comum, não uma caixa de areia; a conferência do orquestrador (`git status`) e a revisão do code-reviewer continuam valendo.
 
 ### Falhas
