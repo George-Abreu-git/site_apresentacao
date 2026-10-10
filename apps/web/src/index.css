@@ -1,7 +1,43 @@
-/* Estilos globais mínimos; o tema (cores e variáveis) chega na T-007. */
+/* Estilos globais. As cores vêm das variáveis de tema.css (RNF-04). */
+
+/* `border-box`: a largura declarada já inclui padding e borda, o que evita estourar a tela. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Ao seguir uma âncora (#sobre), deixa espaço para o cabeçalho fixo não cobrir o título. */
+  scroll-padding-top: var(--altura-cabecalho);
+}
+
+/* Rolagem suave só para quem não pediu ao sistema para reduzir animações. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  color: #1a1a1a;
-  background-color: #ffffff;
+  line-height: 1.5;
+  color: var(--cor-texto);
+  background-color: var(--cor-fundo);
+  /* Palavras longas quebram em vez de criar rolagem horizontal (RNF-01). */
+  overflow-wrap: break-word;
+}
+
+a {
+  color: var(--cor-destaque);
+}
+
+/*
+ * Foco visível (RNF-02). `:focus-visible` mostra o contorno quando o foco vem do teclado
+ * (Tab), mas não a cada clique do mouse.
+ */
+:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
 }

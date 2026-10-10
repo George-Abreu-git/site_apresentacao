@@ -1,0 +1,13 @@
+.secao {
+  /* Altura mínima provisória: as seções ainda estão vazias e assim dá para ver a rolagem do menu. */
+  min-height: 60dvh;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: 3rem var(--espaco-lateral);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.titulo {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
