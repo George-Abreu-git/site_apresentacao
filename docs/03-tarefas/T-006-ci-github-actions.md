@@ -95,6 +95,12 @@ Pipeline de integração contínua que roda em cada push e pull request para `ma
 
 ## Estudo
 
+### Diário de estudo (documentador, em paralelo)
+
+**Resultado:** CONCLUIDO — diário [[docs/04-estudos/tarefas/T-006|T-006]] escrito em segundo plano, no worktree isolado, seguindo o template: o que é CI, as 10 etapas do `ci.yml` e as decisões D1, D2 e D3, cada conceito com o porquê, arquivos reais do projeto, 2 exercícios e links. Conceitos: `integracao-continua-com-github-actions`, `falhar-cedo-na-ordem-das-etapas`, `npm-ci-e-cache-de-dependencias`, `checagem-de-tipos-com-tsc`, `concurrency-no-github-actions`, `permissoes-minimas-do-token`, `artefatos-de-diagnostico-em-falha` (novos) e `verificar-antes-de-concluir`, `tipos-de-teste-unitario-rota-e2e` (notas já existentes). Nenhuma outra nota alterada.
+
+**Pendência:** se o CI ficar vermelho no Ubuntu e a correção mudar o workflow, o diário precisa de novo disparo.
+
 ## DevOps
 
 ### Rodada 1
@@ -143,3 +149,4 @@ Arquivos: `.github/workflows/ci.yml`, `README.md`. SHA fixo nas actions fica par
 - 2026-10-10 — devops: CONCLUIDO — validador primeiro, `concurrency` e seção do CI no README; actionlint e validador OK
 - 2026-10-10 — qa: PASSOU — simulação do workflow num clone limpo com `CI=true`, todas as etapas verdes; critério 4 pendente (D1)
 - 2026-10-10 — orquestrador: concluida — verificação verde (`npm test`, `npm run test:e2e` 8/8, validador); critério 4 aguarda a confirmação do George no GitHub; diário de estudo disparado após a integração
+- 2026-10-10 — documentador: CONCLUIDO — diário integrado (branch `estudos/T-006`)
