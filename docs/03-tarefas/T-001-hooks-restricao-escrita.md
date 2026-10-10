@@ -1,7 +1,7 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [infra, orquestracao]
 rodadas: 3
@@ -19,17 +19,17 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
 
 ## Critérios de aceite
 
-- [ ] Um hook bloqueia Edit/Write do dev fora das pastas de código/teste
-- [ ] Um hook bloqueia Edit/Write do qa fora das pastas de teste
-- [ ] Um hook bloqueia Edit/Write do instrutor fora de `docs/04-estudos/`
-- [ ] Nenhum subagente consegue editar `docs/03-tarefas/`
-- [ ] Um hook bloqueia Edit/Write do devops fora da sua área (tabela "Áreas por caminho" do `AGENTS.md`): nunca `src/**`, `docs/03-tarefas/**` nem `docs/04-estudos/**`
-- [ ] O code-reviewer não consegue usar Edit/Write; o `Bash` dele fica restrito a leitura (`git diff`, `git log`, `git show`, `git status`) e a rodar testes/lint
-- [ ] **Escrita via `Bash`:** um hook com matcher `Bash` bloqueia comandos que escrevem em caminhos protegidos (redirecionamento `>`/`>>`, `tee`, `sed -i`, `mv`, `cp`, `rm`, `git checkout`/`restore`/`reset`...) em `docs/03-tarefas/**` e fora da área de cada agente. Se a análise de comandos se mostrar inviável, a alternativa é retirar o `Bash` do qa e do code-reviewer; a escolha é do George (`apresentar-decisao`)
-- [ ] **Identificação do subagente:** verificado se o payload do hook informa qual subagente está agindo (ex.: campos de identificação do agente no JSON de entrada); se não informar, definida uma alternativa (decisão do George) antes de implementar os demais hooks
-- [ ] **Definição dos agentes protegida:** nenhum subagente (devops incluso) altera `.claude/agents/**` sem aprovação explícita do George; o hook bloqueia (ou pede confirmação) e há um teste com caso bloqueado e um permitido
-- [ ] **Modo auto:** `.claude/settings.json` com o repositório `github.com/George-Abreu-git/site_apresentacao` marcado como confiável na configuração `autoMode` e regras `deny` para `git push --force`/`-f` e `rm -rf` (decisão do George, 2026-10-10)
-- [ ] Testes demonstrando um caso bloqueado e um permitido por agente (dev, qa, instrutor, devops e code-reviewer), tanto para Edit/Write quanto para `Bash`
+- [x] Um hook bloqueia Edit/Write do dev fora das pastas de código/teste
+- [x] Um hook bloqueia Edit/Write do qa fora das pastas de teste
+- [x] Um hook bloqueia Edit/Write do instrutor fora de `docs/04-estudos/`
+- [x] Nenhum subagente consegue editar `docs/03-tarefas/`
+- [x] Um hook bloqueia Edit/Write do devops fora da sua área (tabela "Áreas por caminho" do `AGENTS.md`): nunca `src/**`, `docs/03-tarefas/**` nem `docs/04-estudos/**`
+- [x] O code-reviewer não consegue usar Edit/Write; o `Bash` dele fica restrito a leitura (`git diff`, `git log`, `git show`, `git status`) e a rodar testes/lint
+- [x] **Escrita via `Bash`:** um hook com matcher `Bash` bloqueia comandos que escrevem em caminhos protegidos (redirecionamento `>`/`>>`, `tee`, `sed -i`, `mv`, `cp`, `rm`, `git checkout`/`restore`/`reset`...) em `docs/03-tarefas/**` e fora da área de cada agente. Se a análise de comandos se mostrar inviável, a alternativa é retirar o `Bash` do qa e do code-reviewer; a escolha é do George (`apresentar-decisao`)
+- [x] **Identificação do subagente:** verificado se o payload do hook informa qual subagente está agindo (ex.: campos de identificação do agente no JSON de entrada); se não informar, definida uma alternativa (decisão do George) antes de implementar os demais hooks
+- [x] **Definição dos agentes protegida:** nenhum subagente (devops incluso) altera `.claude/agents/**` sem aprovação explícita do George; o hook bloqueia (ou pede confirmação) e há um teste com caso bloqueado e um permitido
+- [x] **Modo auto:** `.claude/settings.json` com o repositório `github.com/George-Abreu-git/site_apresentacao` marcado como confiável na configuração `autoMode` e regras `deny` para `git push --force`/`-f` e `rm -rf` (decisão do George, 2026-10-10)
+- [x] Testes demonstrando um caso bloqueado e um permitido por agente (dev, qa, instrutor, devops e code-reviewer), tanto para Edit/Write quanto para `Bash`
 
 ## Contexto relevante
 
@@ -166,6 +166,18 @@ Critérios reabertos: 25, 26 e 28 (itens 1–4) e 27 (item 2).
 
 ## QA
 
+### Rodada 4
+
+**Resultado:** PASSOU — critérios 22 a 32 atendidos, lidos com D1–D7 (31 pela D2); o qa não alterou nenhum arquivo.
+
+**Suítes:** `test:hooks` 412/412 (29 suítes); `npm test` verde (web 8, api 3, hooks 412); `npm run test:e2e` 8/8; lint verde (workspaces, `e2e`, `scripts`, `.claude/hooks`); validador OK.
+
+**Ao vivo, como qa:** permitidos `npm run test:e2e` e `touch e2e/__qa_inexistente__/x` (o hook deixou passar; o `touch` falhou por a pasta não existir, nada criado); negados `touch apps/web/src/__qa_inexistente__/x` ("fora da área do qa") e `rm -f docs/03-tarefas/__qa_inexistente__.md` ("só do orquestrador"). Edit/Write conferido rodando o script do hook com o JSON de cada agente: qa (`apps/web` deny, `e2e` permitir), instrutor (`docs/04-estudos` permitir, `docs/02-arquitetura` deny), devops (`apps/web` deny, `.claude/agents/qa.md` ask), code-reviewer (`e2e` deny), documentador no worktree (`docs/04-estudos/tarefas` permitir, `docs/03-tarefas` deny).
+
+**Critérios:** 22 dev (só `apps/**`/`packages/**` exceto `apps/api/test/**`); 23 qa (confirmado ao vivo); 24 instrutor; 25 `docs/03-tarefas` negado a todo subagente em Edit/Write, Bash e PowerShell (inclusive no worktree), sessão principal nunca bloqueada; 26 devops só na plataforma (`apps/**`, `packages/**`, `e2e/**`, `docs/03-tarefas`, `docs/04-estudos`, `ADR-*`, lock negados); 27 code-reviewer sem escrita e Bash só de leitura; 28 escrita via Bash coberta sem retirar o `Bash` de ninguém; 29 identificação por `agent_id`/`agent_type` (confirmada ao vivo); 30 `.claude/agents/**` "perguntar" para o devops e negado aos demais; 31 regras `deny` testadas em `integracao.test.mjs`, sem `autoMode` (D2); 32 bloqueado e permitido por agente em Edit/Write e Bash (code-reviewer só o negado no Edit/Write, pelo critério 27; agentes fora da tabela também testados).
+
+**Observações:** limites do README não contaram (como pedido); para testar Edit/Write ao vivo em QAs futuras, rodar o script do hook diretamente ou o `integracao.test.mjs` (o Edit recusa arquivo inexistente antes do hook).
+
 ## Estudo
 
 ## DevOps
@@ -256,3 +268,5 @@ Arquivos: `.claude/hooks/politica.mjs`, `tests/politica.test.mjs`, `README.md`.
 - 2026-10-10 — code-reviewer: APROVADO — bloqueantes fechados, sem regressão nos fluxos legítimos; 7 opcionais
 - 2026-10-10 — orquestrador: D7 (delegação) — aplicar opcionais 1, 4, 6 e 7 antes do QA; 2, 3 e 5 sugeridos para tarefa futura de endurecimento
 - 2026-10-10 — devops: CONCLUIDO — `powershell` via Bash, `vim` negado, isenções da rede e README; 412 testes; test/lint/validador OK
+- 2026-10-10 — qa: PASSOU — critérios 22 a 32 atendidos; hooks conferidos ao vivo na área do qa e por agente via script
+- 2026-10-10 — orquestrador: concluida — verificação verde (`npm test` com 412 testes de hooks, `npm run test:e2e` 8/8, validador); diário de estudo disparado após a integração
