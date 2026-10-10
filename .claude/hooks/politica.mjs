@@ -299,9 +299,16 @@ function atribuicaoSegura(a) {
 const VARIAVEL_LOCAL = /^[a-z][a-z0-9_]*=/;
 
 // Variáveis negadas a todo subagente: apontam o git para outro repositório,
-// árvore ou índice (como `--git-dir`/`--work-tree`, já negados) ou mudam de
-// onde curl e wget leem a configuração (como `curl -K`/`wget --config`).
-const VARIAVEIS_PROIBIDAS = /^(GIT_DIR|GIT_WORK_TREE|GIT_INDEX_FILE|GIT_NAMESPACE|CURL_HOME|WGETRC|HOME|XDG_CONFIG_HOME)(=|$)/;
+// árvore ou índice (como `--git-dir`/`--work-tree`, já negados).
+const VARIAVEIS_PROIBIDAS = /^(GIT_DIR|GIT_WORK_TREE|GIT_INDEX_FILE|GIT_NAMESPACE)(=|$)/;
+// Qualquer GIT_* ou PAGER antes do comando faz o git executar outro programa
+// (diff externo, pager, ssh...). Negadas para todo subagente, menos GIT_PAGER=cat
+// e PAGER=cat, tratadas em `atribuicaoSegura`.
+const GIT_OU_PAGER = /^(GIT_[A-Z0-9_]*|PAGER)=/;
+// HOME, XDG_CONFIG_HOME, CURL_HOME e WGETRC mudam de onde curl, wget e git leem
+// a configuração: negadas só quando o comando é um desses (`COMANDOS_SENSIVEIS_HOME`).
+const VARIAVEIS_CONFIG_HOME = /^(HOME|XDG_CONFIG_HOME|CURL_HOME|WGETRC)(=|$)/;
+const COMANDOS_SENSIVEIS_HOME = new Set(['curl', 'wget', 'git']);
 // Comandos que definem ou exportam variáveis do shell.
 const DEFINEM_VARIAVEIS = new Set(['export', 'declare', 'typeset', 'local', 'readonly']);
 
@@ -367,15 +374,18 @@ const EMBRULHOS = {
   },
 };
 // Embrulhos que o hook não analisa (opções e efeitos variados): negados para subagentes.
+// Inclui os executores do Windows/Git Bash (`cmd`, `start`, `winpty`, `wsl`), que
+// rodam outro comando com uma sintaxe que o hook não reconstrói.
 const EMBRULHOS_NAO_ANALISADOS = new Set([
   'chroot', 'chrt', 'flock', 'ionice', 'ltrace', 'nsenter', 'parallel', 'script', 'setsid',
   'strace', 'taskset', 'unbuffer', 'unshare', 'watch',
+  'cmd', 'start', 'winpty', 'wsl',
 ]);
 
 // Lê as opções de um embrulho. Devolve { resto, executa, negada, atribuicoes, opcoes }
 // em que `resto` é o comando embrulhado e `opcoes` as opções com valor.
 function lerEmbrulho(spec, args) {
-  const r = { resto: [], executa: true, negada: null, atribuicoes: [], opcoes: [] };
+  const r = { resto: [], executa: true, negada: null, atribuicoes: [], opcoes: [], posicionalDinamico: false };
   const curtas = spec.curtas ?? '';
   const comValor = spec.comValor ?? '';
   const coladas = spec.coladas ?? '';
@@ -438,7 +448,11 @@ function lerEmbrulho(spec, args) {
       return r;
     }
   }
-  i += Math.min(spec.posicionais ?? 0, args.length - i);
+  const posic = Math.min(spec.posicionais ?? 0, args.length - i);
+  // Posicional dinâmico (ex.: `timeout $(echo --foreground) 5 rm ...`): a palavra
+  // dinâmica é consumida como a duração e `5` viraria o "nome do comando". Negado.
+  if (spec.posicionais && args.slice(i, i + posic).some((a) => a.dinamico)) r.posicionalDinamico = true;
+  i += posic;
   r.resto = args.slice(i);
   return r;
 }
@@ -467,6 +481,10 @@ function desembrulhar(entrada, cwdInicial) {
     const lido = lerEmbrulho(spec, p.slice(1));
     if (lido.negada) {
       r.negacao = `${nome} ${lido.negada}: opção de embrulho fora da lista conhecida não é analisada`;
+      return r;
+    }
+    if (lido.posicionalDinamico) {
+      r.negacao = `${nome}: argumento dinâmico antes do comando não pode ser verificado`;
       return r;
     }
     r.atribuicoes.push(...lido.atribuicoes);
@@ -526,7 +544,15 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
   const nomeDaVariavel = (a) => a.texto.split('=')[0];
   const proibida = atribuicoes.find((a) => VARIAVEIS_PROIBIDAS.test(a.texto));
   if (proibida) {
-    achados.push(negar(`variável ${nomeDaVariavel(proibida)} (outro repositório do git ou outra configuração de curl/wget) não é verificada`));
+    achados.push(negar(`variável ${nomeDaVariavel(proibida)} (outro repositório ou árvore do git) não é verificada`));
+    return achados;
+  }
+  // Qualquer GIT_* (ou PAGER) antes do comando muda o que o git executa (diff
+  // externo, pager, ssh...): negado para TODO subagente, menos GIT_PAGER=cat e
+  // PAGER=cat (D6, bloqueante 4).
+  const gitEnv = atribuicoes.find((a) => GIT_OU_PAGER.test(a.texto) && !atribuicaoSegura(a));
+  if (gitEnv) {
+    achados.push(negar(`variável ${nomeDaVariavel(gitEnv)} muda o que o git ou o pager executa: não é verificada`));
     return achados;
   }
   if (estado.leitura) {
@@ -555,9 +581,19 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
   const args = palavras.slice(1);
 
   if (DEFINEM_VARIAVEIS.has(nome)) {
-    const exportada = args.find((a) => VARIAVEIS_PROIBIDAS.test(a.texto));
+    const exportada = args.find((a) => VARIAVEIS_PROIBIDAS.test(a.texto)
+      || (GIT_OU_PAGER.test(a.texto) && !atribuicaoSegura(a)));
     if (exportada) {
       achados.push(negar(`${nome} ${nomeDaVariavel(exportada)}: variável proibida para subagentes`));
+      return achados;
+    }
+  }
+  // HOME/XDG_CONFIG_HOME/CURL_HOME/WGETRC mudam de onde curl, wget e git leem a
+  // configuração: negadas só quando o comando é um desses (D6, opcional 6).
+  if (COMANDOS_SENSIVEIS_HOME.has(nome)) {
+    const configHome = atribuicoes.find((a) => VARIAVEIS_CONFIG_HOME.test(a.texto));
+    if (configHome) {
+      achados.push(negar(`variável ${nomeDaVariavel(configHome)} muda a configuração de ${nome}: não é verificada`));
       return achados;
     }
   }
@@ -578,7 +614,7 @@ function avaliarComandoSimples(item, estado, local, profundidade) {
     return achados;
   }
 
-  const contexto = { estado, cwd, profundidade };
+  const contexto = { estado, cwd, profundidade, atribuicoes };
   if (estado.leitura) achados.push(...avaliarLeitura(nome, args, contexto));
   else achados.push(...avaliarEscrita(nome, args, contexto));
   return achados;
@@ -596,6 +632,19 @@ const ESCRITORES = new Set([
 ]);
 const AWKS = new Set(['awk', 'gawk', 'mawk', 'nawk']);
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
+
+// Trechos protegidos da rede de segurança (opcional 5 da D6). Além dos de
+// TRECHO_PROTEGIDO, inclui `.git/` (interno do git). Procurado em argumentos de
+// comandos sem análise específica.
+const TRECHO_PROTEGIDO_REDE = /03-tarefas|\.claude[\\/]+agents|\.git[\\/]/i;
+// Leituras conhecidas que a rede de segurança não bloqueia (não escrevem).
+// `sort` e `uniq` ficam de fora de propósito: gravam com `-o`/arquivo de saída.
+const LEITURA_CONHECIDA = new Set([
+  'cat', 'head', 'tail', 'less', 'more', 'grep', 'egrep', 'fgrep', 'rg', 'wc', 'diff', 'cmp',
+  'ls', 'dir', 'echo', 'printf', 'pwd', 'cut', 'tr', 'jq', 'file', 'stat', 'nl', 'column',
+  'comm', 'od', 'basename', 'dirname', 'realpath', 'readlink', 'which', 'type', 'date', 'tree',
+  'du', 'df', 'sha256sum', 'sha1sum', 'md5sum', 'true', 'false', 'test',
+]);
 
 function avaliarEscrita(nome, args, contexto) {
   const { estado, cwd } = contexto;
@@ -632,8 +681,31 @@ function avaliarEscrita(nome, args, contexto) {
     case 'tee': {
       return separarArgs(args).posicionais.map((p) => alvo(p));
     }
-    case 'sed':
-      return sedNoLugar(args, contexto);
+    case 'sort':
+    case 'shuf': {
+      // `-o`/`--output ARQUIVO` grava num arquivo (mesma família de `sort -o`,
+      // já negado para o code-reviewer): confere o destino contra a área.
+      const { opcoes } = separarOpcoesGnu(args, 'o', new Set(['--output']));
+      const saida = valoresDe(opcoes, ['-o', '--output'])[0];
+      return saida && !ehSaidaPadrao(saida) ? [alvo(saida)] : [];
+    }
+    case 'ex':
+    case 'ed':
+    case 'red':
+      return [negar(`${nome}: editor de linha grava arquivos por comando e não é verificado; use Edit/Write`)];
+    case 'vi':
+    case 'vim':
+    case 'nvim':
+    case 'view':
+      // Modo ex/script (`-c`, `+cmd`, `-E`, `-es`, `--cmd`) pode gravar arquivos.
+      if (args.some((a) => /^(-c|-E|-es|--cmd|\+)/.test(a.texto))) {
+        return [negar(`${nome} em modo ex/script pode gravar arquivos e não é verificado; use Edit/Write`)];
+      }
+      return [];
+    case 'sed': {
+      const perigo = sedPerigoso(args);
+      return [...(perigo ? [negar(perigo)] : []), ...sedNoLugar(args, contexto)];
+    }
     case 'perl':
       return perl(args, contexto);
     case 'dd':
@@ -667,12 +739,44 @@ function avaliarEscrita(nome, args, contexto) {
       return xargs(args, contexto);
     case 'eval':
       return reanalisar(args, contexto, 'eval');
+    case 'powershell':
+    case 'pwsh':
+      return powershellViaBash(nome, args, contexto);
     default:
       break;
   }
   if (SHELLS.has(nome)) return shellComC(args, contexto);
   if (AWKS.has(nome)) return awkEscrita(args, contexto);
-  return codigoInline(nome, args);
+  const inline = codigoInline(nome, args);
+  if (inline.length) return inline;
+  return redeDeSeguranca(nome, args, contexto);
+}
+
+// `powershell`/`pwsh` chamados pelo Bash: PowerShell de subagente é só leitura
+// (D3(7)). Os argumentos são juntados e passados ao mesmo analisador do tool
+// PowerShell (procura verbos/apelidos que escrevem, redirecionamento e git).
+function powershellViaBash(nome, args, contexto) {
+  const { estado } = contexto;
+  if (args.some((a) => a.dinamico)) {
+    return [negar(`${nome} via Bash com argumento dinâmico não pode ser verificado`)];
+  }
+  if (args.some((a) => /^-(e|ec|encodedcommand)$/i.test(a.texto))) {
+    return [negar(`${nome} com comando codificado não pode ser verificado`)];
+  }
+  return avaliarPowerShell({ agente: estado.agente }, args.map((a) => a.texto).join(' '));
+}
+
+// Rede de segurança (opcional 5 da D6): comando sem análise específica (fora das
+// listas de escritores, embrulhos, shells e código inline) que cita um caminho
+// protegido num argumento ou numa atribuição → negado. Leituras conhecidas
+// (`cat`, `grep`, `head`...) ficam de fora, para não travar fluxos legítimos.
+function redeDeSeguranca(nome, args, contexto) {
+  if (LEITURA_CONHECIDA.has(nome)) return [];
+  const extras = contexto.atribuicoes ?? [];
+  if ([...args, ...extras].some((a) => TRECHO_PROTEGIDO_REDE.test(a.texto))) {
+    return [negar(`"${nome}" não é analisado e cita um caminho protegido (docs/03-tarefas, .claude/agents ou .git): negado por segurança`)];
+  }
+  return [];
 }
 
 // mv/cp/install/ln: destino = último argumento ou `-t DIR`.
@@ -718,49 +822,147 @@ function moverOuCopiar(args, contexto, { moveOrigem, link = false }) {
   return achados;
 }
 
-// `sed -i` edita no lugar: os arquivos são os posicionais depois do script.
-function sedNoLugar(args, contexto) {
+// Lê as opções do sed: `-i` (edita no lugar), `-e`/`--expression` e o 1º
+// posicional (scripts visíveis), `-f`/`--file` (script de arquivo, invisível).
+// `arquivos` são os posicionais de entrada (depois do script, quando ele é posicional).
+function separarSed(args) {
   let noLugar = false;
-  let temScript = false;
-  const posicionais = [];
+  let temArquivo = false;
+  let scriptEmOpcao = false;
   let fimDasOpcoes = false;
+  const scripts = [];
+  const posicionais = [];
   for (let i = 0; i < args.length; i++) {
-    const t = args[i].texto;
-    if (!fimDasOpcoes && t === '--') {
+    const a = args[i];
+    const t = a.texto;
+    if (fimDasOpcoes || a.dinamico || t === '-' || !t.startsWith('-')) {
+      posicionais.push(a);
+    } else if (t === '--') {
       fimDasOpcoes = true;
-    } else if (!fimDasOpcoes && t.startsWith('--')) {
+    } else if (t.startsWith('--')) {
       if (t.startsWith('--in-place')) noLugar = true;
-      if (t === '--expression' || t === '--file') {
-        temScript = true;
-        i++;
-      } else if (t.startsWith('--expression=') || t.startsWith('--file=')) {
-        temScript = true;
-      }
-    } else if (!fimDasOpcoes && t.length > 1 && t.startsWith('-')) {
+      else if (t === '--expression') { scriptEmOpcao = true; if (args[i + 1]) scripts.push(args[++i]); }
+      else if (t.startsWith('--expression=')) { scriptEmOpcao = true; scripts.push(palavra(t.slice('--expression='.length), a)); }
+      else if (t === '--file') { temArquivo = true; scriptEmOpcao = true; i++; }
+      else if (t.startsWith('--file=')) { temArquivo = true; scriptEmOpcao = true; }
+    } else {
       for (let j = 1; j < t.length; j++) {
         const c = t[j];
-        if (c === 'i') {
-          noLugar = true;
-          break; // o resto é o sufixo do backup (ex.: -i.bak)
-        }
-        if (c === 'e' || c === 'f') {
-          temScript = true;
-          if (j === t.length - 1) i++; // o script/arquivo é o próximo argumento
+        if (c === 'i') { noLugar = true; break; } // o resto é o sufixo do backup (-i.bak)
+        if (c === 'e') {
+          scriptEmOpcao = true;
+          if (j === t.length - 1) { if (args[i + 1]) scripts.push(args[++i]); } else scripts.push(palavra(t.slice(j + 1), a));
           break;
         }
-        if (c === 'l') {
-          if (j === t.length - 1) i++;
-          break;
-        }
+        if (c === 'f') { temArquivo = true; scriptEmOpcao = true; if (j === t.length - 1) i++; break; }
+        if (c === 'l') { if (j === t.length - 1) i++; break; } // -l N (quebra de linha)
       }
-    } else {
-      posicionais.push(args[i]);
     }
   }
+  if (!scriptEmOpcao && posicionais.length) scripts.push(posicionais[0]);
+  const arquivos = scriptEmOpcao ? posicionais : posicionais.slice(1);
+  return { noLugar, temArquivo, scripts, arquivos };
+}
+
+// `sed -i` edita no lugar: os arquivos são os posicionais depois do script.
+function sedNoLugar(args, contexto) {
+  const { noLugar, arquivos } = separarSed(args);
   if (!noLugar) return [];
-  const arquivos = temScript ? posicionais : posicionais.slice(1);
   if (!arquivos.length) return [negar('sed -i sem arquivo identificável')];
   return arquivos.map((p) => conferirAlvo(p, contexto.estado, contexto.cwd));
+}
+
+// Um script de sed pode executar (`e`) ou gravar em arquivo (`w`/`W`, flag `w`/`e`
+// do `s///`), além de `-f`/`--file` (script invisível). Vale para TODO subagente
+// (D6, bloqueante 2). Devolve um motivo ou null.
+function sedPerigoso(args) {
+  const { temArquivo, scripts } = separarSed(args);
+  if (temArquivo) return 'sed -f/--file: o script vem de um arquivo e não é verificado';
+  for (const s of scripts) {
+    if (!s.dinamico && scriptSedPerigoso(s.texto)) {
+      return 'sed com comando e/w/W (executa ou grava em arquivo) não é permitido';
+    }
+  }
+  return null;
+}
+
+// Pula um `/regex/` (ou `\cregexc`) a partir do delimitador em `i`, respeitando
+// escapes; descarta as flags do endereço (I, M) depois do fechamento.
+function pularRegexSed(s, i, delim) {
+  i++;
+  while (i < s.length && s[i] !== delim) i += s[i] === '\\' ? 2 : 1;
+  if (i < s.length) i++;
+  while (i < s.length && /[IM]/.test(s[i])) i++;
+  return i;
+}
+
+// Pula o(s) endereço(s) de um comando sed (número, `$`, `/re/`, `\cREc`, `first~step`,
+// faixas `a,b`, `a,+N`, `a,~N`) para chegar ao caractere do comando.
+function pularEnderecoSed(s, i) {
+  const n = s.length;
+  let partes = 0;
+  while (partes < 2 && i < n) {
+    while (i < n && /\s/.test(s[i])) i++;
+    const c = s[i];
+    if (c === '$') i++;
+    else if (/\d/.test(c)) {
+      while (i < n && /\d/.test(s[i])) i++;
+      if (s[i] === '~') { i++; while (i < n && /\d/.test(s[i])) i++; }
+    } else if (c === '/') i = pularRegexSed(s, i, '/');
+    else if (c === '\\' && s[i + 1] !== undefined) i = pularRegexSed(s, i + 1, s[i + 1]);
+    else if ((c === '+' || c === '~') && partes === 1) { i++; while (i < n && /\d/.test(s[i])) i++; }
+    else break;
+    partes++;
+    while (i < n && /\s/.test(s[i])) i++;
+    if (s[i] === ',') { i++; continue; }
+    break;
+  }
+  return i;
+}
+
+// Pula um comando `s<sep>re<sep>rep<sep>flags` ou `y<sep>a<sep>b<sep>`. Devolve
+// { fim, flags } (as flags só do `s`; o `y` não tem).
+function pularSubstituicaoSed(s, i) {
+  const sep = s[i + 1];
+  let j = i + 2;
+  let partes = 0;
+  while (j < s.length && partes < 2) {
+    if (s[j] === '\\') { j += 2; continue; }
+    if (s[j] === sep) partes++;
+    j++;
+  }
+  let flags = '';
+  while (j < s.length && /[a-zA-Z0-9]/.test(s[j])) flags += s[j++];
+  return { fim: j, flags };
+}
+
+function scriptSedPerigoso(script) {
+  const s = script;
+  const n = s.length;
+  let i = 0;
+  while (i < n) {
+    const c = s[i];
+    if (/[\s;{}]/.test(c)) { i++; continue; }
+    if (c === '#') { while (i < n && s[i] !== '\n') i++; continue; }
+    i = pularEnderecoSed(s, i);
+    while (i < n && (s[i] === '!' || /\s/.test(s[i]))) i++;
+    if (i >= n) break;
+    const cmd = s[i];
+    if (cmd === 'w' || cmd === 'W' || cmd === 'e') return true;
+    if (cmd === 's' || cmd === 'y') {
+      const { fim, flags } = pularSubstituicaoSed(s, i);
+      if (cmd === 's' && /[we]/.test(flags)) return true;
+      i = fim;
+      continue;
+    }
+    // Comandos que consomem o resto da linha (texto, nome de arquivo, rótulo).
+    if ('aicrRbtT:'.includes(cmd)) {
+      if (':btT'.includes(cmd)) { i++; while (i < n && !/[;\n}]/.test(s[i])) i++; } else { while (i < n && s[i] !== '\n') i++; }
+      continue;
+    }
+    i++; // comando de uma letra (d, g, p, n, x, =, z...)
+  }
+  return false;
 }
 
 function perl(args, contexto) {
@@ -1253,14 +1455,15 @@ function git(args, contexto) {
   const { estado } = contexto;
   const { sub, resto, gitCwd, erro, dinamico, configuracao } = separarGit(args, contexto.cwd);
   if (erro) return [negar(erro)];
-  // Configuração na linha de comando (`-c diff.external=...`, `-c core.pager=...`)
-  // faz um git de leitura executar outro programa.
-  if (estado.leitura && configuracao) {
-    return [negar(`o ${estado.agente} é somente leitura: git ${configuracao} (configuração na linha de comando) não é permitido`)];
+  // Configuração na linha de comando (`-c diff.external=...`, `-c core.pager=...`,
+  // `--config-env`, `--exec-path`) faz o git executar outro programa: negada para
+  // TODO subagente (D6, bloqueante 4).
+  if (configuracao) {
+    return [negar(`git ${configuracao} (configuração na linha de comando) executa programas: não é permitido`)];
   }
   // `git grep -O<programa>` abre os arquivos num programa qualquer.
-  if (estado.leitura && sub === 'grep' && resto.some((a) => /^(-O|--open-files-in-pager)/.test(a.texto))) {
-    return [negar(`o ${estado.agente} é somente leitura: git grep -O executa um programa`)];
+  if (sub === 'grep' && resto.some((a) => /^(-O|--open-files-in-pager)/.test(a.texto))) {
+    return [negar('git grep -O executa um programa: não é permitido')];
   }
   if (!sub || sub === '--version') return [];
   if (dinamico) return [negar('subcomando git dinâmico não pode ser verificado')];
@@ -1344,12 +1547,9 @@ function avaliarLeitura(nome, args, contexto) {
     case 'git':
       return git(args, contexto);
     case 'sed': {
-      if (sedNoLugar(args, contexto).length || textos.some((t) => /^-[^-]*i|^--in-place/.test(t))) {
-        return recusa('sed -i edita arquivos');
-      }
-      // Comandos `w`/`W` (gravar em arquivo) e `e` (executar) do sed.
-      if (textos.some((t) => /(^|[;{}\s/])[wWe]\s+\S/.test(t))) return recusa('script do sed com w/e');
-      return [];
+      if (separarSed(args).noLugar) return recusa('sed -i edita arquivos');
+      const perigo = sedPerigoso(args);
+      return perigo ? recusa(perigo) : [];
     }
     case 'find': {
       const proibido = textos.find((t) => t === '-delete' || FIND_EXEC.has(t) || FIND_ARQUIVO.has(t));

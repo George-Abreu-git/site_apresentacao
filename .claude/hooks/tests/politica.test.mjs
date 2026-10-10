@@ -282,7 +282,7 @@ casosDeBash('Bash: code-reviewer — escrita disfarçada (D4, opcional 3)', [
   ['code-reviewer', 'node --test .claude/hooks/tests/', 'permitir'],
   ['code-reviewer', 'GIT_PAGER=cat git log --oneline', 'permitir'],
   ['code-reviewer', 'git diff -u main', 'permitir'],
-  ['dev', 'git -c user.name=x log', 'permitir'],
+  ['dev', 'git -c user.name=x log', 'negar'],
 ]);
 
 casosDeBash('Bash: code-reviewer — leituras legítimas (D4, opcional 4)', [
@@ -460,6 +460,102 @@ casosDeBash('Bash: opcionais da D5', [
   ['dev', 'export GIT_DIR=/tmp/x && git status', 'negar'],
   ['dev', 'HOME=apps/web curl https://exemplo.dev', 'negar'],
   ['dev', 'CI=1 npm test', 'permitir'],
+]);
+
+casosDeBash('Bash: rodada 3 — timeout dinâmico (D6, bloqueante 1)', [
+  ['dev', 'timeout $(echo --foreground) 5 rm -f docs/03-tarefas/x', 'negar'],
+  ['dev', 'timeout `echo 5` rm -f docs/03-tarefas/x', 'negar'],
+  ['dev', 'timeout 60 npm test', 'permitir'],
+  ['dev', 'timeout 60 git log', 'permitir'],
+]);
+
+casosDeBash('Bash: rodada 3 — sed e/w/W e -f (D6, bloqueante 2)', [
+  // Negados para quem escreve e para o code-reviewer, com ou sem endereço.
+  ['dev', "sed -n '1w /dev/null' apps/web/src/a.ts", 'negar'],
+  ['code-reviewer', "sed -n '1w /dev/null'", 'negar'],
+  ['dev', "sed 's/a/b/w .claude/agents/dev.md' apps/web/src/a.ts", 'negar'],
+  ['code-reviewer', "sed 's/a/b/w .claude/agents/dev.md' f", 'negar'],
+  ['dev', "sed '1e rm -f docs/03-tarefas/x' apps/web/src/a.ts", 'negar'],
+  ['code-reviewer', "sed '1e rm -f docs/03-tarefas/x' f", 'negar'],
+  ['code-reviewer', "echo x | sed 's/.*/echo executado-pelo-sed/e'", 'negar'],
+  ['dev', "echo x | sed 's/.*/echo executado-pelo-sed/e'", 'negar'],
+  ['dev', "sed '/foo/w saida.txt' apps/web/src/a.ts", 'negar'],
+  ['dev', "sed '\\#re#W x' apps/web/src/a.ts", 'negar'],
+  ['dev', 'sed -f programa.sed apps/web/src/a.ts', 'negar'],
+  ['code-reviewer', 'sed --file=programa.sed f', 'negar'],
+  ['dev', "sed -e '1,3d' -e '5w outro.txt' apps/web/src/a.ts", 'negar'],
+  // Permitidos: scripts de leitura/substituição comuns.
+  ['code-reviewer', "sed -n '1,20p' apps/web/src/a.ts", 'permitir'],
+  ['code-reviewer', "sed 's/foo/the bar/' apps/web/src/a.ts", 'permitir'],
+  ['code-reviewer', "sed -n '/erro/p' apps/web/src/a.ts", 'permitir'],
+  ['dev', "sed -i 's/foo/the bar/' apps/web/src/a.ts", 'permitir'],
+  ['dev', "sed -i '1,5d' apps/web/src/a.ts", 'permitir'],
+  ['dev', "sed 's/a/b/' docs/03-tarefas/T-001.md", 'permitir'],
+]);
+
+casosDeBash('Bash: rodada 3 — executores do Windows/Git Bash (D6, bloqueante 3)', [
+  ['dev', 'powershell Remove-Item docs/03-tarefas/x', 'negar'],
+  ['dev', 'powershell -c Set-Content AGENTS.md x', 'negar'],
+  ['dev', 'pwsh -Command Remove-Item apps/web/src/a.ts', 'negar'],
+  ['dev', 'powershell -EncodedCommand ZQBjAGgAbwA=', 'negar'],
+  ['dev', 'cmd //c del docs\\\\03-tarefas\\\\x', 'negar'],
+  ['dev', 'winpty -Xallow-non-tty rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'start rm docs/03-tarefas/x', 'negar'],
+  ['dev', 'wsl rm docs/03-tarefas/x', 'negar'],
+  ['code-reviewer', 'cmd //c dir', 'negar'],
+  ['dev', 'powershell Get-ChildItem', 'permitir'],
+  ['dev', 'powershell -NoProfile Get-Content AGENTS.md', 'permitir'],
+]);
+
+casosDeBash('Bash: rodada 3 — git executa programas, para todos (D6, bloqueante 4)', [
+  ['dev', "GIT_EXTERNAL_DIFF='rm -f docs/03-tarefas/x' git diff", 'negar'],
+  ['dev', "git -c diff.external='rm -f docs/03-tarefas/x' diff", 'negar'],
+  ['dev', 'git --exec-path=/tmp status', 'negar'],
+  ['dev', 'git --config-env=x=Y status', 'negar'],
+  ['dev', 'git grep -O x TODO', 'negar'],
+  ['dev', 'GIT_SSH=/tmp/x git fetch', 'negar'],
+  ['dev', 'PAGER=less git log', 'negar'],
+  ['dev', 'export GIT_EXTERNAL_DIFF=x && git diff', 'negar'],
+  ['dev', 'GIT_PAGER=cat git log -1', 'permitir'],
+  ['dev', 'git add apps/web/src/a.ts', 'permitir'],
+  ['dev', 'PAGER=cat git log', 'permitir'],
+]);
+
+casosDeBash('Bash: rodada 3 — rede de segurança para quem escreve (D6, opcional 5)', [
+  ['dev', 'npx rimraf docs/03-tarefas/x', 'negar'],
+  ['dev', 'sort -o docs/03-tarefas/x f', 'negar'],
+  ['dev', 'uniq f docs/03-tarefas/x', 'negar'],
+  ['devops', 'npx rimraf .claude/agents/dev.md', 'negar'],
+  ['dev', 'zip -r .git/x apps', 'negar'],
+  ['dev', 'grep -n T-001 docs/03-tarefas/backlog.md', 'permitir'],
+  ['dev', 'cat docs/03-tarefas/T-001-hooks-restricao-escrita.md', 'permitir'],
+  ['dev', 'head -5 docs/03-tarefas/backlog.md', 'permitir'],
+  ['dev', 'wc -l docs/03-tarefas/T-001.md', 'permitir'],
+  ['dev', 'zip -r apps/web/dist/x.zip apps/web/dist', 'permitir'],
+]);
+
+casosDeBash('Bash: rodada 3 — HOME restrito a curl/wget/git (D6, opcional 6)', [
+  ['dev', 'HOME=apps/web curl https://exemplo.dev', 'negar'],
+  ['dev', 'XDG_CONFIG_HOME=/tmp git status', 'negar'],
+  ['dev', 'WGETRC=/tmp/x wget https://exemplo.dev -P apps/web/dist', 'negar'],
+  ['dev', 'HOME=/tmp npm test', 'permitir'],
+  ['dev', 'HOME=/tmp node --version', 'permitir'],
+  ['dev', 'XDG_CONFIG_HOME=/tmp npm run build', 'permitir'],
+]);
+
+casosDeBash('Bash: rodada 3 — varredura adversarial (escrita por opção e editores)', [
+  // sort/shuf -o gravam num arquivo: conferidos contra a área (mesma família de sort -o).
+  ['dev', 'sort -o apps/api/test/x.ts entrada.txt', 'negar'],
+  ['dev', 'shuf -o apps/api/test/x.ts entrada.txt', 'negar'],
+  ['dev', 'sort -o docs/03-tarefas/x f', 'negar'],
+  ['dev', 'sort -o apps/web/dist/ordenado.txt f', 'permitir'],
+  ['dev', 'sort apps/web/src/a.ts', 'permitir'],
+  // Editores de linha e modo ex/script gravam por comando: negados para quem escreve.
+  ['dev', "ex -sc '%d|x' apps/api/test/x.ts", 'negar'],
+  ['dev', 'ed apps/api/test/x.ts', 'negar'],
+  ['dev', 'vim -c wq apps/api/test/x.ts', 'negar'],
+  ['dev', 'vim +wq apps/api/test/x.ts', 'negar'],
+  ['dev', 'vim apps/web/src/a.ts', 'permitir'],
 ]);
 
 casosDeBash('Bash: agente fora da tabela', [

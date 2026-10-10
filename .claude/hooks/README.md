@@ -25,16 +25,23 @@ Dentro de um worktree de subagente (`.claude/worktrees/<nome>/`), o caminho é a
 ### Bash
 
 `shell.mjs` separa o comando em comandos simples e procura escritas: redirecionamentos (`>`, `>>`, `&>`), `tee`, `sed -i`, `mv`, `cp`, `rm`, `touch`, `mkdir`, `find -delete`, `xargs rm`, `bash -c "..."`, `$(...)` e os comandos `git` que mexem na árvore de trabalho.
-Também confere o destino de `curl -o`/`-O`, `wget` (`-O`, `-P` ou a pasta atual), `rsync` (último argumento), `tar -x`/`-C` e `tar -c -f`, `unzip` (`-d` ou a pasta atual) e `awk -i inplace`.
+Também confere o destino de `curl -o`/`-O`, `wget` (`-O`, `-P` ou a pasta atual), `rsync` (último argumento), `tar -x`/`-C` e `tar -c -f`, `unzip` (`-d` ou a pasta atual), `awk -i inplace` e `sort`/`shuf -o`.
+`sed` é negado para todo subagente quando o script executa ou grava (comando `e`/`w`/`W`, com ou sem endereço; flag `e`/`w` no `s///`; `-f`/`--file`, que traz o script de um arquivo invisível), além do `sed -i` já conferido contra a área.
+Editores de linha (`ex`, `ed`, `red`) e `vim`/`vi` em modo ex/script (`-c`, `+cmd`, `-E`, `-es`) gravam por comando e são negados para quem escreve.
 Chaves viram vários caminhos, como no bash (`apps/web/src/{a,b}` → dois alvos); com curinga, vale a pasta antes dele, e `..` (ou nome que começa com `.`) depois do curinga é negado.
 Alvo que não dá para conferir (variável, `$'...'`, `cd` para um lugar desconhecido, comando que não analisa) é negado para subagentes.
 
 **Embrulhos** (comandos que executam o comando seguinte): `env`, `timeout`, `nice`, `nohup`, `stdbuf`, `time`, `exec`, `command`, `builtin`, `sudo`, `doas` e `xargs` são tirados antes da análise.
 Cada um tem uma lista de opções conhecidas; as que têm valor consomem o valor (`env -u X`, `timeout -s KILL 5`, `exec -a nome`, `stdbuf -oL`, `nice -n 5`).
-Opção fora da lista, `env -S`/`--split-string` (divide um texto em comando) e embrulhos sem análise (`setsid`, `watch`, `flock`, `strace`, `chroot`...) são negados para subagentes.
+Opção fora da lista, `env -S`/`--split-string` (divide um texto em comando), argumento dinâmico antes do comando (`timeout $(…) 5 rm …`) e embrulhos sem análise (`setsid`, `watch`, `flock`, `strace`, `chroot`... e os executores do Windows/Git Bash `cmd`, `start`, `winpty`, `wsl`) são negados para subagentes.
+`powershell`/`pwsh` chamados pelo Bash vão para o mesmo analisador do PowerShell (só leitura para subagente, D3(7)): verbos e apelidos que escrevem, redirecionamento e git que mexe na árvore são negados; comando codificado (`-EncodedCommand`) não é verificável.
 `env -C PASTA` e `sudo -D PASTA` trocam a pasta do comando seguinte (ou a deixam desconhecida, se for variável); `time -o ARQUIVO` é conferido como alvo.
 Também são conferidos: as origens de `tar --remove-files` (apagadas); os arquivos de entrada do `awk` quando o programa vem de arquivo (`-f`, `-E`, `-i outro.awk`).
-Negados para subagentes: `curl -K`/`--config`, `wget --config`, programa do `awk` com `@include`/`@load`, `awk -l`, e as variáveis `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, `GIT_NAMESPACE`, `CURL_HOME`, `WGETRC`, `HOME` e `XDG_CONFIG_HOME` (antes do comando, com `env` ou em `export`/`declare`), que apontam o git para outro repositório ou trocam a configuração de curl e wget.
+Negados para subagentes: `curl -K`/`--config`, `wget --config`, programa do `awk` com `@include`/`@load`, `awk -l`.
+
+Para **todo subagente** (code-reviewer e quem escreve), o git que executa programas é negado: `git -c`, `--config-env`, `--exec-path`, `git grep -O`, e qualquer variável `GIT_*` ou `PAGER` antes do comando (diff externo, pager, ssh...), menos `GIT_PAGER=cat` e `PAGER=cat`. As variáveis `HOME`, `XDG_CONFIG_HOME`, `CURL_HOME` e `WGETRC` são negadas só quando o comando é `curl`, `wget` ou `git` (mudam de onde eles leem a configuração); antes de outros comandos (`HOME=/tmp npm test`) elas passam. `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE` e `GIT_NAMESPACE` apontam o git para outro repositório ou árvore e são sempre negadas (com `env` ou em `export`/`declare`).
+
+**Rede de segurança** (para quem escreve): um comando sem análise específica (desconhecido ou fora das listas) que cita um caminho protegido (`docs/03-tarefas`, `.claude/agents` ou `.git/`) em algum argumento ou atribuição é negado. Leituras conhecidas (`cat`, `grep`, `head`, `tail`, `wc`, `diff`...) ficam de fora para não travar fluxos legítimos; `sort` e `uniq` não entram nessa isenção porque gravam com `-o`/arquivo de saída.
 
 O code-reviewer só roda uma lista de leitura: git de leitura, testes, lint, build, o validador, laços (`for`, `case`, `while read`), `awk` de leitura e utilitários como `cat` e `grep`.
 Para ele também são negados `--fix`, `-u`/`--update` (snapshots), `node --test --import/--require`, `git -c`, `time -o` e variáveis como `GIT_EXTERNAL_DIFF` e `NODE_OPTIONS`, que fazem um comando de leitura gravar ou executar outro programa.
