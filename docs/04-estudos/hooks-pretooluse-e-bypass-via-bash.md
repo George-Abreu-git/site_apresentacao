@@ -41,6 +41,8 @@ Há ainda uma segunda pergunta em aberto: **o hook sabe qual subagente está agi
 
 Repare que a escolha entre (a) e (b) é uma **decisão do George**, a ser tomada na T-001. É um trade-off entre segurança e conveniência dos agentes.
 
+> Atualização (T-001, concluída): ficou a (a). O `Bash` mostrou ser analisável e ninguém perdeu a ferramenta. O hook identifica o subagente pelos campos `agent_id`/`agent_type` do JSON de entrada (`.claude/hooks/restringir-escrita.mjs`). Detalhes em [[docs/04-estudos/tarefas/T-001]].
+
 ## Exemplo
 
 Esboço conceitual (não é a implementação final) de como um hook decide:
