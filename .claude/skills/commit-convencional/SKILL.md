@@ -26,6 +26,7 @@ Exemplos: `feat(contato): adiciona formulário de contato` · `test(api): cobre 
 - Uma branch por tarefa: `feat/T-XXX-<slug>` (ou `fix/...`).
 - Merge em `main`: automático quando **todos** os testes e o validador passam (merge local primeiro, depois `git push origin main`). Se algo falhar, nada de merge — decisão do George.
 - Remoto: `origin` = https://github.com/George-Abreu-git/site_apresentacao
+- Sessões do Cowork não têm credenciais do GitHub: lá, faça só commit e merge local e avise o George para rodar `git push` no VS Code. No Claude Code do VS Code, o push é automático.
 
 ## Quem commita
 
