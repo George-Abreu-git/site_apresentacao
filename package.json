@@ -10,9 +10,10 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present && npm run test:hooks",
+    "test:hooks": "node --test \".claude/hooks/tests/*.test.mjs\"",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "lint": "npm run lint --workspaces --if-present && eslint --no-error-on-unmatched-pattern e2e scripts eslint.config.mjs"
+    "lint": "npm run lint --workspaces --if-present && eslint --no-error-on-unmatched-pattern e2e scripts .claude/hooks eslint.config.mjs"
   },
   "engines": {
     "node": ">=24"
