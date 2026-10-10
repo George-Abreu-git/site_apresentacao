@@ -1,7 +1,7 @@
 ---
 id: T-005
 titulo: Montar o monorepo base (workspaces, web, api, shared e ferramentas de teste)
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -38,8 +38,33 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 - 2026-10-10 — George (Q2-A): aprova que o **devops alinhe `.claude/agents/dev.md`, `qa.md` e `devops.md`** às áreas do `AGENTS.md` (sem `src/**`/`tests/**`) e o gatilho da suíte na `orquestrar-tarefa` ("sem `src/`" → "sem `apps/`"), como primeiro passo desta tarefa.
 - 2026-10-10 — George (Q3-A): **ESLint** com configuração única na raiz + typescript-eslint + regras de hooks do React — registrado em [[docs/02-arquitetura/ADR-0002-lint|ADR-0002]]. O devops volta para criar a configuração na raiz antes do dev.
 - 2026-10-10 — George (Q4-A): o **`package-lock.json` é arquivo gerado** — o implementador (dev ou devops) pode alterá-lo ao instalar dependências; o code-reviewer confere o diff do lock. O devops registra a regra na tabela de áreas do `AGENTS.md`.
+- 2026-10-10 — **George delegou ao orquestrador as decisões das tarefas T-005, T-006, T-001 e T-007** (execução em sequência: T-005 → T-006 → T-001 → T-007). Cada decisão tomada pelo orquestrador fica registrada aqui com as 3 opções, prós e contras e a justificativa, marcada como "decidido pelo orquestrador (delegação)", para o George revisar e pedir alterações.
 
 ## Dev
+
+### Rodada 1 — etapa 2 (apps e shared)
+
+**Resultado:** CONCLUIDO — três workspaces criados com TDD; na raiz passam `npm test` (api 6 testes, web 3; `shared` sem testes), `npm run build`, `npm run lint` e o validador.
+
+- **`packages/shared`:** tipo `Projeto` (campos da parte curada do RF-06: `titulo`, `descricao`, `stacks`, `repositorio?`, `demo?`, `imagem?`; a T-010 confirma e a T-011 acrescenta os dados do GitHub), compilado para `dist/` com os tipos.
+- **`apps/web`:** Vite 8 + React 19 + TS ~6.0, CSS Modules, página provisória com `<main>`, `<h1>George Siqueira</h1>`, "Site em construção." e `lang="pt-BR"`; testes com Vitest + Testing Library + jsdom.
+- **`apps/api`:** NestJS 12 em ESM, `HealthModule` com `GET /api/health` → `{ status: "ok" }`; `criarApp()` (`apps/api/src/criar-app.ts`) monta a mesma API do `main.ts`, com prefixo `/api`, sem abrir porta; lê `apps/api/.env` com `process.loadEnvFile` (nativo do Node, sem `@nestjs/config`; arquivo ausente não dá erro; variável do ambiente não é sobrescrita); testes unitários com Vitest `^5.0.3`.
+- **Workspaces:** `build`/`test`/`lint` (`eslint .`) e `dev` em web e api; `tsconfig.json` estendendo `../../tsconfig.base.json`.
+
+**Conferências extras:** a API compilada (`node dist/main.js`, `.env` temporário com `PORT=3999`, apagado depois) respondeu `{"status":"ok"}` em `/api/health` e 404 em `/health`; trocar o tipo esperado nos testes de compartilhamento quebrou o build da api e da web (revertido); injeção de dependência do Nest funciona no Vitest 5 sem SWC (importa para a T-010); o ESLint analisou de fato os arquivos. `npm run dev` não foi rodado (não termina sozinho).
+
+**Escolhas para o code-reviewer olhar:**
+1. Os modelos do Nest 12 (ESM + Vitest) e do Vite trazem **oxlint**, não ESLint. Removidos: oxlint, Prettier (fora da ADR-0002), `vite-tsconfig-paths`, `@nestjs/mau`, `@vitest/coverage-v8`, `source-map-support`, `public/` e arquivos-modelo. Vitest `^5.0.3` (o modelo do Nest vinha com 4).
+2. `.env` lido com `process.loadEnvFile` (sem biblioteca nova).
+3. `supertest` e `@types/supertest` nas devDependencies da api (o qa não edita `package.json`); o Vitest da api já roda `test/**/*.spec.ts` e `test/**/*.e2e-spec.ts`.
+4. Prova do compartilhamento com `expectTypeOf` em cada app, conferida no build; por isso web e api precisam do `shared` compilado antes (o `npm run build` da raiz já segue a ordem).
+5. `package-lock.json` mudou só pelo `npm install` (Q4-A); diff grande (~5,5 mil linhas).
+
+**Pendências:**
+1. qa: teste de rota em `apps/api/test/` com `const app = await criarApp({ logger: false }); await app.init();`, `request(app.getHttpServer()).get('/api/health')` e `app.close()`.
+2. qa: Playwright em `e2e/` (página provisória descrita acima).
+3. devops (sugestão para o README): num clone novo, rodar `npm run build` uma vez para compilar o `packages/shared`; antes disso o editor marca erro no import `@site-apresentacao/shared` (os testes rodam mesmo assim).
+4. Tema e layout responsivo completos ficam para a T-007; CORS (RNF-05) para a T-013.
 
 ## Revisão
 
@@ -88,3 +113,4 @@ Commits do orquestrador: agentes/skill e raiz (ver Log).
 - 2026-10-10 — devops: AGUARDANDO-DECISAO — etapa 1 (agentes alinhados + raiz do monorepo) concluída; validador OK; Q3 (lint) e Q4 (lockfile) para o George
 - 2026-10-10 — orquestrador: decisões Q3-A (ESLint, ADR-0002) e Q4-A (lock gerado); devops volta para a etapa 1b
 - 2026-10-10 — devops: CONCLUIDO — etapa 1b: ESLint único na raiz, TypeScript ~6.0, regra do lockfile no `AGENTS.md`; validador OK
+- 2026-10-10 — dev: CONCLUIDO — etapa 2: web, api e shared com testes unitários; test/build/lint e validador OK
