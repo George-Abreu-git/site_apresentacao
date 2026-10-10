@@ -1,10 +1,10 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-revisao
+status: em-andamento
 modo: agente-faz
 tags: [infra, orquestracao]
-rodadas: 2
+rodadas: 3
 criada: 2026-10-09
 ---
 
@@ -83,6 +83,17 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
     - ✅ Robusto contra qualquer comando novo ou embrulho não previsto. ✅ Acaba com a caça a brechas. ✅ Alinha com o que já vale para o code-reviewer.
     - ❌ Trava fluxos legítimos que ninguém listou (`npx <ferramenta>`, scripts do projeto, utilitários). ❌ Mudança grande no meio da rodada de ajustes, com risco alto de regressão. ❌ Exige catalogar todos os comandos legítimos de dev, qa e devops.
   - **Escolha: A.** Fecha a família de embrulhos com uma lista de opções conhecidas (sem a explosão de falsos positivos da C) e aproveita a rodada para os opcionais baratos. Se a próxima revisão ainda achar brechas desta família, a C fica registrada como alternativa para uma tarefa própria.
+- 2026-10-10 — **D6 — Rodada 3 da revisão: 4 bloqueantes, última volta antes do limite (decidido pelo orquestrador, delegação).** Bloqueantes: (1) `timeout` com palavra dinâmica (código novo); (2) `sed` com `e`/`w`/`W` — o code-reviewer executou um comando via `s///e` ao vivo, e quem escreve grava em `docs/03-tarefas/` com `sed -n 'w ...'`; (3) `powershell` sem `-Command`, `cmd //c`, `winpty`, `start`; (4) `GIT_EXTERNAL_DIFF`/`git -c diff.external` para quem escreve. Os itens 2–4 existem desde o primeiro commit e escaparam das rodadas 1 e 2. Opcionais: (5) rede de segurança — comando sem análise com trecho protegido (`docs/03-tarefas`, `.claude/agents`) em algum argumento/atribuição → negar; (6) restringir a negação de `HOME`/`XDG_CONFIG_HOME`/`CURL_HOME`/`WGETRC` a `curl`/`wget`/`git`. Com `rodadas = 3`, mais um `AJUSTES` bloqueia a tarefa e leva a decisão ao George.
+  - **A) Corrigir os 4 bloqueantes como o revisor especificou + a rede de segurança (5) + o (6)**
+    - ✅ Fecha os 4 caminhos concretos e, com a rede de segurança, a classe inteira "comando não analisado tocando caminho protegido" (`npx rimraf`, `sort -o`, `uniq` e afins), que é o que gerou as três rodadas. ✅ Correções pequenas e bem especificadas, com testes. ✅ Maior chance de a revisão seguinte aprovar, evitando o bloqueio.
+    - ❌ Rodada grande na última volta disponível. ❌ A rede de segurança pode negar leituras legítimas de quem escreve que citem `docs/03-tarefas` (ex.: `grep` numa nota) — mitigável deixando leituras conhecidas de fora. ❌ Mais regras no `politica.mjs` antes da divisão.
+  - **B) Corrigir só os 4 bloqueantes**
+    - ✅ Rodada menor. ✅ Escopo estrito. ✅ Menos risco de falso positivo.
+    - ❌ A próxima revisão tende a achar outro comando da mesma família (como nas três rodadas), estourando o limite. ❌ `npx rimraf`, `sort -o` e afins continuam abertos. ❌ Não ataca a causa.
+  - **C) Corrigir só o item 1 (código novo) e mover 2–4 + a abordagem "comando desconhecido negado" para uma tarefa própria**
+    - ✅ A T-001 fecha agora com o que foi pedido nas rodadas. ✅ A reestruturação vira tarefa com escopo e revisão próprios. ✅ Respeita a observação da D5.
+    - ❌ Fecha a T-001 com brechas conhecidas que permitem escrever em `docs/03-tarefas/**` (critérios 25, 27, 28 abertos). ❌ O code-reviewer continua podendo executar comandos via `sed .../e`. ❌ Contraria a Definition of Done (critérios de aceite atendidos).
+  - **Escolha: A.** É a única que deixa os critérios atendidos e ataca a causa das rodadas repetidas; a rede de segurança deve excluir leituras conhecidas (`cat`, `grep`, `head`, `less`, `git show`...) para não travar fluxos legítimos. Se a próxima revisão ainda devolver `AJUSTES`, a tarefa fica `bloqueada` e o George decide (a C e a reestruturação por lista de permissões ficam registradas como alternativas).
 
 ## Dev
 
@@ -113,6 +124,22 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
 **Bloqueante:** `politica.mjs:307-320` (`desembrulhar`) e `shell.mjs:299` (`time` reservado): o valor de uma opção do embrulho vira o nome do comando e o comando de escrita seguinte não é analisado (comando desconhecido é permitido para dev, qa e devops). Passam: `env -u X rm -f docs/03-tarefas/T-001.md`, `env -C docs/03-tarefas rm T-001.md`, `env -S 'rm -f docs/03-tarefas/x'`/`env -Srm ...`, `timeout -s KILL 5 rm ...`, `exec -a nome rm ...`, `time -p rm -f .claude/agents/dev.md`. Correção: opções com valor consomem o valor (`env -u/--unset`, `-C/--chdir`, `timeout -s/--signal`, `-k/--kill-after`, `exec -a`, `stdbuf -i/-o/-e`, `nice --adjustment`); negar `env -S`/`--split-string` e opção de embrulho desconhecida para subagentes; pular `time -p`; testes negados para cada forma e permitidos para `env -i FOO=1 npm test` e `timeout 60 npm test` (dev).
 
 **Opcionais:** (1) `IFS` em `VARIAVEIS_SEGURAS` (`while IFS= read -r l` negado ao vivo; atribuição solta `n=0` também); (2) `tar -c --remove-files`; (3) `curl -K/--config`, `wget --config`, gawk `@include "inplace"`; (4) negar `GIT_DIR=`, `GIT_WORK_TREE=`, `GIT_INDEX_FILE=` como `--git-dir`/`--work-tree`. Ver D5.
+
+### Rodada 3
+
+**Resultado:** AJUSTES — o bloqueante da rodada 2 (embrulhos) e os opcionais 1–4 da D5 estão aplicados e testados, sem regressão; 4 novos bloqueantes (1 no código novo; 3 existentes desde `26b671a`).
+
+**Verificações (hooks valendo para o revisor):** `test:hooks` 309/309; `npm test` verde; lint verde; validador OK (`PYTHONUTF8=1` e `python -X utf8`); `git status` limpo. Permitidos ao vivo: git de leitura (inclusive `HEAD@{1}..HEAD`), `while IFS= read -r l`, `n=0; for ...`, `time -p git status`, `timeout 60 git log`, `npm run build`, `CI=1 npm run test:e2e -- --list`. Negados ao vivo: `env -S`, `winpty`, `powershell`. Dev e qa conferidos pelos testes e código. Área só `.claude/hooks/**`; lock inalterado. Extensões corretas (`xargs`; `HOME`/`XDG_CONFIG_HOME`/`CURL_HOME`/`WGETRC` — efeito colateral aceitável; awk com programa de arquivo; embrulhos não analisados negados, mas a lista só tem ferramentas Linux ausentes nesta máquina).
+
+**Bloqueantes:**
+1. `politica.mjs:390`/`:441` — `timeout $(echo --foreground) 5 rm -f docs/03-tarefas/x` passa (a palavra dinâmica vira a duração e `5` vira o comando). Negar palavra dinâmica antes do comando em embrulho com `posicionais`; teste negado e `timeout 60 npm test` permitido.
+2. `sed` `e`/`w`/`W` — code-reviewer (`:1351`): `echo x | sed 's/.*/echo executado-pelo-sed/e'` executou ao vivo; `sed -n '1w /dev/null'` passou (fura o critério 27). Quem escreve (`:635`, `sedNoLugar` só olha `-i`): `sed -n 'w docs/03-tarefas/...' f`, `sed 's/a/b/w .claude/agents/dev.md' f`, `sed '1e rm -f docs/03-tarefas/x' f` passam. Checagem única para todos os subagentes (comando `e`/`w`/`W` com ou sem endereço, flag `e`/`w` no `s`, `-f`/`--file` negado); testes negados e permitidos (`sed -n '1,20p' f`, `sed 's/foo/the bar/' f`, `sed -i` na área).
+3. Executores do Windows/Git Bash (`:370`, `:1095-1122`): `powershell Remove-Item docs/03-tarefas/x` (PS 5.1 trata argumentos soltos como `-Command`), `cmd //c del docs\03-tarefas\x` (MSYS converte `/c`), `powershell -c Set-Content AGENTS.md x` (dev, fora da área), `winpty -Xallow-non-tty rm ...`, `start rm ...` passam. `winpty`/`start`/`cmd` em `EMBRULHOS_NAO_ANALISADOS`; `powershell`/`pwsh` via Bash para o `avaliarPowerShell` (D3(7)); README; testes (`Get-ChildItem` via `powershell` permitido para o dev).
+4. git executando programas para quem escreve (`:1258`, `:1262`, `:304`): `GIT_EXTERNAL_DIFF='rm -f docs/03-tarefas/x' git diff` e `git -c diff.external='...' diff` passam. Negar `git -c`/`--config-env`/`--exec-path`/`grep -O` e variáveis `GIT_*` (exceto `GIT_PAGER=cat`; `PAGER` só `cat`) para todos os subagentes; testes negados e `GIT_PAGER=cat git log -1`, `git add apps/web/src/a.ts` (dev) permitidos.
+
+Critérios reabertos: 25, 26 e 28 (itens 1–4) e 27 (item 2).
+
+**Opcionais:** (5) rede de segurança para quem escreve — comando sem análise com trecho protegido em argumento/atribuição → negar (fecharia `npx rimraf docs/03-tarefas/...`, `sort -o`, `uniq`...); (6) restringir a negação de `HOME`/`XDG_CONFIG_HOME`/`CURL_HOME`/`WGETRC` a `curl`/`wget`/`git`; (7) divisão do `politica.mjs` (~1460 linhas) segue para depois. Ver D6.
 
 ## QA
 
@@ -175,3 +202,5 @@ Arquivos: `.claude/hooks/politica.mjs`, `shell.mjs`, `tests/politica.test.mjs`, 
 - 2026-10-10 — code-reviewer: AJUSTES — opções de comandos-embrulho (`env`, `timeout`, `exec`, `time -p`) escondem o comando de escrita; rodadas = 2
 - 2026-10-10 — orquestrador: D5 (delegação) — corrigir os embrulhos (opções conhecidas; desconhecida = negar) e aplicar os 4 opcionais
 - 2026-10-10 — devops: CONCLUIDO — embrulhos com lista de opções, `env -S`/opção desconhecida negados, opcionais da D5; 309 testes (interrompido pelo limite de uso e retomado); test/lint/validador OK
+- 2026-10-10 — code-reviewer: AJUSTES — 4 bloqueantes (`timeout` dinâmico; `sed` `e`/`w`; `powershell`/`cmd`/`winpty`/`start`; `GIT_EXTERNAL_DIFF`/`git -c`); rodadas = 3 (última volta antes do limite)
+- 2026-10-10 — orquestrador: D6 (delegação) — corrigir os 4 bloqueantes + rede de segurança para comando não analisado em caminho protegido + restrição do `HOME`
