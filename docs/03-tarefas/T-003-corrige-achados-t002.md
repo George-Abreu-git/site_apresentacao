@@ -1,7 +1,7 @@
 ---
 id: T-003
 titulo: Corrigir achados médios da T-002, formalizar o modo revisão e normalizar fim de linha
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [orquestracao, docs]
 rodadas: 0
@@ -51,3 +51,4 @@ Os achados baixos (B1–B5, B7–B14) ficam para a ADR de stack ou para uma tare
 ## Log
 
 - 2026-10-09 — tarefa criada
+- 2026-10-09 — orquestrador: início — implementador devops (decisão do George), área ampliada vigente nesta tarefa
