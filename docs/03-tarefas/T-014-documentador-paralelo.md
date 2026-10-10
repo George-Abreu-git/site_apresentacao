@@ -1,7 +1,7 @@
 ---
 id: T-014
 titulo: Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 1
@@ -70,6 +70,12 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 **Decisão pendente (Q4):** a exceção "só validador" para `estudos/consolidacao-*` está escrita no `AGENTS.md:61` como "decisão do George na T-014", mas a Q2-A cobre só `estudos/T-XXX` — é interpretação do orquestrador e precisa de confirmação antes do merge.
 
 **Opcionais:** espaço no fim das linhas 3 e 21 de `docs/_templates/diario-estudo.md`; rodar o validador também no registro de FALHOU da seção "Falha"; confirmar na prova como funcionam os pedidos de permissão do subagente em background.
+
+### Rodada 2
+
+**Resultado:** APROVADO — o ajuste da Rodada 1 foi aplicado no commit `e984b8f` (passo 6 → "Push falhou"; seção nova com tentar de novo / avisar o George, limpeza do passo 7 e sem "diário não integrado"; gatilho da "Falha" só antes do fast-forward; linha na tabela da Consolidação). Integração, conflito no rebase, Falha e Consolidação coerentes, sem laço entre "Falha" e "Push falhou". Diff só na área do devops; validador OK; `git status` limpo. Q4 resolvida (George, A).
+
+**Opcional:** `orquestrar-tarefa:100` — quem chega a "Push falhou" pelo registro do FALHOU lê "o diário foi integrado"; poderia ser "o resultado (diário, consolidação ou registro de falha) já está na `main` local". Efeito prático já correto.
 
 ## QA
 
@@ -151,3 +157,4 @@ Arquivo: `.claude/skills/orquestrar-tarefa/SKILL.md`. Opcionais não aplicados.
 - 2026-10-10 — code-reviewer: AGUARDANDO-DECISAO — critérios atendidos; 1 ajuste (falha de push na seção "Falha"); Q4 (exceção para `estudos/consolidacao-*`) ao George
 - 2026-10-10 — orquestrador: George decidiu Q4-A; ajuste da revisão volta ao devops (rodadas = 1)
 - 2026-10-10 — devops: CONCLUIDO — "Push falhou" separado da "Falha" na integração de estudos; validador OK
+- 2026-10-10 — code-reviewer: APROVADO — ajuste conferido, sem contradições; 1 opcional de texto
