@@ -11,3 +11,4 @@ Quem escreve: a sessão principal (orquestrador), sempre com a decisão tomada p
 ## ADRs aceitas
 
 - [[docs/02-arquitetura/ADR-0001-stack|ADR-0001 — Stack da v1]]
+- [[docs/02-arquitetura/ADR-0002-lint|ADR-0002 — Ferramenta de lint]]
