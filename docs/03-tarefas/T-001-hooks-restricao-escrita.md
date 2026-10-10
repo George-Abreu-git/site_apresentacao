@@ -1,7 +1,7 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [infra, orquestracao]
 rodadas: 2
@@ -152,6 +152,17 @@ Arquivos: `.claude/hooks/shell.mjs`, `politica.mjs`, `tests/politica.test.mjs`, 
 
 **Pendências:** item 6 da D4 (dividir o `politica.mjs`, agora com 1255 linhas, e unificar `separarArgs`/`separarOpcoesGnu`) segue para depois; conferir as duas extensões além do pedido (variáveis de ambiente do code-reviewer; `find -exec`); limites restantes no README (`gzip`, `zip`, `split`, `npx prettier --write`; opção dinâmica como `curl $OPT caminho`; `((i++))` solto no code-reviewer).
 
+### Rodada 3 (ajustes da revisão 2 + D5)
+
+**Resultado:** CONCLUIDO — bloqueante dos embrulhos e opcionais 1–4 da D5 aplicados; `test:hooks` 309/309 (eram 236); `npm test`, lint e validador verdes. Ao vivo, o hook negou `env -Q true` ("opção de embrulho fora da lista conhecida"). (A execução foi interrompida pelo limite de uso da API antes do README; retomada do próprio histórico e concluída.)
+- **Embrulhos:** tabela `EMBRULHOS` em `politica.mjs` com a lista de opções de `env`, `timeout`, `nice`, `nohup`, `stdbuf`, `time`, `exec`, `command`, `builtin`, `sudo`, `doas`, `xargs`. Opções com valor consomem o valor (separado ou colado): `env -u/--unset`, `-C/--chdir`, `timeout -s/-k` + duração, `exec -a`, `stdbuf -i/-o/-e`, `nice -n/--adjustment` e `nice -10`. `--help`, `--version` e `command -v` não executam o seguinte. Negados para todo subagente: opção fora da lista, `env -S`/`--split-string` (inclusive `-Srm`) e embrulhos não analisados (`setsid`, `watch`, `flock`, `strace`, `chroot`...). `env -C`/`sudo -D` trocam a pasta do comando seguinte (variável/curinga = desconhecida). `time` saiu das palavras reservadas e virou embrulho: `-p` pulado, `-o ARQUIVO` conferido (negado para o code-reviewer), `time { ...; }` analisado. `cd` depois de embrulho = pasta desconhecida. Além do pedido: `xargs` com a mesma lista e desembrulho do comando interno (antes passavam `xargs -0n 1 rm docs/...` e `xargs env rm`).
+- **D5:** (1) `IFS` nas variáveis seguras (`while IFS= read -r l` passa); atribuição solta liberada só para nomes em minúsculas (`PATH=...;` e `n=0 git status` negados). (2) `tar --remove-files` confere as origens como apagadas; com `-C`/`-T` negado. (3) Negados `curl -K/--config`, `wget --config`, gawk com `@include`/`@load`, `awk -l`; programa vindo de arquivo (`-f`, `-E`, `-i outro.awk`) faz as entradas serem conferidas como alvos. (4) Negadas `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE` e `GIT_NAMESPACE` antes do comando, via `env` ou em `export`/`declare`/`typeset`/`local`/`readonly`.
+- **README:** parte sobre embrulhos, itens novos negados/conferidos, regras de variáveis do code-reviewer e dois limites novos (embrulho fora das listas = comando desconhecido, permitido pela D5; configurações do HOME não são lidas).
+
+Arquivos: `.claude/hooks/politica.mjs`, `shell.mjs`, `tests/politica.test.mjs`, `README.md`.
+
+**Para a revisão:** extensões além do pedido — `xargs`; negação de `CURL_HOME`, `WGETRC`, `HOME`, `XDG_CONFIG_HOME` (efeito: `HOME=... npm test` negado para subagentes); awk com programa de arquivo; embrulhos não analisados negados. Testes de `time -p rm -f .claude/agents/dev.md`: "negar" para o dev, "perguntar" para o devops (D3). Divisão do `politica.mjs` (~1500 linhas) segue para depois (D4).
+
 ## Log
 
 - 2026-10-09 — tarefa criada
@@ -163,3 +174,4 @@ Arquivos: `.claude/hooks/shell.mjs`, `politica.mjs`, `tests/politica.test.mjs`, 
 - 2026-10-10 — devops: CONCLUIDO — brechas fechadas (chaves expandidas, `$'...'`, curinga com `..`, escrita por opção, code-reviewer); 236 testes; test/lint/validador OK
 - 2026-10-10 — code-reviewer: AJUSTES — opções de comandos-embrulho (`env`, `timeout`, `exec`, `time -p`) escondem o comando de escrita; rodadas = 2
 - 2026-10-10 — orquestrador: D5 (delegação) — corrigir os embrulhos (opções conhecidas; desconhecida = negar) e aplicar os 4 opcionais
+- 2026-10-10 — devops: CONCLUIDO — embrulhos com lista de opções, `env -S`/opção desconhecida negados, opcionais da D5; 309 testes (interrompido pelo limite de uso e retomado); test/lint/validador OK
