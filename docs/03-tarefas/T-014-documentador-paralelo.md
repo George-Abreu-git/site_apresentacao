@@ -24,14 +24,14 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 
 ## Critérios de aceite
 
-- [ ] **Novo subagente `documentador`** (`.claude/agents/documentador.md`): `background: true`, `isolation: worktree`, `model: inherit`; escreve **somente** `docs/04-estudos/tarefas/T-XXX.md`; lê apenas a nota da tarefa (handoffs) e os arquivos citados nela — **não** lê nem edita outras notas de estudo; termina com `## Handoff`
+- [ ] **Novo subagente `documentador`** (`.claude/agents/documentador.md`): `background: true`, `isolation: worktree`, `model: inherit`; produto principal: `docs/04-estudos/tarefas/T-XXX.md`; **lê e grava em `docs/04-estudos/**`** (pode consultar e, se necessário, atualizar outras notas de estudo) — *alterado pelo esclarecimento do George de 2026-10-10*; termina com `## Handoff`
 - [ ] **Template** `docs/_templates/diario-estudo.md`: frontmatter `tipo: diario`, `tarefa`, `data`, `consolidado: false`, `conceitos: []`; seções O que foi feito, Conceitos (curtos, com o porquê), Onde aparece no projeto (caminhos), Exercícios, Links
 - [ ] **`orquestrar-tarefa`**: no modo `agente-faz` (e no fechamento do `eu-faco`), o fluxo vira implementador → code-reviewer → qa → **encerramento** → **dispara o documentador em background**; regras para integrar `estudos/T-XXX` na `main` (merge + push) quando ele terminar, sem interromper a tarefa em andamento; se o documentador falhar, registrar no Log e seguir (não bloqueia nada)
-- [ ] **`instrutor`**: deixa de ter o modo explicador no fluxo; mantém o modo mentor (`eu-faco`), o `/estudar` e passa a fazer a consolidação
-- [ ] **Comando `/estudar-consolidar`**: lê os diários com `consolidado: false`, cria/atualiza notas por conceito em `docs/04-estudos/` (raiz) e marca os diários como `consolidado: true`
+- [ ] **`instrutor`**: deixa de ter o modo explicador no fluxo; mantém o modo mentor (`eu-faco`) e o `/estudar`; **não** consolida — *alterado pela decisão Q3-B do George*
+- [ ] **Comando `/estudar-consolidar`** (executado pelo **documentador** — *Q3-B*): lê os diários com `consolidado: false`, cria/atualiza notas por conceito em `docs/04-estudos/` (raiz) e marca os diários como `consolidado: true`
 - [ ] **`nota-de-estudo`** descreve os dois formatos (diário por tarefa e nota por conceito) e quem escreve cada um
 - [ ] **`definition-of-done`**: o item de encerramento vira "diário de estudo disparado" (não exige o diário pronto)
-- [ ] **Áreas por caminho** (`AGENTS.md`): documentador → `docs/04-estudos/tarefas/**`; instrutor → `docs/04-estudos/**`
+- [ ] **Áreas por caminho** (`AGENTS.md`): documentador → `docs/04-estudos/**`; instrutor → `docs/04-estudos/**` (os dois leem e gravam — *esclarecimento do George*)
 - [ ] As notas por conceito atuais **ficam onde estão** (nenhum link quebra); `docs/04-estudos/README.md` explica os dois formatos e a pasta `tarefas/`
 - [ ] Spec e `scripts/validar_estrutura.py` incluem o novo agente, o comando e o template
 - [ ] **Prova:** o encerramento desta própria tarefa já usa o fluxo novo — o diário `docs/04-estudos/tarefas/T-014.md` é gerado em background e integrado na `main`
@@ -51,6 +51,7 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 - 2026-10-10 — George (Q2-A): a branch `estudos/T-XXX` entra na `main` **só com o validador** (sem a suíte), como **exceção explícita registrada no `AGENTS.md`** — ela só altera Markdown e o worktree não tem `node_modules`.
 - 2026-10-10 — George (esclarecimento, **altera o 1º critério e o de áreas**): **instrutor e documentador podem ler e gravar em `docs/04-estudos/**`** (o documentador não fica restrito ao próprio diário nem proibido de ler outras notas). **O fluxo da tarefa termina quando o QA passa** (verificação → `concluida` → merge → push); nesse momento o documentador é disparado **em paralelo** para documentar a tarefa recém-finalizada, enquanto a próxima tarefa já começa (ex.: o QA passa a T-006 → o documentador documenta a T-006 em paralelo e a T-007 já inicia). O fluxo não espera o documentador terminar.
 - 2026-10-10 — George (Q3-B, **altera o critério do instrutor**): o **instrutor** atua como **mentor no `eu-faco`** e mantém o **`/estudar`** (tirar dúvidas na hora, interativo); **não** consolida. O **documentador** faz o **diário por tarefa** e a **consolidação** (`/estudar-consolidar`). O fechamento do `eu-faco` também passa a disparar o documentador em paralelo (o instrutor não fecha mais com nota de estudo).
+- 2026-10-10 — orquestrador: a Q3-B cobre as alterações em `.claude/agents/instrutor.md` e `documentador.md` necessárias para mover a consolidação; critérios 1, 30 e 34 atualizados na nota conforme o esclarecimento e a Q3-B. A exceção do validador também para `estudos/consolidacao-*` segue o mesmo motivo da Q2-A (só Markdown) — **interpretação do orquestrador**, a confirmar pelo George.
 
 ## Dev
 
@@ -85,6 +86,20 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 2. `.claude/agents/devops.md` com dois trechos desatualizados (linha 18: "code-reviewer → qa → instrutor" → "→ encerramento (documentador)"; linha 26: `docs/04-estudos/**` "do instrutor" → "do instrutor e do documentador"); exige aprovação do George.
 3. Leitura do devops: a branch `estudos/T-XXX` entra na `main` só com o validador (sem a suíte), porque só altera Markdown e o worktree não tem `node_modules`.
 
+### Ajuste por decisões do George (Q1-A, Q2-A, esclarecimento — não conta rodada)
+
+**Resultado:** CONCLUIDO — validador OK; 8 arquivos em UTF-8, LF, sem BOM.
+1. **`devops.md` (Q1-A):** fluxo termina no encerramento após o QA, documentador em paralelo; `docs/04-estudos/**` do instrutor e do documentador.
+2. **Validador só nas branches de estudo (Q2-A):** exceção em "Convenções de git" do `AGENTS.md` (origem e motivo); alinhados o passo 5 da integração na `orquestrar-tarefa`, a spec e a `commit-convencional`. A exceção cobre também `estudos/consolidacao-AAAA-MM-DD` (já previsto na `commit-convencional` e no `/estudar-consolidar`).
+3. **Leitura e gravação em `docs/04-estudos/**`:** `documentador.md` sem a restrição antiga (diário continua sendo o produto principal; outras notas podem ser consultadas e, se necessário, receber mudança mínima com Edit, sem mover/renomear/apagar; cada nota alterada citada no handoff); `AGENTS.md` com a mesma área para os dois e linha de papéis atualizada; `carregar-contexto` e `nota-de-estudo` sem o "não lê / não cita outras notas"; validador não precisou mudar.
+4. **Conferência na integração (`orquestrar-tarefa`):** aceita qualquer arquivo em `docs/04-estudos/**`, diário obrigatório; barra arquivo fora da pasta, nota apagada/renomeada e diário ausente; `--untracked-files=all` e `git add docs/04-estudos`.
+5. **Conflito no rebase** (seção nova, "não force nada"): anotar os arquivos, `rebase --abort`, preservar worktree e branch sem integrar, levar ao George (`apresentar-decisao`), registrar a escolha na nota dentro do worktree; descartar segue a seção "Falha".
+6. **Fim do fluxo no QA:** escrito na `orquestrar-tarefa`, no `AGENTS.md` e na spec, com o exemplo T-006 → T-007.
+
+Arquivos: `.claude/agents/devops.md`, `.claude/agents/documentador.md`, skills `orquestrar-tarefa`, `carregar-contexto`, `nota-de-estudo`, `commit-convencional`, `AGENTS.md`, spec. Commit `4b5b875`.
+
+**Pendências:** `instrutor.md` não foi tocado (sem aprovação naquela rodada) — coberto agora pela Q3-B; critérios 1, 30 e 34 da nota atualizados pelo orquestrador conforme as decisões.
+
 ## Log
 
 - 2026-10-10 — tarefa criada
@@ -93,3 +108,5 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 - 2026-10-10 — instrutor: CONCLUIDO — README de `docs/04-estudos/` explica os dois formatos e a pasta `tarefas/`
 - 2026-10-10 — orquestrador: Q1 (`devops.md`) e Q2 (verificação da branch de estudos) apresentadas ao George; revisão aguarda a resposta
 - 2026-10-10 — orquestrador: George decidiu Q1-A, Q2-A e esclareceu acesso a `docs/04-estudos/**` e fim do fluxo; devops volta para alinhar (não conta rodada — mudança de decisão, não `AJUSTES`)
+- 2026-10-10 — devops: CONCLUIDO — Q1-A, Q2-A e esclarecimento aplicados; conflito no rebase tratado; validador OK
+- 2026-10-10 — orquestrador: George decidiu Q3-B (consolidação com o documentador); devops volta para aplicar
