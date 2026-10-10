@@ -66,9 +66,25 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 
 Commits do orquestrador: agentes/skill e raiz (ver Log).
 
+### Rodada 1 — etapa 1b (ESLint + lockfile)
+
+**Resultado:** CONCLUIDO — configuração única do ESLint na raiz e regra do lockfile; validador OK.
+
+- **ESLint (Q3-A / ADR-0002):** `eslint.config.mjs` na raiz, comentado em português; ignora `node_modules/`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`. Em tudo: regras recomendadas de JS + `recommended` do typescript-eslint (sem leitura de tipos; `recommendedTypeChecked` pode entrar depois). Só em `apps/web/**/*.{ts,tsx}`: regras de hooks do React (`flat.recommended` v7) e globais do navegador. Globais do Node para `apps/api`, `packages`, `e2e`, `scripts`, configs de `apps/web` e `.js`/`.mjs` da raiz.
+- **devDependencies da raiz:** `eslint` ^10.12.0, `@eslint/js` ^10.0.1, `typescript-eslint` ^8.71.1, `eslint-plugin-react-hooks` ^7.1.1, `globals` ^17.13.0 e **`typescript` ~6.0.3** (não pedido: o typescript-eslint 8.71.1 só aceita TypeScript < 6.1, e a versão atual do npm é a 7.0.2).
+- **Testado** numa cópia com workspaces falsos: barrou hook dentro de `if` em `apps/web` e `any` explícito em `apps/api`; ignorou `dist/`; a regra de hooks não valeu fora de `apps/web`; arquivos corretos passaram. No repositório real, `npx eslint eslint.config.mjs scripts` sai sem erros.
+- **Lockfile (Q4-A):** `AGENTS.md`, abaixo da tabela de áreas, registra que `package-lock.json` é gerado: dev ou devops podem alterá-lo ao instalar dependências, ninguém o edita à mão e o code-reviewer confere se o diff bate com os `package.json`. Linha curta sobre o lint no mesmo lugar.
+- **README:** seção "Lint" (config única, `eslint .` por workspace, `npx eslint . --fix`, motivo do TypeScript `~6.0`).
+- **`npm install`:** gerou `package-lock.json` (v3, 142 pacotes) e `node_modules/` (ignorado); nenhuma vulnerabilidade.
+
+**Para o dev:** em cada workspace, `"lint": "eslint ."`, sem `eslint.config.*` próprio; remover a config e as dependências de ESLint dos modelos do Vite e do Nest (inclusive `eslint-plugin-react-refresh`, fora da ADR-0002); TypeScript `~6.0` (não 7).
+
+**Para o code-reviewer:** conferir o diff do `package-lock.json` e se fixar TypeScript `~6.0` na raiz está de acordo com a ADR-0002. `npm run lint` na raiz falha com "No workspaces found" até o dev criar os workspaces.
+
 ## Log
 
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — decisões Q1-B (fluxo devops → dev → code-reviewer → qa) e Q2-A (alinhar agentes)
 - 2026-10-10 — devops: AGUARDANDO-DECISAO — etapa 1 (agentes alinhados + raiz do monorepo) concluída; validador OK; Q3 (lint) e Q4 (lockfile) para o George
 - 2026-10-10 — orquestrador: decisões Q3-A (ESLint, ADR-0002) e Q4-A (lock gerado); devops volta para a etapa 1b
+- 2026-10-10 — devops: CONCLUIDO — etapa 1b: ESLint único na raiz, TypeScript ~6.0, regra do lockfile no `AGENTS.md`; validador OK
