@@ -57,4 +57,4 @@ Exemplo de requisito que influencia a stack: "RNF: carregar em menos de 2 s no c
 ## Links
 
 - Tarefa: [[docs/03-tarefas/T-002-qa-revisa-arquivos-antes-adr]]
-- Relacionadas: [[areas-por-caminho-de-escrita]], [[revisao-de-consistencia-documental]]
+- Relacionadas: [[areas-por-caminho-de-escrita]], [[revisao-de-consistencia-documental]], [[adr-como-fonte-unica]] (o que acontece depois que a ADR é aceita: T-004)

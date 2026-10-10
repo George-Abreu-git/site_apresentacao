@@ -31,7 +31,7 @@ Sem uma regra no repositório:
 - O George trabalha no **Windows 11** e o Git está com `core.autocrlf=true`.
 - Achado **B6** da T-002: o repositório **não tem `.gitattributes`**. Sugestão do QA: `* text=auto eol=lf`.
 - Relacionado, **B13**: no Windows, a saída do `validar_estrutura.py` mostra acentos quebrados em console `cp1252`. Não é o mesmo problema (aqui é *codificação de caracteres*, não fim de linha), mas é outra diferença de ambiente. Correção sugerida: `sys.stdout.reconfigure(encoding="utf-8")` ou rodar `python -X utf8`.
-- Achado **B4/B5**: o `.gitignore` também é "regra do repositório" que precisa ser revisada na ADR de stack. Veja também que `.env.*` ignoraria `.env.example` (acrescentar `!.env.example`).
+- Achado **B4/B5**: o `.gitignore` também é "regra do repositório" que precisa ser revisada na ADR de stack. Veja também que `.env.*` ignoraria `.env.example` (acrescentar `!.env.example`). *Resolvido na T-004*: o `.gitignore` ganhou as pastas do Node e o `!.env.example`; explicação completa em [[gitignore-padroes-e-check-ignore]].
 
 Em todos os casos, correção e escolha ficam para o George.
 
@@ -75,4 +75,4 @@ Para ver o que o Git acha de um arquivo: `git ls-files --eol` mostra o fim de li
 ## Links
 
 - Tarefas: [[docs/03-tarefas/T-002-qa-revisa-arquivos-antes-adr]] (achado B6), [[docs/03-tarefas/T-003-corrige-achados-t002]] (correção)
-- Relacionadas: [[revisao-de-consistencia-documental]]
+- Relacionadas: [[revisao-de-consistencia-documental]], [[gitignore-padroes-e-check-ignore]]
