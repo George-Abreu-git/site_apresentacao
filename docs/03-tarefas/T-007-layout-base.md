@@ -1,7 +1,7 @@
 ---
 id: T-007
 titulo: Layout base: menu com âncoras, tema escuro e responsividade
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -65,6 +65,10 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 2. O e2e atual passa sem mudança; só o nome do describe ("página provisória") ficou desatualizado (a critério do qa).
 3. Sugestão fora do escopo (não implementada): link "Pular para o conteúdo" — decisão do George, em tarefa própria.
 
+### Ajuste pela decisão D1 (não conta rodada)
+
+**Resultado:** CONCLUIDO — removido do `<nav>` do `Menu.tsx` o `className={estilos.menu}` (classe inexistente; o `<nav>` não precisa de estilo próprio); "fixo" trocado por "preso ao topo (sticky)" nos comentários de `Cabecalho.tsx:5` e `index.css:11`. `npm test` (hooks 412, api 8, web 26), `npm run build` e `npm run lint` verdes. Arquivos: `apps/web/src/componentes/Menu/Menu.tsx`, `apps/web/src/componentes/Cabecalho/Cabecalho.tsx`, `apps/web/src/index.css`.
+
 ## Revisão
 
 ### Rodada 1
@@ -96,3 +100,4 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 - 2026-10-10 — dev: CONCLUIDO — seis seções, menu por âncoras (compacto no celular), tema escuro em variáveis, HTML semântico; 26 testes do front; build/lint/validador OK; e2e atual 8/8
 - 2026-10-10 — code-reviewer: APROVADO — critérios do dev atendidos; 3 opcionais
 - 2026-10-10 — orquestrador: D1 (delegação) — aplicar opcionais 1 e 2 antes do QA; 3 como observação
+- 2026-10-10 — dev: CONCLUIDO — classe inexistente removida e comentários do cabeçalho sticky corrigidos; test/build/lint OK
