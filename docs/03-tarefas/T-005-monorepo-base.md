@@ -1,7 +1,7 @@
 ---
 id: T-005
 titulo: Montar o monorepo base (workspaces, web, api, shared e ferramentas de teste)
-status: em-andamento
+status: aguardando-decisao
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -47,7 +47,25 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 
 ## DevOps
 
+### Rodada 1 — etapa 1 (agentes + raiz)
+
+**Resultado:** AGUARDANDO-DECISAO — etapa 1 concluída na área do devops; validador OK; duas decisões (Q3 lint, Q4 lockfile) antes da etapa do dev. Não rodou `npm install` (sem `package-lock.json` nem `node_modules`).
+
+- **Q2-A:** `dev.md`, `qa.md` e `devops.md` citam as áreas do `AGENTS.md` (`apps/**`, `packages/**`, `e2e/**`, `apps/api/test/**`), sem `src/**`/`tests/**`. Na `orquestrar-tarefa`, o gatilho virou "enquanto não houver `apps/` nem suíte de testes", e a suíte obrigatória ficou definida como `npm test` + `npm run test:e2e`.
+- **Raiz (Q1-B):** `package.json` com workspaces (`packages/*` antes de `apps/*`, para o `build` rodar shared → api → web) e os 5 scripts; `tsconfig.base.json`; `.env.example` (`PORT`, `CORS_ORIGIN`, `GITHUB_TOKEN` vazio); `README.md`; `scripts/dev.mjs`.
+- **Testado** numa cópia temporária com workspaces falsos: ordem do `build` e `scripts/dev.mjs` subindo dois servidores em paralelo (devolve erro se um falha). No repositório real, `lint` e `dev` falham com "No workspaces found" até existirem os workspaces; `test:e2e` falha até o qa criar `e2e/playwright.config.ts`.
+
+**Pontos para o code-reviewer olhar:**
+- `scripts/dev.mjs` (não pedido): `npm run --workspaces` roda um workspace por vez e servidor de dev nunca termina; o script usa só Node, sem dependência nova (a alternativa `concurrently` seria tecnologia fora da ADR-0001).
+- `.env` em `apps/api/.env` (a API roda com `apps/api` como diretório atual); o dev precisa fazer a API ler esse arquivo.
+- `@playwright/test` (^1.64.0) como devDependency da raiz, porque `e2e/` não é workspace e o qa não edita o `package.json` da raiz.
+
+**Pendências para as próximas etapas:** cada workspace precisa dos scripts `build`, `test`, `lint` (e `dev` em web e api) e de um `tsconfig.json` com `"extends": "../../tsconfig.base.json"`; a API deve ler `apps/api/.env`; o qa cria `e2e/playwright.config.ts` (navegadores via `npx playwright install`, já no README).
+
+Commits do orquestrador: agentes/skill e raiz (ver Log).
+
 ## Log
 
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — decisões Q1-B (fluxo devops → dev → code-reviewer → qa) e Q2-A (alinhar agentes)
+- 2026-10-10 — devops: AGUARDANDO-DECISAO — etapa 1 (agentes alinhados + raiz do monorepo) concluída; validador OK; Q3 (lint) e Q4 (lockfile) para o George
