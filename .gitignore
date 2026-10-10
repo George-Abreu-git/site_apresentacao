@@ -1,11 +1,17 @@
-# Dependências e builds
+# Dependências e builds (npm workspaces: valem em qualquer pasta, ex.: apps/web/dist/)
 node_modules/
 dist/
 build/
 
-# Variáveis de ambiente
+# Relatórios de testes (cobertura do Vitest e saídas do Playwright)
+coverage/
+playwright-report/
+test-results/
+
+# Variáveis de ambiente (segredos nunca vão para o git; o modelo .env.example vai)
 .env
 .env.*
+!.env.example
 
 # Obsidian (estado local)
 .obsidian/workspace*.json

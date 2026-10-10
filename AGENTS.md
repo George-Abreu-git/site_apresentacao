@@ -6,7 +6,7 @@ Regras do projeto para qualquer agente de código (Claude Code, Copilot, etc.).
 
 Site pessoal de apresentação do George: portfólio, stacks, projetos e contato, navegável e responsivo.
 Além do produto, o projeto é uma **trilha de aprendizado** de front-end, back-end, API e integração entre front e back.
-Por isso, clareza e explicação importam tanto quanto o código. A visão completa ainda não existe: ela será escrita no **levantamento de requisitos** (skill `levantar-requisitos`). Por enquanto `docs/00-visao/` e `docs/01-requisitos/` têm só o esqueleto.
+Por isso, clareza e explicação importam tanto quanto o código. Visão completa: `docs/00-visao/`; requisitos: `docs/01-requisitos/`.
 
 ## Idioma
 
@@ -27,21 +27,29 @@ docs/03-tarefas/        backlog.md + uma nota por tarefa (T-XXX-<slug>.md)
 docs/04-estudos/        notas de estudo do Instrutor
 docs/_templates/        templates (tarefa, ADR, nota de estudo)
 scripts/                utilitários (ex.: validar_estrutura.py)
-src/                    código — criado após a ADR de stack (monorepo)
+apps/web/               front-end (React + Vite + TypeScript)
+apps/api/               API (NestJS, um módulo por domínio; testes de rotas em apps/api/test/)
+packages/shared/        tipos compartilhados entre front e API (ex.: Projeto)
+e2e/                    testes de aceitação/e2e (Playwright)
 ```
+
+O código é um **monorepo com npm workspaces** (`apps/*` e `packages/*`), conforme a ADR-0001.
 
 ## Stack
 
-**A definir** — será registrada como ADR em `docs/02-arquitetura/`. Até lá, nenhum agente escolhe tecnologia por conta própria.
+Definida na [ADR-0001 — Stack da v1](docs/02-arquitetura/ADR-0001-stack.md). Resumo:
 
-### Sequência inicial (ordem obrigatória)
+| Camada | Escolha |
+|---|---|
+| Front-end | React + Vite + TypeScript, em `apps/web/` |
+| Back-end | Node.js + TypeScript com NestJS, monolito modular (um módulo por domínio — v1: `projetos` e `github`), em `apps/api/` |
+| Repositório | Monorepo com npm workspaces: `apps/web`, `apps/api`, `packages/shared` |
+| Estilização | CSS Modules + variáveis de CSS |
+| Testes | Vitest + Testing Library (unitários), Supertest (rotas da API), Playwright (aceitação/e2e) |
+| Hospedagem v1 | Cloudflare Pages (front) + Render plano gratuito (API) |
 
-1. **Levantamento de requisitos** (`levantar-requisitos`) — preenche `docs/00-visao/` e `docs/01-requisitos/`.
-2. **ADR de stack** — decide a tecnologia a partir dos requisitos.
-3. **T-001** (hooks de restrição de escrita) — depende da ADR, porque precisa das pastas de código, teste e infra.
-4. Demais tarefas de produto.
-
-Nenhum passo começa antes do anterior estar concluído.
+Consequências que todo agente respeita: o front nunca bloqueia o conteúdo estático esperando a API (partida a frio, RNF-03); a API aceita só a origem do front publicado (CORS, RNF-05); o token do GitHub fica só em variável de ambiente no Render.
+Qualquer tecnologia fora desta lista é decisão do George (nova ADR).
 
 ## Convenções de git
 
@@ -76,21 +84,20 @@ O **orquestrador** (sessão principal) não é um subagente: coordena o fluxo, e
 
 ## Áreas por caminho
 
-Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. **Provisórias** — serão ajustadas na ADR de stack.
+Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. Definidas a partir das consequências da [ADR-0001](docs/02-arquitetura/ADR-0001-stack.md).
 
 | Agente | Caminhos permitidos |
 |---|---|
-| dev | `src/**` (exceto arquivos de infra), incluindo os **testes unitários**, que ficam junto do código |
-| qa | **Testes de aceitação/e2e**: `tests/**` e `e2e/**` na raiz. Na revisão documental (tag `revisao`), nenhum arquivo |
+| dev | `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (que é do qa). Inclui os **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`), que ficam junto do código, e as configs de cada app/pacote (ex.: `apps/web/vite.config.ts`, `apps/api/package.json`) |
+| qa | **Testes de aceitação/e2e**: `e2e/**` (Playwright) e `apps/api/test/**` (testes de rotas da API com Supertest). Na revisão documental (tag `revisao`), nenhum arquivo |
 | instrutor | `docs/04-estudos/**` |
-| devops | `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, `.claude/**` (agentes, skills, comandos, `settings.json`, hooks), `AGENTS.md`, `CLAUDE.md`, `scripts/**`, configs da raiz (`.gitignore`, `.gitattributes`, `.obsidian/**`, `package.json`, `.env.example` etc.), `docs/**` exceto `docs/03-tarefas/**` e `docs/04-estudos/**` |
+| devops | Plataforma: `.claude/**` (agentes, skills, comandos, `settings.json`, hooks), `AGENTS.md`, `CLAUDE.md`, `scripts/**`, `docs/**` exceto `docs/03-tarefas/**` e `docs/04-estudos/**`. CI e deploy: `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, configs de deploy na raiz (ex.: `render.yaml`, `wrangler.*`). Configs da raiz: `.gitignore`, `.gitattributes`, `.obsidian/**`, `package.json` (workspaces), `package-lock.json`, `.env.example` etc. |
 | orquestrador | `docs/03-tarefas/**` (notas e backlog) os commits, e os arquivos que as skills `registrar-decisao` (ADRs) e `levantar-requisitos` (visão e requisitos) mandam a sessão principal criar |
 | todos os subagentes | nunca `docs/03-tarefas/**` (só o orquestrador) |
 
 Uma alteração em `.claude/agents/**` (a definição de um agente) exige **aprovação do George**, mesmo dentro da área do devops: nenhum agente altera a própria definição por conta própria. Na tarefa que pedir essa mudança, a aprovação é a decisão do George registrada em `## Decisões`.
 
-Quando a ADR de stack definir as pastas de teste, esta tabela é ajustada (as áreas de dev e qa acima são provisórias).
-
+Dev e qa não se sobrepõem: `apps/api/test/**` está dentro de `apps/**`, mas pertence só ao qa.
 ## Regras de escrita
 
 - **Agentes nunca editam a nota da tarefa.** Terminam com um bloco `## Handoff` (formato em `atualizar-tarefa`); o orquestrador transcreve.
