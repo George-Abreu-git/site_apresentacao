@@ -5,13 +5,14 @@
 # localmente. Se alguma falhar, o "check" fica vermelho no GitHub.
 #
 # Ordem das etapas (do mais rápido ao mais lento, para falhar cedo):
-#   instalar dependências → validador da estrutura → lint → testes unitários
-#   → navegador do Playwright → testes de aceitação (e2e).
+#   instalar dependências → validador da estrutura → lint → build (tipos)
+#   → testes unitários → navegador do Playwright → testes de aceitação (e2e).
 #
 # Para reproduzir localmente, rode na raiz, nesta mesma ordem:
 #   npm ci
 #   python3 scripts/validar_estrutura.py
 #   npm run lint
+#   npm run build
 #   npm test
 #   npx playwright install --with-deps chromium
 #   npm run test:e2e
@@ -39,7 +40,7 @@ permissions:
 jobs:
   # Um único job: as etapas rodam em sequência, na mesma máquina.
   verificar:
-    name: Validador, lint e testes
+    name: Validador, lint, build e testes
     # Máquina virtual Linux mantida pelo GitHub (já vem com git e python3).
     runs-on: ubuntu-latest
     # Se algo travar (ex.: servidor do e2e que não sobe), cancela em 15 min
@@ -77,26 +78,35 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # 6. Testes unitários (Vitest) e de rotas da API (Supertest) de todos os
-      #    workspaces. Não precisa de build antes: o pacote shared só é
-      #    importado como tipo (`import type`), que some ao transpilar.
+      # 6. Build de todos os workspaces. Ele roda o `tsc` (o compilador do
+      #    TypeScript), que confere os tipos: pega erros que o lint e os testes
+      #    não veem, porque o Vitest só transpila (não checa tipos) e o lint não
+      #    usa informação de tipos. Inclui a prova de que front e API
+      #    compartilham o tipo `Projeto` (`expectTypeOf`, T-005), que só falha
+      #    aqui. Também confirma que front e API compilam para produção.
+      - name: Build (checagem de tipos)
+        run: npm run build
+
+      # 7. Testes unitários (Vitest) e de rotas da API (Supertest) de todos os
+      #    workspaces. Eles não dependem da etapa de build: o pacote shared só
+      #    é importado como tipo (`import type`), que some ao transpilar.
       - name: Testes unitários e da API
         run: npm test
 
-      # 7. Baixa o Chromium usado pelo Playwright e, com `--with-deps`, as
+      # 8. Baixa o Chromium usado pelo Playwright e, com `--with-deps`, as
       #    bibliotecas do Linux de que ele precisa. Só o Chromium: os dois
       #    projetos do e2e (celular e desktop) usam esse navegador.
       - name: Instalar o navegador do Playwright
         run: npx playwright install --with-deps chromium
 
-      # 8. Testes de aceitação no navegador. A config (e2e/playwright.config.ts)
+      # 9. Testes de aceitação no navegador. A config (e2e/playwright.config.ts)
       #    sobe o front sozinha e, como o GitHub define CI=true, proíbe
       #    `test.only` esquecido e repete até 2 vezes um teste instável.
       - name: Testes de aceitação (e2e)
         run: npm run test:e2e
 
-      # 9. Só se algo falhou: guarda o relatório do Playwright (com capturas e
-      #    rastro) para baixar na página da execução. Fica disponível 7 dias.
+      # 10. Só se algo falhou: guarda o relatório do Playwright (com capturas e
+      #     rastro) para baixar na página da execução. Fica disponível 7 dias.
       - name: Guardar o relatório do Playwright (se falhar)
         if: failure()
         uses: actions/upload-artifact@v7
