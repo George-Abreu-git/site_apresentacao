@@ -639,11 +639,15 @@ const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
 const TRECHO_PROTEGIDO_REDE = /03-tarefas|\.claude[\\/]+agents|\.git[\\/]/i;
 // Leituras conhecidas que a rede de segurança não bloqueia (não escrevem).
 // `sort` e `uniq` ficam de fora de propósito: gravam com `-o`/arquivo de saída.
+// `[`/`[[` só testam; `read` só lê a entrada para variáveis; `for`/`case`/`select`
+// são cabeçalhos (normalmente já pulados pelo `separarComandos`; aqui, reforço).
+// Os comandos dentro de um laço continuam analisados um a um (`do rm "$f"` é negado).
 const LEITURA_CONHECIDA = new Set([
   'cat', 'head', 'tail', 'less', 'more', 'grep', 'egrep', 'fgrep', 'rg', 'wc', 'diff', 'cmp',
   'ls', 'dir', 'echo', 'printf', 'pwd', 'cut', 'tr', 'jq', 'file', 'stat', 'nl', 'column',
   'comm', 'od', 'basename', 'dirname', 'realpath', 'readlink', 'which', 'type', 'date', 'tree',
   'du', 'df', 'sha256sum', 'sha1sum', 'md5sum', 'true', 'false', 'test',
+  '[', '[[', 'for', 'case', 'select', 'read',
 ]);
 
 function avaliarEscrita(nome, args, contexto) {
@@ -697,11 +701,10 @@ function avaliarEscrita(nome, args, contexto) {
     case 'vim':
     case 'nvim':
     case 'view':
-      // Modo ex/script (`-c`, `+cmd`, `-E`, `-es`, `--cmd`) pode gravar arquivos.
-      if (args.some((a) => /^(-c|-E|-es|--cmd|\+)/.test(a.texto))) {
-        return [negar(`${nome} em modo ex/script pode gravar arquivos e não é verificado; use Edit/Write`)];
-      }
-      return [];
+      // Sempre negados (D7, opcional 4): o Bash da ferramenta não tem terminal,
+      // então o único uso possível é o modo ex/script (`-c`, `+cmd`, `-e -s`,
+      // `-s arquivo`, `-S`, `-y`...), que grava arquivos por comando.
+      return [negar(`${nome}: sem terminal, o editor só roda em modo ex/script, que grava arquivos e não é verificado; use Edit/Write`)];
     case 'sed': {
       const perigo = sedPerigoso(args);
       return [...(perigo ? [negar(perigo)] : []), ...sedNoLugar(args, contexto)];
@@ -755,15 +758,51 @@ function avaliarEscrita(nome, args, contexto) {
 // `powershell`/`pwsh` chamados pelo Bash: PowerShell de subagente é só leitura
 // (D3(7)). Os argumentos são juntados e passados ao mesmo analisador do tool
 // PowerShell (procura verbos/apelidos que escrevem, redirecionamento e git).
+// Como a checagem por verbos não pega tudo (`(gi x).Delete()`, apelidos como
+// `clc`), texto que cita caminho protegido é negado (D7, opcional 1), e também o
+// comando lido da entrada (`-Command -`, `-File -` ou nenhum comando), que o hook não vê.
 function powershellViaBash(nome, args, contexto) {
   const { estado } = contexto;
   if (args.some((a) => a.dinamico)) {
     return [negar(`${nome} via Bash com argumento dinâmico não pode ser verificado`)];
   }
-  if (args.some((a) => /^-(e|ec|encodedcommand)$/i.test(a.texto))) {
-    return [negar(`${nome} com comando codificado não pode ser verificado`)];
+  const lido = lerParametrosPowerShell(args);
+  if (lido.codificado) return [negar(`${nome} com comando codificado não pode ser verificado`)];
+  if (lido.ajuda) return [];
+  if (lido.daEntrada) return [negar(`${nome} lendo o comando da entrada (-Command -, -File - ou sem comando) não pode ser verificado`)];
+  const texto = args.map((a) => a.texto).join(' ');
+  if (TRECHO_PROTEGIDO_REDE.test(texto)) {
+    return [negar(`${nome} via Bash cita um caminho protegido (docs/03-tarefas, .claude/agents ou .git): negado por segurança`)];
   }
-  return avaliarPowerShell({ agente: estado.agente }, args.map((a) => a.texto).join(' '));
+  return avaliarPowerShell({ agente: estado.agente }, texto);
+}
+
+// Parâmetros do powershell/pwsh que consomem um valor (aceitam abreviação por prefixo).
+const PS_PARAMETROS_COM_VALOR = [
+  'executionpolicy', 'windowstyle', 'workingdirectory', 'inputformat', 'outputformat', 'version',
+  'configurationname', 'custompipename', 'psconsolefile', 'settingsfile', 'encodedarguments',
+];
+const PS_APELIDOS_COM_VALOR = new Set(['ep', 'ex', 'w', 'wd', 'if', 'of', 'o', 'v', 'ea']);
+
+// Lê os parâmetros do powershell/pwsh até o comando. Devolve
+// { codificado, daEntrada, ajuda }: `-EncodedCommand` (e abreviações como `-enc`);
+// comando vindo da entrada; `-?`/`-h`/`-help` (só mostra a ajuda).
+function lerParametrosPowerShell(args) {
+  for (let i = 0; i < args.length; i++) {
+    const t = args[i].texto;
+    if (t === '-') return { daEntrada: true };
+    if (t.length < 2 || !t.startsWith('-')) return {}; // posicional: é o comando (ou o script)
+    const n = t.slice(1).toLowerCase();
+    if (n === 'e' || n === 'ec' || (n.startsWith('en') && 'encodedcommand'.startsWith(n))) return { codificado: true };
+    if (n === '?' || n === 'h' || n === 'help') return { ajuda: true };
+    if ('command'.startsWith(n) || n === 'cwa' || 'commandwithargs'.startsWith(n) || 'file'.startsWith(n)) {
+      const seguinte = args[i + 1];
+      return seguinte && seguinte.texto !== '-' ? {} : { daEntrada: true };
+    }
+    if (PS_APELIDOS_COM_VALOR.has(n) || PS_PARAMETROS_COM_VALOR.some((p) => n.length > 1 && p.startsWith(n))) i++;
+    // Demais parâmetros são chaves sem valor (-NoProfile, -NonInteractive...).
+  }
+  return { daEntrada: true }; // sem comando: com a entrada redirecionada, o PowerShell a executa
 }
 
 // Rede de segurança (opcional 5 da D6): comando sem análise específica (fora das

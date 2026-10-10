@@ -555,7 +555,48 @@ casosDeBash('Bash: rodada 3 — varredura adversarial (escrita por opção e edi
   ['dev', 'ed apps/api/test/x.ts', 'negar'],
   ['dev', 'vim -c wq apps/api/test/x.ts', 'negar'],
   ['dev', 'vim +wq apps/api/test/x.ts', 'negar'],
-  ['dev', 'vim apps/web/src/a.ts', 'permitir'],
+]);
+
+casosDeBash('Bash: D7, opcional 1 — powershell via Bash com caminho protegido ou comando da entrada', [
+  ['dev', 'powershell -c "(gi docs/03-tarefas/T-001.md).Delete()"', 'negar'],
+  ['dev', 'powershell -c "clc docs/03-tarefas/x"', 'negar'],
+  ['dev', 'pwsh -c "(gi .claude/agents/dev.md).Delete()"', 'negar'],
+  ['dev', 'echo x | powershell -Command -', 'negar'],
+  ['dev', 'echo x | powershell -c -', 'negar'],
+  ['dev', 'echo x | pwsh -File -', 'negar'],
+  ['dev', 'echo x | powershell', 'negar'],
+  ['dev', 'echo x | powershell -NoProfile -ExecutionPolicy Bypass', 'negar'],
+  ['dev', 'powershell -enc ZQBjAGgAbwA=', 'negar'],
+  ['dev', 'powershell -NoProfile -EncodedC ZQBjAGgAbwA=', 'negar'],
+  ['dev', 'powershell Get-ChildItem', 'permitir'],
+  ['dev', 'powershell -NoProfile -ExecutionPolicy Bypass -Command Get-Date', 'permitir'],
+  ['dev', 'pwsh -?', 'permitir'],
+]);
+
+casosDeBash('Bash: D7, opcional 4 — vi/vim/nvim/view sempre negados (sem terminal)', [
+  ['dev', 'vim apps/web/src/a.ts', 'negar'],
+  ['dev', 'vim -e -s apps/api/test/x.ts', 'negar'],
+  ['dev', 'vim -s roteiro.vim apps/api/test/x.ts', 'negar'],
+  ['dev', 'vim -S sessao.vim', 'negar'],
+  ['dev', 'vim -y apps/web/src/a.ts', 'negar'],
+  ['dev', 'vi apps/web/src/a.ts', 'negar'],
+  ['dev', 'nvim apps/web/src/a.ts', 'negar'],
+  ['devops', 'view scripts/x.py', 'negar'],
+  ['code-reviewer', 'vim AGENTS.md', 'negar'],
+]);
+
+casosDeBash('Bash: D7, opcional 6 — testes, read e laços isentos da rede de segurança', [
+  ['dev', '[ -f docs/03-tarefas/x ]', 'permitir'],
+  ['dev', '[[ -f docs/03-tarefas/x ]]', 'permitir'],
+  ['dev', 'if [ -f docs/03-tarefas/x ]; then echo sim; fi', 'permitir'],
+  ['dev', 'for f in docs/03-tarefas/*.md; do head -1 "$f"; done', 'permitir'],
+  ['dev', 'case docs/03-tarefas/x in *.md) echo md;; esac', 'permitir'],
+  ['dev', 'select f in docs/03-tarefas/*; do echo "$f"; done', 'permitir'],
+  ['dev', 'read -r l docs/03-tarefas', 'permitir'],
+  ['dev', 'while read -r l; do echo "$l"; done < docs/03-tarefas/backlog.md', 'permitir'],
+  ['dev', 'for f in docs/03-tarefas/*.md; do rm "$f"; done', 'negar'],
+  ['dev', '[ -f docs/03-tarefas/x ] && npx rimraf docs/03-tarefas/x', 'negar'],
+  ['dev', '[ -f x ] > docs/03-tarefas/x', 'negar'],
 ]);
 
 casosDeBash('Bash: agente fora da tabela', [
