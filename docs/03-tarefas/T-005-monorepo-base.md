@@ -39,6 +39,17 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 - 2026-10-10 — George (Q3-A): **ESLint** com configuração única na raiz + typescript-eslint + regras de hooks do React — registrado em [[docs/02-arquitetura/ADR-0002-lint|ADR-0002]]. O devops volta para criar a configuração na raiz antes do dev.
 - 2026-10-10 — George (Q4-A): o **`package-lock.json` é arquivo gerado** — o implementador (dev ou devops) pode alterá-lo ao instalar dependências; o code-reviewer confere o diff do lock. O devops registra a regra na tabela de áreas do `AGENTS.md`.
 - 2026-10-10 — **George delegou ao orquestrador as decisões das tarefas T-005, T-006, T-001 e T-007** (execução em sequência: T-005 → T-006 → T-001 → T-007). Cada decisão tomada pelo orquestrador fica registrada aqui com as 3 opções, prós e contras e a justificativa, marcada como "decidido pelo orquestrador (delegação)", para o George revisar e pedir alterações.
+- 2026-10-10 — **D1 — Opcionais da revisão (decidido pelo orquestrador, delegação):** o code-reviewer aprovou e listou 5 opcionais.
+  - **A) Aplicar 1–4 agora, antes do QA** (dev: comentário; devops: lint da raiz, README, `engines`), sem contar rodada porque não é `AJUSTES`; o QA valida o resultado final.
+    - ✅ Corrige o comentário errado num projeto didático. ✅ O lint passa a cobrir `e2e/`, que o qa cria logo em seguida. ✅ Mudanças pequenas, em arquivos separados (dev e devops em paralelo).
+    - ❌ Mudanças depois da revisão não passam de novo pelo code-reviewer. ❌ Mais uma ida aos agentes. ❌ Aumenta um pouco o escopo.
+  - **B) Aplicar só o item 1 (comentário)**
+    - ✅ Resolve o único ponto marcado como recomendado. ✅ Mínimo de retrabalho. ✅ Escopo intacto.
+    - ❌ O `e2e/` do qa ficaria fora do lint. ❌ README e `engines` continuam incompletos. ❌ Viram pendência para outra tarefa.
+  - **C) Não aplicar nada; registrar para uma tarefa futura**
+    - ✅ Zero atraso. ✅ Escopo intacto. ✅ Revisão aprovada como está.
+    - ❌ Comentário errado vai para `main`. ❌ Lint não cobre `e2e/`. ❌ Acumula pendências.
+  - **Escolha: A.** São correções baratas e o item 2 evita que o código de teste do qa fique sem lint desde o primeiro dia. O item 5 fica de fora (manter `vitest` no shared é coerente com os outros workspaces). O QA roda test, build, lint e e2e sobre o resultado final, o que cobre a falta de nova revisão.
 
 ## Dev
 
@@ -67,6 +78,23 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 4. Tema e layout responsivo completos ficam para a T-007; CORS (RNF-05) para a T-013.
 
 ## Revisão
+
+### Rodada 1
+
+**Resultado:** APROVADO — o diff do devops (raiz, ESLint, agentes, regra do lockfile) e do dev (web, api, shared) cumpre os critérios que cabem a cada um, segue as ADR-0001 e ADR-0002 e respeita as áreas.
+
+**Verificações:** `npm test` verde (shared sem testes, api 6, web 3); `npm run build` verde (shared → api → web); `npm run lint` verde nos 3 workspaces; validador OK; `npm ls --all` sem pacotes sobrando, inválidos ou faltando; API compilada respondeu `{"status":"ok"}` em `/api/health` e 404 em `/health`; `dist/` da api sem `*.spec.ts`; `git status` limpo.
+
+**Áreas:** devops só na sua área (agentes aprovados em Q2-A); dev só em `apps/**` e `packages/**`, nada em `apps/api/test/**`; ADR-0002 criada pelo orquestrador. **Lockfile:** entradas idênticas aos 4 `package.json`; nada de oxlint, prettier, `eslint-plugin-react-refresh`, `vite-tsconfig-paths`, `@nestjs/mau`, `@vitest/coverage-v8`, `source-map-support`, `dotenv` ou `@nestjs/config`; um único `typescript@6.0.3`; os 3 pacotes `@site-apresentacao/*` como links de workspace.
+
+**Pontos pedidos:** `scripts/dev.mjs` justificado (só Node; `shell: true` com comando fixo, sem injeção); TypeScript `~6.0` é restrição de compatibilidade, não tecnologia nova; `process.loadEnvFile` boa escolha (3 testes cobrem os casos); `supertest` no lugar certo; remoção de oxlint/Prettier de acordo com a ADR-0002; ordem do build garantida pelo `workspaces`. **Segurança:** nenhum segredo; `.env*` ignorado exceto `.env.example`; `GITHUB_TOKEN` vazio com aviso.
+
+**Opcionais:**
+1. (dev, recomendado antes do merge) `apps/api/src/health/health.controller.ts:10`: o comentário cita `configurarApp`, que não existe; o nome certo é `criarApp`.
+2. (devops) `package.json:15`: `npm run lint` da raiz só roda os workspaces; `scripts/`, `eslint.config.mjs` e o futuro `e2e/` nunca são analisados. Sugestão: `&& eslint e2e scripts eslint.config.mjs`.
+3. (devops) README: num clone novo, rodar `npm run build` uma vez para compilar o `packages/shared`.
+4. (devops) `package.json`: declarar `"engines": { "node": ">=24" }` (a API usa `process.loadEnvFile`).
+5. (dev) `packages/shared/package.json`: `vitest` só para `--passWithNoTests`; manter ou remover.
 
 ## QA
 
@@ -114,3 +142,5 @@ Commits do orquestrador: agentes/skill e raiz (ver Log).
 - 2026-10-10 — orquestrador: decisões Q3-A (ESLint, ADR-0002) e Q4-A (lock gerado); devops volta para a etapa 1b
 - 2026-10-10 — devops: CONCLUIDO — etapa 1b: ESLint único na raiz, TypeScript ~6.0, regra do lockfile no `AGENTS.md`; validador OK
 - 2026-10-10 — dev: CONCLUIDO — etapa 2: web, api e shared com testes unitários; test/build/lint e validador OK
+- 2026-10-10 — code-reviewer: APROVADO — critérios de devops e dev atendidos; lockfile confere; 5 opcionais
+- 2026-10-10 — orquestrador: D1 (delegação) — aplicar opcionais 1–4 antes do QA
