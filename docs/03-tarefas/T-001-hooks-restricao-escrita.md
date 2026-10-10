@@ -1,7 +1,7 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [infra, orquestracao]
 rodadas: 3
@@ -228,6 +228,16 @@ Arquivos: `.claude/hooks/politica.mjs`, `tests/politica.test.mjs`, `README.md`.
 
 **Pendências:** divisão do `politica.mjs` (~1600 linhas) e unificação dos separadores de argumentos ficam para depois (D4/D5); limites do README continuam (o que um script executado faz por dentro; `gzip`/`zip`/`split`/`csplit` fora das listas só são barrados pela rede quando citam caminho protegido).
 
+### Ajuste pela decisão D7 (não conta rodada)
+
+**Resultado:** CONCLUIDO — opcionais 1, 4, 6 e 7 aplicados; `test:hooks` 412/412 (eram 380; saiu 1, entraram 33); `npm test`, lint e validador verdes; UTF-8; lock inalterado.
+1. **`powershell`/`pwsh` via Bash:** negados texto com caminho protegido e comando lido da entrada (`-Command -`, `-c -`, `-File -` ou nenhum comando, ex.: `echo x | powershell -NoProfile`); leitura de parâmetros aceita as abreviações do PowerShell. Os três casos da revisão negados; `powershell Get-ChildItem` permitido. Além do pedido: `-EncodedCommand` em qualquer abreviação a partir de `-en` negado (antes `-enc` passava); `-?`/`-h`/`-help` permitidos (só ajuda).
+4. **`vi`/`vim`/`nvim`/`view`:** sempre negados (o teste `vim apps/web/src/a.ts` passou de permitir para negar).
+6. **Isenção da rede:** `[`, `[[`, `for`, `case`, `select`, `read` em `LEITURA_CONHECIDA` (`for`/`case`/`select` já passavam; a correção valeu para `[`, `[[`, `read`). `[ -f docs/03-tarefas/x ]` e `for` com `head` passam; `for` com `rm "$f"` segue negado ("alvo dinâmico").
+7. **README:** coerente (desconhecido permitido, exceto citando caminho protegido); `export HOME=` voltou a passar (só `HOME=... curl|wget|git` negado); itens 2, 3 e 5 listados como limites conhecidos, para tarefa futura.
+
+Arquivos: `.claude/hooks/politica.mjs`, `tests/politica.test.mjs`, `README.md`.
+
 ## Log
 
 - 2026-10-09 — tarefa criada
@@ -245,3 +255,4 @@ Arquivos: `.claude/hooks/politica.mjs`, `tests/politica.test.mjs`, `README.md`.
 - 2026-10-10 — devops: CONCLUIDO — 4 bloqueantes, rede de segurança, `HOME` restrito e varredura adversarial (`sort -o`, `ex`/`ed`/`vim -c`); 380 testes; test/lint/validador OK
 - 2026-10-10 — code-reviewer: APROVADO — bloqueantes fechados, sem regressão nos fluxos legítimos; 7 opcionais
 - 2026-10-10 — orquestrador: D7 (delegação) — aplicar opcionais 1, 4, 6 e 7 antes do QA; 2, 3 e 5 sugeridos para tarefa futura de endurecimento
+- 2026-10-10 — devops: CONCLUIDO — `powershell` via Bash, `vim` negado, isenções da rede e README; 412 testes; test/lint/validador OK
