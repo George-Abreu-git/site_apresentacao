@@ -1,6 +1,6 @@
 ---
 tipo: spec
-status: em-revisao
+status: aprovada
 data: 2026-10-09
 tags: [orquestracao, agentes, skills, contexto]
 ---
@@ -31,7 +31,10 @@ Montar a estrutura de arquivos de contexto, subagentes, skills e comandos que pe
 | Limite de retrabalho | 3 voltas ao Dev por tarefa, somando Reviewer e QA |
 | Decisões | Sempre apresentadas ao George com 3 opções × 3 prós × 3 contras + recomendação (skill `apresentar-decisao`, no estilo grilling); o George decide |
 | Repositório | Monorepo (front e back no mesmo repo), branch principal `main`, branches por tarefa `feat/T-XXX-...`; layout interno definido na ADR de stack |
-| Versionamento | Git ativo; agentes (dev, devops) e sessão principal commitam automaticamente seguindo `commit-convencional` |
+| Versionamento | Git ativo; o orquestrador commita automaticamente ao fim de cada etapa seguindo `commit-convencional` (dev/devops sugerem a mensagem no handoff) |
+| Escrita na nota da tarefa | Só o orquestrador escreve; agentes devolvem um bloco `## Handoff` no formato definido por `atualizar-tarefa` |
+| Restrição de escrita por agente | Por instrução no prompt + checagem do Code-Reviewer agora; hooks `PreToolUse` depois da ADR de stack (tarefa T-001 no backlog) |
+| Modelo dos agentes | `model: inherit` em todos (troca de modelo centralizada na sessão) |
 
 ## 3. Estrutura de pastas
 
@@ -64,7 +67,7 @@ Site_Apresentação_George/
 | instrutor | `eu-faco`: guia o George passo a passo sem escrever o código. `agente-faz`: explica o que foi feito e os conceitos | Read, Grep, Glob, Write apenas em `docs/04-estudos/` | Nota de estudo com links `[[ ]]` |
 | devops | CI, ambientes, deploy; acionado só em tarefas com tag `infra` ou `release` | Read, Grep, Glob, Edit/Write em arquivos de infra, Bash | Configuração ou checklist de deploy |
 
-Cada agente: descrição clara de quando é usado, lista do que lê (via skill `carregar-contexto`), formato fixo de saída e regra de atualizar a nota da tarefa (via `atualizar-tarefa`).
+Cada agente: descrição clara de quando é usado, lista do que lê (via skill `carregar-contexto`), formato fixo de saída e retorno obrigatório em bloco `## Handoff` (formato de `atualizar-tarefa`). Agentes não editam a nota da tarefa; o orquestrador transcreve.
 
 ## 5. Fluxo de orquestração
 
@@ -90,7 +93,7 @@ Conduzido pela sessão principal com a skill `orquestrar-tarefa`, disparada por 
 
 **Decisões no meio do fluxo:** se um subagente encontra uma decisão que não está coberta por ADR, requisito ou pela tarefa, ele não decide sozinho. Ele para, registra a decisão na nota da tarefa usando o formato de `apresentar-decisao` e devolve ao orquestrador com status `aguardando-decisao`. O orquestrador apresenta ao George, registra a escolha (na tarefa ou como ADR via `registrar-decisao`) e retoma o fluxo.
 
-**Commits:** ao final de cada etapa que altera arquivos, o orquestrador (ou dev/devops) commita seguindo `commit-convencional`, referenciando o id da tarefa.
+**Commits:** ao final de cada etapa que altera arquivos, o orquestrador commita seguindo `commit-convencional`, referenciando o id da tarefa.
 
 ## 6. Skills (`.claude/skills/`)
 
@@ -98,7 +101,7 @@ Compartilhadas:
 | Skill | Propósito | Usada por |
 |---|---|---|
 | carregar-contexto | Mapa "papel → arquivos a ler", evitando leitura do projeto inteiro | todos |
-| atualizar-tarefa | Formato padrão de status (frontmatter) e seção de handoff/log | todos |
+| atualizar-tarefa | Contrato do bloco `## Handoff` que os agentes devolvem + regras de como o orquestrador atualiza status/seções/log | todos |
 | definition-of-done | Checklist único de "pronto" | dev, code-reviewer, qa |
 | registrar-decisao | Criar ADR a partir do template | sessão principal, dev, devops |
 | nota-de-estudo | Formato de nota Obsidian (conceito, por que, exemplo do projeto, links) | instrutor (outros sugerem conceitos) |
