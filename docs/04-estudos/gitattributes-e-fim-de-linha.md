@@ -35,6 +35,24 @@ Sem uma regra no repositório:
 
 Em todos os casos, correção e escolha ficam para o George.
 
+### T-003: o `.gitattributes` entrou e o `--renormalize`
+
+Na [[docs/03-tarefas/T-003-corrige-achados-t002|T-003]] o George decidiu resolver o B6. O devops criou `.gitattributes` na raiz com `* text=auto eol=lf` (commit `36f0a29`) e rodou:
+
+```
+git add --renormalize .
+```
+
+**O que esse comando faz:** quando você cria ou muda um `.gitattributes`, os arquivos que **já estão no repositório** não são convertidos sozinhos; a regra vale só para o que for adicionado depois. O `--renormalize` manda o Git **reaplicar as regras de fim de linha em todos os arquivos rastreados** e colocar no índice (stage) a versão normalizada. Se algum arquivo estivesse com CRLF dentro do repositório, ele apareceria como modificado para você commitar.
+
+**O que aconteceu aqui:** o comando **não gerou mudança**, porque o índice já estava todo em LF (o `core.autocrlf=true` do George já convertia para LF ao commitar). O problema era só na **pasta de trabalho**: 7 arquivos estavam com CRLF no disco e o `git status` os mostrava como modificados, embora `git diff --ignore-cr-at-eol` fosse vazio (diferença só de fim de linha, sem mudança de conteúdo). Depois do commit da normalização, o QA conferiu:
+
+- `git ls-files --eol` mostra todos os arquivos em `i/lf` (índice em LF);
+- `git diff` vazio;
+- `git status` só com os 2 arquivos de `.obsidian/` não rastreados (que ficam para o George decidir: commitar ou ignorar).
+
+**Lição:** separe as duas camadas. O **índice/repositório** é o que todos compartilham (e o `.gitattributes` garante LF ali). A **pasta de trabalho** é a cópia local de cada um; ela pode ficar "suja" de CRLF até o próximo checkout, sem que isso seja uma alteração real.
+
 ## Exemplo
 
 ```
@@ -51,8 +69,10 @@ Para ver o que o Git acha de um arquivo: `git ls-files --eol` mostra o fim de li
 - Exercício: rode `git config core.autocrlf` e `git ls-files --eol` e veja se algum arquivo está com `w/crlf`.
 - Pergunta: por que uma regra no repositório é melhor que depender da configuração de cada máquina?
 - Pergunta: o que mudaria para um colega que usa macOS?
+- Exercício (T-003): rode `git ls-files --eol | Select-String "w/crlf"` no PowerShell. Os arquivos que aparecerem estão com CRLF só na pasta de trabalho; explique por que eles não são uma "alteração" de verdade.
+- Pergunta: por que o `git add --renormalize .` precisa vir num **commit separado** das outras mudanças? (Dica: pense em quem vai ler o diff depois.)
 
 ## Links
 
-- Tarefa: [[docs/03-tarefas/T-002-qa-revisa-arquivos-antes-adr]]
+- Tarefas: [[docs/03-tarefas/T-002-qa-revisa-arquivos-antes-adr]] (achado B6), [[docs/03-tarefas/T-003-corrige-achados-t002]] (correção)
 - Relacionadas: [[revisao-de-consistencia-documental]]
