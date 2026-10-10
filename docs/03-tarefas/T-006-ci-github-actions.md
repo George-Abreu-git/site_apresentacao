@@ -1,7 +1,7 @@
 ---
 id: T-006
 titulo: CI no GitHub Actions (validador e testes a cada push)
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -81,6 +81,12 @@ Arquivos: `.github/workflows/ci.yml` (novo), `README.md`.
 2. (sugestão) O CI não confere tipos do TypeScript (Vitest não checa tipos; o lint não usa informação de tipos); `npm run build` (que roda `tsc`) pegaria esses erros — ver D2.
 3. Simulado no Windows; o Ubuntu (e o `--with-deps` instalando bibliotecas do Linux) só é exercitado no GitHub.
 
+### Ajuste pela decisão D2 (não conta rodada)
+
+**Resultado:** CONCLUIDO — etapa 6 "Build (checagem de tipos)" (`npm run build`) depois do lint e antes de `npm test`, com comentário explicando que o `tsc` pega erros de tipo que lint e Vitest não veem (inclusive a prova `expectTypeOf` do `Projeto` da T-005) e confirma que front e API compilam para produção. Comentário da etapa de testes ajustado ("não dependem da etapa de build"); cabeçalho e numeração (etapas 7 a 10) atualizados. Fora do pedido: o nome do job passou a "Validador, lint, build e testes" (muda o nome do check no GitHub; só importa se houver proteção de branch com o nome antigo).
+
+**Verificação:** `npm run build` local com código 0 (shared `tsc`; api `tsc --noEmit && nest build`; web `tsc -b && vite build`); PyYAML leu as 10 etapas na ordem; actionlint 1.7.12 sem apontamentos; validador OK; UTF-8 sem BOM. Arquivo: `.github/workflows/ci.yml`.
+
 ## Log
 
 - 2026-10-10 — tarefa criada
@@ -89,3 +95,4 @@ Arquivos: `.github/workflows/ci.yml` (novo), `README.md`.
 - 2026-10-10 — orquestrador: **retomada** após a T-014 (branch rebaseada sobre a `main` com o fluxo novo: a tarefa termina quando o QA passa e o documentador roda em paralelo); devops chamado do passo 1
 - 2026-10-10 — devops: CONCLUIDO — `ci.yml` criado; simulação local verde (lint, 8+3 unitários, e2e 8/8); YAML conferido com PyYAML e actionlint
 - 2026-10-10 — orquestrador: D2 (delegação) — acrescentar `npm run build` ao CI; devops volta antes da revisão (não conta rodada)
+- 2026-10-10 — devops: CONCLUIDO — etapa de build no CI; build local, actionlint e validador OK
