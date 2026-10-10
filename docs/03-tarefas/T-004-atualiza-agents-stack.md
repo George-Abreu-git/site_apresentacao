@@ -1,7 +1,7 @@
 ---
 id: T-004
 titulo: Atualizar AGENTS.md com a stack e as áreas por caminho da ADR-0001
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -16,11 +16,11 @@ Atualiza o `AGENTS.md` (seção Stack, árvore de pastas e tabela "Áreas por ca
 
 ## Critérios de aceite
 
-- [ ] Seção Stack do `AGENTS.md` resume a ADR-0001 e linka para ela
-- [ ] Árvore de pastas inclui `apps/web/`, `apps/api/`, `packages/shared/`, `e2e/`
-- [ ] Áreas por caminho: dev → `apps/**` e `packages/**` (incluindo testes unitários junto do código); qa → `e2e/**` e `apps/api/test/**`; devops → plataforma + configs de deploy e CI; nenhuma sobreposição entre dev e qa
-- [ ] `.gitignore` cobre `node_modules/`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`, `.env*` (mantendo `!.env.example`)
-- [ ] `python3 scripts/validar_estrutura.py` passa
+- [x] Seção Stack do `AGENTS.md` resume a ADR-0001 e linka para ela
+- [x] Árvore de pastas inclui `apps/web/`, `apps/api/`, `packages/shared/`, `e2e/`
+- [x] Áreas por caminho: dev → `apps/**` e `packages/**` (incluindo testes unitários junto do código); qa → `e2e/**` e `apps/api/test/**`; devops → plataforma + configs de deploy e CI; nenhuma sobreposição entre dev e qa
+- [x] `.gitignore` cobre `node_modules/`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`, `.env*` (mantendo `!.env.example`)
+- [x] `python3 scripts/validar_estrutura.py` passa
 
 ## Contexto relevante
 
@@ -65,6 +65,21 @@ Atualiza o `AGENTS.md` (seção Stack, árvore de pastas e tabela "Áreas por ca
 
 ## Estudo
 
+### Rodada 1
+
+**Resultado:** CONCLUIDO — o instrutor (modo explicador) explicou as mudanças: Stack resumindo a ADR-0001 ("a ADR decide e explica; o `AGENTS.md` resume e cita"), árvore do monorepo com npm workspaces, áreas com exceção explícita e padrões do `.gitignore` conferidos com `git check-ignore`.
+
+Notas:
+- [[docs/04-estudos/monorepo-com-npm-workspaces|Monorepo com npm workspaces]] — nova.
+- [[docs/04-estudos/gitignore-padroes-e-check-ignore|Padrões do .gitignore e check-ignore]] — nova.
+- [[docs/04-estudos/adr-como-fonte-unica|ADR como fonte única]] — nova.
+- [[docs/04-estudos/areas-por-caminho-de-escrita|Áreas por caminho de escrita]] — atualizada para as áreas da ADR-0001 (tabela da T-003 virou histórico).
+- `gitattributes-e-fim-de-linha.md` e `ordem-requisitos-e-adr.md` — só referências cruzadas.
+
+Exemplos de nomes de pacote e arquivo (ex.: `@site/shared`) estão marcados como ilustrativos; quem define é a tarefa de setup.
+
+Exercícios sugeridos: (1) `git check-ignore -v --no-index` em `apps/api/.env.local`, `apps/api/.env.example` e `apps/web/dist/index.html`, explicando qual linha decidiu, e repetir com as linhas 13 e 14 invertidas num rascunho; (2) escrever a exceção na linha do dev caso `apps/api/Dockerfile` seja do devops, e listar as linhas do `AGENTS.md` que mudariam com uma ADR-0002 hipotética.
+
 ## DevOps
 
 ### Rodada 1
@@ -91,3 +106,5 @@ Arquivos alterados: `AGENTS.md`, `.gitignore`.
 - 2026-10-10 — devops: CONCLUIDO — Stack, árvore, áreas e `.gitignore` atualizados; validador OK
 - 2026-10-10 — code-reviewer: APROVADO — 5 critérios atendidos; remoção de "Sequência inicial" no escopo; 3 opcionais
 - 2026-10-10 — qa: PASSOU — 5 critérios atendidos; `.gitignore` conferido com `git check-ignore`; validador OK
+- 2026-10-10 — instrutor: CONCLUIDO — 3 notas de estudo novas e 1 atualizada
+- 2026-10-10 — orquestrador: DoD OK; validador OK (sem `apps/`/suíte ainda); tarefa concluída
