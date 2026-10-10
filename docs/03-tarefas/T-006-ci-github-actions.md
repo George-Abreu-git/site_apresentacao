@@ -53,10 +53,31 @@ Pipeline de integração contínua que roda em cada push e pull request para `ma
     - ✅ Checa só tipos, sem gerar `dist/`. ✅ Separa "compilar" de "checar". ✅ Pode ser um pouco mais rápido.
     - ❌ Scripts novos em `apps/**`/`packages/**` (área do dev) e na raiz — mais gente envolvida. ❌ Duplica parte do que o `build` já faz. ❌ Não valida o build de produção.
   - **Escolha: A.** É barato, usa o que já existe e fecha uma brecha real (a prova de tipos da T-005 só é checada no build). O devops acrescenta a etapa antes da revisão.
+- 2026-10-10 — **D3 — Extras e opcionais da revisão (decidido pelo orquestrador, delegação).** O code-reviewer aprovou, recomendou aceitar os extras do devops (upload do relatório do Playwright em falha; nome do job) e listou 4 opcionais: (2) validador antes do `npm ci`; (3) `concurrency` cancelando execuções antigas; (4) linha sobre o CI no README; (5) fixar actions por SHA.
+  - **A) Aceitar os extras e aplicar 2–4 agora, antes do QA; deixar 5 para o futuro**
+    - ✅ `concurrency` poupa minutos do repositório privado. ✅ Validador antes do `npm ci` falha mais cedo, coerente com o cabeçalho "do mais rápido ao mais lento". ✅ README passa a apontar para o CI (projeto didático).
+    - ❌ Mais uma ida ao devops. ❌ Mudanças depois da revisão não voltam ao code-reviewer. ❌ Pequena ampliação do escopo.
+  - **B) Aceitar os extras e não aplicar nenhum opcional**
+    - ✅ Zero atraso. ✅ Escopo intacto. ✅ Revisão aprovada como está.
+    - ❌ Execuções sobrepostas gastam minutos. ❌ Validador roda depois de instalar 441 pacotes. ❌ README sem menção ao CI.
+  - **C) Aplicar todos, inclusive SHA fixo nas actions**
+    - ✅ Máxima segurança na cadeia de fornecimento. ✅ Tudo resolvido de uma vez. ✅ Nada pendente.
+    - ❌ SHA fixo exige atualizar à mão a cada versão nova (manutenção chata num projeto didático). ❌ Menos legível para quem estuda. ❌ Escopo maior.
+  - **Escolha: A.** Os três opcionais são baratos e melhoram custo e clareza; o QA roda tudo de novo sobre o resultado final. SHA fixo fica como endurecimento futuro.
 
 ## Dev
 
 ## Revisão
+
+### Rodada 1
+
+**Resultado:** APROVADO — o `ci.yml` atende os critérios 1 a 3 e as decisões D1 e D2; critério 4 pendente pela D1.
+- **Workflow:** gatilhos push/PR para `main` (pushes em `feat/*` sem PR não disparam, coerente com o merge local + push); `permissions: contents: read`; sem segredos; actions na v7 (maior tag, conferida com `git ls-remote`); Node `'24'` = `engines`; ordem `npm ci` → validador → lint → build → testes → `playwright install --with-deps chromium` → e2e; timeout 15 min; upload em falha com `if: failure()` e `if-no-files-found: ignore`, caminhos batendo com a config do Playwright; lock não alterado.
+- **Extras do devops:** upload do relatório (só lê, sem segredos, retenção de 7 dias; com `trace: 'on-first-retry'` e 2 repetições no CI o rastro é gerado) e nome do job (sem efeito, não há proteção de branch) — recomenda aceitar.
+- **Área:** `.github/**` do devops; README da raiz por precedente (Q1-B da T-005).
+- **Verificações:** validador OK; PyYAML leu as 10 etapas; UTF-8 sem BOM, LF; `npm run lint` OK.
+
+**Opcionais:** (2) validador antes do `npm ci`; (3) `concurrency` (`group: ci-${{ github.ref }}`, `cancel-in-progress: true`); (4) linha sobre o CI no README; (5) actions por SHA. Ver D3.
 
 ## QA
 
@@ -96,3 +117,5 @@ Arquivos: `.github/workflows/ci.yml` (novo), `README.md`.
 - 2026-10-10 — devops: CONCLUIDO — `ci.yml` criado; simulação local verde (lint, 8+3 unitários, e2e 8/8); YAML conferido com PyYAML e actionlint
 - 2026-10-10 — orquestrador: D2 (delegação) — acrescentar `npm run build` ao CI; devops volta antes da revisão (não conta rodada)
 - 2026-10-10 — devops: CONCLUIDO — etapa de build no CI; build local, actionlint e validador OK
+- 2026-10-10 — code-reviewer: APROVADO — critérios 1–3, D1 e D2 atendidos; extras aceitáveis; 4 opcionais
+- 2026-10-10 — orquestrador: D3 (delegação) — aceitar extras e aplicar opcionais 2–4 antes do QA
