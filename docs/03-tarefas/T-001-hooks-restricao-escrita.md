@@ -1,10 +1,10 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-revisao
+status: em-andamento
 modo: agente-faz
 tags: [infra, orquestracao]
-rodadas: 0
+rodadas: 1
 criada: 2026-10-09
 ---
 
@@ -61,10 +61,35 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
     - ❌ Não versionado nem revisado. ❌ Fora da área de qualquer agente. ❌ Vale só nesta máquina.
   - **Escolha: A.** Não deixa configuração morta no repositório e o efeito já existe por padrão. O critério 31 fica atendido pelas regras `deny` + este registro; se o modo auto bloquear operações legítimas no `origin`, o George aplica a C.
 - 2026-10-10 — **D3 — Escolhas de interpretação do devops (decidido pelo orquestrador, delegação):** aceitas as 7, que seguem a tabela de áreas e as regras do projeto: (1) devops em `.claude/agents/**` → o hook **pergunta** ao George na hora (o critério 30 permite "bloqueia ou pede confirmação"); demais agentes negados; (2) agentes fora da tabela (Explore, general-purpose) não escrevem no repositório; (3) caminhos fora do repositório não são controlados; (4) devops bloqueado em `docs/02-arquitetura/ADR-*` (regra do `AGENTS.md`); (5) code-reviewer pode rodar `npm run build` (checagem de tipos, leitura); (6) implementadores: `git add/restore/checkout -- <caminhos>` só na área, `git fetch` liberado, commit/push/merge/reset/stash negados (quem commita é o orquestrador); (7) PowerShell de subagente só leitura; code-reviewer não usa. Alternativas consideradas para cada uma: negar sempre (mais rígido, quebraria fluxos legítimos) ou liberar (contraria a tabela); a revisão confere.
+- 2026-10-10 — **D4 — Opcionais da revisão da rodada 1 (decidido pelo orquestrador, delegação).** Além do ajuste bloqueante, o code-reviewer listou: (2) comandos que escrevem e não são analisados (`curl -o`, `wget -O/-P`, `rsync`, `tar -x/-C`, `unzip -d`, `awk -i inplace`); (3) brechas no code-reviewer (`--fix`, `-u/--update`, `node --import/--require`, `git -c`); (4) bloqueios desnecessários do code-reviewer (laços `for`, `awk` de leitura, `python -X utf8`); (5) linha no README sobre a precedência de `permissions.deny`; (6) dividir `politica.mjs` (759 linhas) e tirar `separarArgs` duplicado.
+  - **A) Aplicar 2–5 junto com o bloqueante; deixar 6 para depois**
+    - ✅ Fecha brechas reais de segurança (2 e 3) num hook cuja função é justamente segurança. ✅ Tira atrito de fluxos legítimos do code-reviewer (4). ✅ README evita confusão sobre testes × `deny` (5).
+    - ❌ Rodada de ajuste maior. ❌ Mais código no `politica.mjs` antes de dividi-lo. ❌ Mais testes para manter.
+  - **B) Só o bloqueante**
+    - ✅ Rodada menor e mais rápida. ✅ Menos risco de regressão. ✅ Escopo estrito.
+    - ❌ O code-reviewer continua podendo rodar `--fix`/`-u`/`git -c` (escrita disfarçada). ❌ `curl -o` e afins continuam fora da análise. ❌ Falsos positivos continuam travando o revisor.
+  - **C) Aplicar tudo, inclusive dividir o `politica.mjs`**
+    - ✅ Código mais organizado. ✅ Nada pendente. ✅ Melhor leitura para o estudo.
+    - ❌ Refatoração junto com correção de segurança aumenta o risco de regressão. ❌ Diff difícil de revisar. ❌ Rodada bem mais longa.
+  - **Escolha: A.** Os itens 2–5 melhoram diretamente o que a T-001 promete (restrição de escrita sem travar fluxos legítimos); a refatoração (6) fica como melhoria futura, para não misturar com correção de segurança. O item 6 do code-reviewer sobre o texto do handoff (PowerShell sem `rm -rf` no `deny`) já está correto nesta nota.
 
 ## Dev
 
 ## Revisão
+
+### Rodada 1
+
+**Resultado:** AJUSTES — hook bem construído; um ajuste bloqueante na análise do Bash.
+
+**Verificações:** `npm run test:hooks` 152/152; `npm test` verde (web, api e hooks); `npm run lint` verde; validador OK. Ao vivo, o hook identificou o revisor como code-reviewer e negou `hostname` ("não está na lista de leitura") — `agent_type` chega ao hook e o formato `command` + `args` com `${CLAUDE_PROJECT_DIR}` funciona.
+
+**Critérios (lidos com D1–D3):** 22–24, 26, 27, 29, 30 e 32 atendidos; 25 e 28 abertos pelo ajuste; 31 atendido pela D2 (`settings.json` só com `deny` e o hook).
+
+**Conferido e correto:** sessão principal nunca bloqueada (`politica.mjs:35`, antes de qualquer lógica); `catch` só nega com `agent_id` (`restringir-escrita.mjs:52`); nunca "allow"; caminhos no Windows (`/c/...`, `/tmp`, barras invertidas, maiúsculas, nomes curtos via `realpath.native`, NFC) e no worktree do documentador; fluxos legítimos passam (code-reviewer: git de leitura, `npm test`, `test:hooks`, `test:e2e`, `build`, `lint`, validador, pipes; qa: `test:e2e`, `npx playwright`; dev: `npm install`); documentador e instrutor sem Bash, ninguém com PowerShell; áreas, segredos e comentários OK.
+
+**Ajuste (bloqueante):** curingas e chaves com `..` escapam da conferência de área (`politica.mjs:133-139`, `shell.mjs:258` e `:117`): (a) curinga seguido de `..` — `rm apps/web/*/../../../docs/03-tarefas/T-001.md` (dev) é permitido; (b) chaves não reconhecidas — `touch docs/{02-arquitetura,03-tarefas}/x.md` (devops) e `touch apps/{web/a,../docs/03-tarefas/b}` (dev) permitidos; (c) `$'...'` com escapes (`apps/$'\x2e\x2e'/docs/...`). Correção: marcar `{` com `,`/`..` fora de aspas como glob e `$'` como dinâmico; incluir `{` no corte do curinga; negar curinga com segmento `..` depois do corte; testes negados para cada forma e permitido para `mkdir -p apps/web/src/{components,hooks}` (dev).
+
+**Opcionais:** (2) `curl -o`, `wget -O/-P`, `rsync`, `tar -x/-C`, `unzip -d`, `awk -i inplace`; (3) code-reviewer: negar `--fix`, `-u/--update`, `node --test --import/--require`, `git -c`; (4) liberar para o code-reviewer laços `for`, `awk` de leitura e `python -X utf8`; (5) README: `permissions.deny` tem precedência sobre o "permitir" do hook (ex.: `rm -rf apps/web/dist` passa no teste do hook, mas a regra nega); (6) dividir `politica.mjs` e tirar `separarArgs` duplicado; texto do handoff do devops citava `rm -rf` no PowerShell (o `settings.json` só tem `git push` no PowerShell). Ver D4.
 
 ## QA
 
@@ -97,3 +122,5 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
 - 2026-10-10 — orquestrador: início — implementador devops (tags `infra`, `orquestracao`); D1 (delegação): critérios lidos pela tabela de áreas vigente
 - 2026-10-10 — devops: AGUARDANDO-DECISAO — hooks implementados e ativos (152 testes); `autoMode` do critério 31 em aberto
 - 2026-10-10 — orquestrador: D2 (delegação) — sem bloco `autoMode` (ignorado pelo Claude Code no projeto); D3 — 7 interpretações aceitas; segue para revisão
+- 2026-10-10 — code-reviewer: AJUSTES — curingas/chaves com `..` e `$'...'` escapam da análise do Bash (critérios 25 e 28); rodadas = 1
+- 2026-10-10 — orquestrador: D4 (delegação) — aplicar o bloqueante e os opcionais 2–5; refatoração fica para depois
