@@ -1,7 +1,7 @@
 ---
 id: T-004
 titulo: Atualizar AGENTS.md com a stack e as áreas por caminho da ADR-0001
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -35,6 +35,22 @@ Atualiza o `AGENTS.md` (seção Stack, árvore de pastas e tabela "Áreas por ca
 
 ## Revisão
 
+### Rodada 1
+
+**Resultado:** APROVADO — o commit `5eb5741` atende os 5 critérios de aceite; alterações só na área do devops (`AGENTS.md`, `.gitignore`); `.claude/agents/**` não foi tocado; sem segredos.
+
+- **Stack** (`AGENTS.md:42-52`): bate com a seção "Decisão" da ADR-0001, traz as consequências (RNF-03, RNF-05, token só no Render) e mantém "tecnologia nova = decisão do George".
+- **Árvore** (`AGENTS.md:30-36`): `apps/web/`, `apps/api/` (com `apps/api/test/`), `packages/shared/`, `e2e/`; `src/` saiu; linha sobre npm workspaces.
+- **Áreas:** exceção explícita na linha do dev e frase em `AGENTS.md:100` garantem que dev e qa não se sobrepõem, conforme as "Consequências" da ADR-0001.
+- **`.gitignore`:** conferido com `git check-ignore --no-index` (node_modules, dist, coverage, playwright-report, test-results, `.env*` ignorados; `.env.example` não, inclusive em `apps/api/`).
+- **Validador:** OK, código 0.
+- **Remoção de "Sequência inicial":** cabe no escopo — era subseção de `## Stack`, estava obsoleta e contradiria a seção nova; a ordem está preservada em `backlog.md:21`. A troca da frase de "Sobre o projeto" (`AGENTS.md:9`) também é aceitável.
+
+**Opcionais (não aplicados, ficam para o George decidir):**
+1. Falta linha em branco antes de `## Regras de escrita` (`AGENTS.md:100-101`).
+2. A ressalva "exceto arquivos de infra" saiu da área do dev, e `Dockerfile*` do devops não se limita à raiz; um eventual `apps/api/Dockerfile` cairia em dev e devops. Tratar na tarefa de setup e deploy, junto com o dono de `playwright.config.*` e `tsconfig*.json`.
+3. `AGENTS.md:95`: "(notas e backlog) os commits" — falta o "e" (erro anterior ao diff).
+
 ## QA
 
 ## Estudo
@@ -63,3 +79,4 @@ Arquivos alterados: `AGENTS.md`, `.gitignore`.
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — implementador devops (tag `orquestracao`)
 - 2026-10-10 — devops: CONCLUIDO — Stack, árvore, áreas e `.gitignore` atualizados; validador OK
+- 2026-10-10 — code-reviewer: APROVADO — 5 critérios atendidos; remoção de "Sequência inicial" no escopo; 3 opcionais
