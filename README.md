@@ -42,6 +42,13 @@ npm run dev
 | `npm run build` | Gera o build de cada workspace (`packages/shared` primeiro) |
 | `npm test` | Roda os testes unitários e de rotas de todos os workspaces |
 | `npm run test:e2e` | Roda os testes de aceitação do Playwright (`e2e/`) |
-| `npm run lint` | Roda o lint de cada workspace |
+| `npm run lint` | Roda o ESLint em cada workspace |
 
 Para rodar um comando em um workspace só, use `--workspace` (ou `-w`), por exemplo `npm test -w apps/api`.
+
+## Lint
+
+O ESLint tem uma configuração única para o monorepo, em [`eslint.config.mjs`](eslint.config.mjs) ([ADR-0002](docs/02-arquitetura/ADR-0002-lint.md)): regras de JavaScript e TypeScript em tudo e regras de hooks do React só em `apps/web`.
+Cada workspace roda `eslint .` e o ESLint encontra a configuração subindo até a raiz. Para corrigir automaticamente o que for possível: `npx eslint . --fix` dentro do workspace.
+
+O `typescript` fica na raiz em `~6.0`, porque o typescript-eslint ainda não suporta o TypeScript 7.

@@ -98,6 +98,11 @@ Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. De
 Uma alteração em `.claude/agents/**` (a definição de um agente) exige **aprovação do George**, mesmo dentro da área do devops: nenhum agente altera a própria definição por conta própria. Na tarefa que pedir essa mudança, a aprovação é a decisão do George registrada em `## Decisões`.
 
 Dev e qa não se sobrepõem: `apps/api/test/**` está dentro de `apps/**`, mas pertence só ao qa.
+
+**`package-lock.json` é arquivo gerado** (decisão do George na T-005): o implementador da tarefa (dev ou devops) pode alterá-lo quando instala ou atualiza dependências (`npm install`), mesmo fora da sua área; ninguém o edita à mão. O code-reviewer confere o diff do lock (pacotes novos ou removidos devem corresponder às mudanças nos `package.json`).
+
+**Lint** ([ADR-0002](docs/02-arquitetura/ADR-0002-lint.md)): a configuração do ESLint é única, em `eslint.config.mjs` na raiz (área do devops). Os workspaces não têm configuração própria; o script `lint` de cada um é `eslint .`.
+
 ## Regras de escrita
 
 - **Agentes nunca editam a nota da tarefa.** Terminam com um bloco `## Handoff` (formato em `atualizar-tarefa`); o orquestrador transcreve.
