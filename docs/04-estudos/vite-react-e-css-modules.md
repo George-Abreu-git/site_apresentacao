@@ -41,7 +41,7 @@ O `index.html` é a porta de entrada: é nele que ficam o `lang="pt-BR"` (para l
 - `apps/web/src/App.module.css` mostra duas técnicas responsivas sem *media query*: `min-height: 100dvh` (altura real da tela do celular, descontando a barra do navegador) e `font-size: clamp(2rem, 6vw, 3.5rem)` (o título cresce com a largura, entre um mínimo e um máximo).
 - `apps/web/tsconfig.json`: `"types": ["vite/client"]` é o que faz o TypeScript aceitar `import estilos from './App.module.css'`.
 - `apps/web/vite.config.ts`: plugin do React e o bloco `test` do Vitest (veja [[tipos-de-teste-unitario-rota-e2e]]).
-- Tema e layout completos chegam na T-007.
+- **Atualização (T-007):** os dois itens acima descrevem a página provisória da T-005. Na T-007 o `App.module.css` foi removido; o `<h1>`, o aviso e o `clamp()` foram para `apps/web/src/componentes/Inicio/Inicio.tsx` e `Inicio.module.css`, e cada componente ganhou sua pasta em `apps/web/src/componentes/` (`.tsx` + `.module.css` + teste). Veja [[docs/04-estudos/tarefas/T-007]].
 
 ## Exemplo
 
