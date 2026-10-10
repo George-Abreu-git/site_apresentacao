@@ -1,7 +1,7 @@
 ---
 id: T-003
 titulo: Corrigir achados médios da T-002, formalizar o modo revisão e normalizar fim de linha
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [orquestracao, docs]
 rodadas: 1
@@ -91,9 +91,18 @@ Arquivos alterados: `.gitattributes` (novo), `AGENTS.md`, `.claude/agents/{devop
 
 Commits feitos pelo orquestrador: `36f0a29` (B6), `3bdcfba` (M2, M3, M5, M1 parcial, dono da plataforma), `92de6bd` (M4).
 
+### Rodada 2
+
+**Resultado:** CONCLUIDO — aplicados os 2 ajustes da rodada 1 do code-reviewer; validador OK; itens opcionais não aplicados.
+1. **Linha do orquestrador:** em `AGENTS.md`, "nenhum outro arquivo" virou "os commits, e os arquivos que as skills `registrar-decisao` (ADRs) e `levantar-requisitos` (visão e requisitos) mandam a sessão principal criar"; mesma frase alinhada na linha "Áreas de dev e qa (T-003)" da spec.
+2. **Limites do devops:** `devops.md` (item em "O que pode alterar") e a linha do devops no `AGENTS.md` dizem que o devops não cria ADRs (devolve `AGUARDANDO-DECISAO` e o orquestrador cria via `registrar-decisao`) e que `docs/00-visao/**` e `docs/01-requisitos/**` nascem do levantamento de requisitos, conduzido pela sessão principal.
+
+Arquivos alterados: `AGENTS.md`, `.claude/agents/devops.md`, spec da orquestração. Commit do orquestrador: ver Log.
+
 ## Log
 
 - 2026-10-09 — tarefa criada
 - 2026-10-09 — orquestrador: início — implementador devops (decisão do George), área ampliada vigente nesta tarefa
 - 2026-10-09 — devops: CONCLUIDO — B6, M1–M5 e dono da plataforma aplicados; validador OK
 - 2026-10-09 — code-reviewer: AJUSTES — 2 ajustes de coerência (área do orquestrador; ressalva de ADR do devops); rodadas = 1
+- 2026-10-09 — devops: CONCLUIDO — 2 ajustes aplicados (rodada 2); validador OK
