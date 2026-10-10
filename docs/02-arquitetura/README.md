@@ -1,0 +1,9 @@
+# 02 — Arquitetura
+
+Decisões técnicas e documentos de desenho.
+
+- **ADRs**: `ADR-XXXX-<slug>.md` (numeração sequencial de 4 dígitos), criadas com a skill `registrar-decisao` a partir de [[_templates/adr|template de ADR]]. A primeira será a escolha da stack.
+- **Specs**: [[2026-10-09-orquestracao-agentes-design|Spec da orquestração de agentes]]
+- **Planos**: [[2026-10-09-estrutura-orquestracao-plano|Plano da estrutura de orquestração]]
+
+Quem escreve: sessão principal, dev e devops (sempre com a decisão tomada pelo George).
