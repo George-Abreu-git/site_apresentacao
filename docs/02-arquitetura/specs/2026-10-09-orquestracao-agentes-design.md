@@ -30,6 +30,7 @@ Montar a estrutura de arquivos de contexto, subagentes, skills e comandos que pe
 | Idioma | Português |
 | Limite de retrabalho | 3 voltas ao Dev por tarefa, somando Reviewer e QA |
 | Decisões | Sempre apresentadas ao George com 3 opções × 3 prós × 3 contras + recomendação (skill `apresentar-decisao`, no estilo grilling); o George decide |
+| Repositório | Monorepo (front e back no mesmo repo), branch principal `main`, branches por tarefa `feat/T-XXX-...`; layout interno definido na ADR de stack |
 | Versionamento | Git ativo; agentes (dev, devops) e sessão principal commitam automaticamente seguindo `commit-convencional` |
 
 ## 3. Estrutura de pastas
