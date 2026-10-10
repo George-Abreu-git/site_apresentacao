@@ -109,6 +109,12 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 
 ## Estudo
 
+### Diário de estudo (documentador, em paralelo)
+
+**Resultado:** CONCLUIDO — diário [[docs/04-estudos/tarefas/T-007|T-007]] escrito em segundo plano, no worktree isolado, com 11 conceitos (o porquê de cada um), caminhos reais, a D1 e as pendências do qa, e 2 exercícios ("quebrar de propósito" o tema e o `scroll-padding`; acrescentar uma seção no papel). Conceitos novos: `fonte-unica-de-dados-no-front`, `navegacao-por-ancoras`, `cabecalho-sticky-e-scroll-padding`, `menu-compacto-acessivel`, `html-semantico-e-regioes-com-nome`, `foco-visivel-com-focus-visible`, `tema-com-variaveis-de-css`, `teste-que-protege-convencao`, `mobile-first-e-media-queries`; reaproveitados: `vite-react-e-css-modules`, `tipos-de-teste-unitario-rota-e2e`.
+
+Nota por conceito atualizada: [[docs/04-estudos/vite-react-e-css-modules|Vite, React e CSS Modules]] — o item "Tema e layout completos chegam na T-007" virou uma atualização (`App.module.css` removido; estilos em `componentes/Inicio/`), com link para o diário.
+
 ## DevOps
 
 ## Log
@@ -121,3 +127,4 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 - 2026-10-10 — dev: CONCLUIDO — classe inexistente removida e comentários do cabeçalho sticky corrigidos; test/build/lint OK
 - 2026-10-10 — qa: PASSOU — e2e de navegação por menu e teclado (celular/desktop), sem rolagem horizontal de 360 a 1920px; 49 e2e passando, estáveis em repetição
 - 2026-10-10 — orquestrador: concluida — verificação verde (`npm test`, `npm run test:e2e` 49 + 7 pulados por projeto, validador); diário de estudo disparado após a integração
+- 2026-10-10 — documentador: CONCLUIDO — diário integrado (branch `estudos/T-007`; 1 nota por conceito atualizada)
