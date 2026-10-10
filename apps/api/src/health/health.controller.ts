@@ -7,7 +7,7 @@ export interface StatusDaApi {
 
 // "Health check": rota simples que só diz se a API está no ar.
 // Serve para testes, para o front e para a hospedagem (Render) saberem que ela subiu.
-// O prefixo /api vem de `configurarApp` (criar-app.ts).
+// O prefixo /api vem de `criarApp` (criar-app.ts, constante `PREFIXO_DAS_ROTAS`).
 @Controller('health')
 export class HealthController {
   @Get()
