@@ -28,12 +28,13 @@ Montar a estrutura de arquivos de contexto, subagentes, skills e comandos que pe
 | Stack | Definida no levantamento de requisitos, registrada como ADR |
 | Orquestrador | A sessão principal do Claude Code (subagentes não chamam outros subagentes) |
 | Idioma | Português |
-| Limite de retrabalho | 3 voltas ao Dev por tarefa, somando Reviewer e QA |
+| Limite de retrabalho | 3 voltas ao implementador por tarefa, somando Reviewer e QA; se o George escolher mais rodadas, o contador é zerado |
 | Decisões | Sempre apresentadas ao George com 3 opções × 3 prós × 3 contras + recomendação (skill `apresentar-decisao`, no estilo grilling); o George decide |
 | Repositório | Monorepo (front e back no mesmo repo), branch principal `main`, branches por tarefa `feat/T-XXX-...`; layout interno definido na ADR de stack |
 | Versionamento | Git ativo; o orquestrador commita automaticamente ao fim de cada etapa seguindo `commit-convencional` (dev/devops sugerem a mensagem no handoff) |
 | Escrita na nota da tarefa | Só o orquestrador escreve; agentes devolvem um bloco `## Handoff` no formato definido por `atualizar-tarefa` |
-| Restrição de escrita por agente | Por instrução no prompt + checagem do Code-Reviewer agora; hooks `PreToolUse` depois da ADR de stack (tarefa T-001 no backlog) |
+| Implementador de infra | Tarefas `infra`/`release` são implementadas pelo DevOps no lugar do Dev (DevOps → Reviewer → QA → Instrutor) |
+| Restrição de escrita por agente | Por instrução no prompt + conferência do orquestrador (`git status` vs. "Áreas por caminho" do AGENTS.md) após cada agente + checagem do Code-Reviewer, com commits de código e de nota separados; hooks `PreToolUse` depois da ADR de stack (tarefa T-001 no backlog) |
 | Modelo dos agentes | `model: inherit` em todos (troca de modelo centralizada na sessão) |
 
 ## 3. Estrutura de pastas
@@ -64,8 +65,8 @@ Site_Apresentação_George/
 | dev | Implementa a tarefa com TDD seguindo ADRs e AGENTS.md | Read, Grep, Glob, Edit, Write, Bash | Seção "Dev" na nota da tarefa: arquivos alterados, decisões, pendências |
 | code-reviewer | Revisa o diff: convenções, segurança, legibilidade, aderência à tarefa | Read, Grep, Glob, Bash (somente git diff/log) — sem edição | `APROVADO` ou `AJUSTES` com lista numerada |
 | qa | Valida critérios de aceite, responsividade, acessibilidade; escreve/roda testes de aceitação | Read, Grep, Glob, Bash, Edit/Write apenas em pastas de teste | `PASSOU` ou `FALHOU` com bugs reproduzíveis |
-| instrutor | `eu-faco`: guia o George passo a passo sem escrever o código. `agente-faz`: explica o que foi feito e os conceitos | Read, Grep, Glob, Write apenas em `docs/04-estudos/` | Nota de estudo com links `[[ ]]` |
-| devops | CI, ambientes, deploy; acionado só em tarefas com tag `infra` ou `release` | Read, Grep, Glob, Edit/Write em arquivos de infra, Bash | Configuração ou checklist de deploy |
+| instrutor | `eu-faco`: guia o George passo a passo sem escrever o código. `agente-faz`: explica o que foi feito e os conceitos | Read, Grep, Glob, Edit, Write apenas em `docs/04-estudos/` | Nota de estudo com links `[[ ]]` |
+| devops | Implementador de tarefas com tag `infra` ou `release` (CI, ambientes, deploy, hooks) | Read, Grep, Glob, Edit/Write em arquivos de infra, Bash | Configuração ou checklist de deploy |
 
 Cada agente: descrição clara de quando é usado, lista do que lê (via skill `carregar-contexto`), formato fixo de saída e retorno obrigatório em bloco `## Handoff` (formato de `atualizar-tarefa`). Agentes não editam a nota da tarefa; o orquestrador transcreve.
 
@@ -75,19 +76,18 @@ Conduzido pela sessão principal com a skill `orquestrar-tarefa`, disparada por 
 
 **Modo `agente-faz`**
 1. Ler a nota da tarefa; status → `em-andamento`.
-2. Dev implementa.
-3. Code-Reviewer revisa. Se `AJUSTES` → volta ao Dev.
-4. QA valida. Se `FALHOU` → volta ao Dev.
+2. Implementador (Dev; ou DevOps se a tarefa tem tag `infra`/`release`) implementa.
+3. Code-Reviewer revisa. Se `AJUSTES` → volta ao implementador.
+4. QA valida. Se `FALHOU` → volta ao implementador.
 5. Instrutor gera a nota de estudo.
-6. DevOps, se a tarefa tiver tag `infra`/`release`.
-7. Status → `concluida`; atualizar `backlog.md`.
+6. Status → `concluida`; atualizar `backlog.md`.
 
 **Modo `eu-faco`**
 1. Instrutor guia; George codifica.
 2. Quando George sinaliza que terminou: Reviewer → QA (ajustes voltam para George, com dicas do Instrutor).
 3. Instrutor fecha com a nota de estudo; status → `concluida`.
 
-**Limite de retrabalho:** no máximo 3 voltas ao Dev por tarefa (somando Reviewer e QA). Na quarta, o fluxo para, status → `bloqueada`, e o orquestrador pede decisão ao George.
+**Limite de retrabalho:** no máximo 3 voltas ao Dev por tarefa (somando Reviewer e QA). Na quarta, o fluxo para, status → `bloqueada`, e o orquestrador pede decisão ao George. Se ele escolher mais rodadas, `rodadas` volta a 0.
 
 **Handoff:** os agentes não compartilham conversa; tudo que um precisa do outro está na nota da tarefa.
 

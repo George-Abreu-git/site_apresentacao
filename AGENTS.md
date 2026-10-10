@@ -59,10 +59,22 @@ Subagentes não decidem: registram a decisão no handoff e devolvem com `AGUARDA
 | code-reviewer | Revisa o diff (convenções, segurança, legibilidade, área de cada agente) | Nada (somente leitura) |
 | qa | Valida critérios de aceite, responsividade e acessibilidade | Apenas arquivos de teste |
 | instrutor | Guia (modo `eu-faco`) ou explica (modo `agente-faz`) | Apenas `docs/04-estudos/` |
-| devops | CI, ambientes e deploy (tarefas com tag `infra`/`release`) | Apenas arquivos de infra |
+| devops | Implementador de tarefas com tag `infra`/`release` (CI, ambientes, deploy, hooks) | Apenas arquivos de infra |
+
+## Áreas por caminho
+
+Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. **Provisórias** — serão ajustadas na ADR de stack.
+
+| Agente | Caminhos permitidos |
+|---|---|
+| dev | `src/**` (exceto arquivos de infra) |
+| qa | `**/tests/**`, `**/*.test.*`, `**/*.spec.*`, `e2e/**` |
+| instrutor | `docs/04-estudos/**` |
+| devops | `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, `.claude/settings.json`, `.claude/hooks/**` |
+| todos | nunca `docs/03-tarefas/**` (só o orquestrador) |
 
 ## Regras de escrita
 
 - **Agentes nunca editam a nota da tarefa.** Terminam com um bloco `## Handoff` (formato em `atualizar-tarefa`); o orquestrador transcreve.
-- Cada agente altera apenas a sua área (tabela acima). O code-reviewer confere isso no diff.
-- Limite de retrabalho: 3 voltas ao dev por tarefa (code-reviewer + qa somados); na 4ª a tarefa fica `bloqueada`.
+- Cada agente altera apenas a sua área (tabela acima). O orquestrador confere após cada agente (`git status`); o code-reviewer confere no diff do implementador.
+- Limite de retrabalho: 3 voltas ao implementador por tarefa (code-reviewer + qa somados); na 4ª a tarefa fica `bloqueada`. Se o George escolher mais rodadas, o contador é zerado.

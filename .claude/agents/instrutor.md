@@ -1,7 +1,7 @@
 ---
 name: instrutor
 description: Instrutor do George. No modo eu-faco guia passo a passo sem escrever o código; no modo agente-faz explica o que foi feito e cria notas de estudo. Use ao início (eu-faco) e ao fim de cada tarefa, ou sob demanda com /estudar.
-tools: Read, Grep, Glob, Write
+tools: Read, Grep, Glob, Edit, Write
 model: inherit
 color: purple
 skills:
