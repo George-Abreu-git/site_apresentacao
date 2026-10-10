@@ -1,7 +1,7 @@
 ---
 id: T-006
 titulo: CI no GitHub Actions (validador e testes a cada push)
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -16,10 +16,10 @@ Pipeline de integração contínua que roda em cada push e pull request para `ma
 
 ## Critérios de aceite
 
-- [ ] Workflow em `.github/workflows/ci.yml` com etapas: instalar dependências, `python3 scripts/validar_estrutura.py`, `npm run lint`, `npm test`, `npm run test:e2e`
-- [ ] Cache de dependências npm
-- [ ] Cada etapa comentada explicando o que faz (didático)
-- [ ] Pipeline verde no GitHub após o push
+- [x] Workflow em `.github/workflows/ci.yml` com etapas: instalar dependências, `python3 scripts/validar_estrutura.py`, `npm run lint`, `npm test`, `npm run test:e2e`
+- [x] Cache de dependências npm
+- [x] Cada etapa comentada explicando o que faz (didático)
+- [ ] Pipeline verde no GitHub após o push — *pendente: o George confirma na aba Actions (D1)*
 
 ## Contexto relevante
 
@@ -81,6 +81,18 @@ Pipeline de integração contínua que roda em cada push e pull request para `ma
 
 ## QA
 
+### Rodada 1
+
+**Resultado:** PASSOU — critérios 1 a 3 atendidos; critério 4 pendente para o George (D1).
+
+**Simulação** (clone limpo de `feat/T-006-ci-github-actions` @ `87603b0` fora do repositório, `CI=true`, ordem do `ci.yml`; Node 24.21.0, npm 11.19.0, Python 3.14.7): validador OK → `npm ci` (0 vulnerabilidades) → lint OK (3 workspaces + raiz) → build OK (shared `tsc`; api `tsc --noEmit && nest build`; web `tsc -b && vite build`) → `npm test` (api 8/8, web 3/3) → Chromium com `--with-deps` OK → `npm run test:e2e` 8/8. Pastas temporárias apagadas; repositório limpo.
+
+**Critérios:** (1) 10 etapas lidas pelo PyYAML; gatilhos push/PR para `main`, `permissions: contents: read`, `concurrency`, timeout 15; ordem com validador antes do `npm ci` (D3) e build (D2); tags v7 existentes. (2) `cache: npm` com Node `'24'`. (3) cabeçalho e todas as etapas comentados em português; README com seção do CI. (4) pendente (repositório privado, sem `gh`).
+
+**Outras verificações:** nenhum segredo (busca por `ghp_`, `github_pat_`, `token=`, `password`, `secret` só achou o comentário explicativo); UTF-8 sem BOM, LF; diff só em `.github/workflows/ci.yml`, `README.md` e `docs/03-tarefas/**`. Sem testes novos (workflow não é testável com Playwright/Supertest; aceitação pela simulação).
+
+**Pendência:** a simulação rodou no Windows; o Ubuntu (`python3` do sistema, bibliotecas do `--with-deps`) só é exercitado no GitHub — se o check ficar vermelho, a correção vira prioridade (D1).
+
 ## Estudo
 
 ## DevOps
@@ -129,3 +141,5 @@ Arquivos: `.github/workflows/ci.yml`, `README.md`. SHA fixo nas actions fica par
 - 2026-10-10 — code-reviewer: APROVADO — critérios 1–3, D1 e D2 atendidos; extras aceitáveis; 4 opcionais
 - 2026-10-10 — orquestrador: D3 (delegação) — aceitar extras e aplicar opcionais 2–4 antes do QA
 - 2026-10-10 — devops: CONCLUIDO — validador primeiro, `concurrency` e seção do CI no README; actionlint e validador OK
+- 2026-10-10 — qa: PASSOU — simulação do workflow num clone limpo com `CI=true`, todas as etapas verdes; critério 4 pendente (D1)
+- 2026-10-10 — orquestrador: concluida — verificação verde (`npm test`, `npm run test:e2e` 8/8, validador); critério 4 aguarda a confirmação do George no GitHub; diário de estudo disparado após a integração
