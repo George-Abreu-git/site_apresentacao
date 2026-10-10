@@ -1,7 +1,7 @@
 ---
 id: T-005
 titulo: Montar o monorepo base (workspaces, web, api, shared e ferramentas de teste)
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -16,13 +16,13 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 
 ## Critérios de aceite
 
-- [ ] `package.json` na raiz com npm workspaces (`apps/*`, `packages/*`) e scripts `dev`, `build`, `test`, `test:e2e`, `lint`
-- [ ] `apps/web`: Vite + React + TypeScript com CSS Modules; página placeholder; um teste Vitest + Testing Library passando
-- [ ] `apps/api`: NestJS com um endpoint `GET /api/health` → `{ status: "ok" }`; um teste unitário (Vitest ou Jest do Nest — decisão do George se houver dúvida) e um teste de rota com Supertest passando
-- [ ] `packages/shared`: tipo `Projeto` exportado e importado por `apps/web` e `apps/api` (prova que o compartilhamento funciona)
-- [ ] `e2e/`: Playwright configurado com um teste que abre a página placeholder em viewport de celular e de desktop
-- [ ] `.env.example` documenta as variáveis da API (ex.: `GITHUB_TOKEN`, `CORS_ORIGIN`)
-- [ ] `npm test` e `npm run test:e2e` passam na raiz; `README` curto de como rodar
+- [x] `package.json` na raiz com npm workspaces (`apps/*`, `packages/*`) e scripts `dev`, `build`, `test`, `test:e2e`, `lint`
+- [x] `apps/web`: Vite + React + TypeScript com CSS Modules; página placeholder; um teste Vitest + Testing Library passando
+- [x] `apps/api`: NestJS com um endpoint `GET /api/health` → `{ status: "ok" }`; um teste unitário (Vitest ou Jest do Nest — decisão do George se houver dúvida) e um teste de rota com Supertest passando
+- [x] `packages/shared`: tipo `Projeto` exportado e importado por `apps/web` e `apps/api` (prova que o compartilhamento funciona)
+- [x] `e2e/`: Playwright configurado com um teste que abre a página placeholder em viewport de celular e de desktop
+- [x] `.env.example` documenta as variáveis da API (ex.: `GITHUB_TOKEN`, `CORS_ORIGIN`)
+- [x] `npm test` e `npm run test:e2e` passam na raiz; `README` curto de como rodar
 
 ## Contexto relevante
 
@@ -122,6 +122,22 @@ Cria a estrutura de código da ADR-0001, sem funcionalidades: apenas o esqueleto
 
 ## Estudo
 
+### Rodada 1
+
+**Resultado:** CONCLUIDO — o instrutor (modo explicador) explicou a T-005 começando pelo mapa geral (o que roda onde; os três momentos dev/build/test) e por como funciona cada tipo de teste (unitário, rota, e2e, `expectTypeOf`).
+
+**Resumo do mapa:** `packages/shared` só tipos (link em `node_modules`); `apps/web` no navegador (Vite na 5173; `index.html` → `main.tsx` → `App.tsx`); `apps/api` no Node na 3000 (`main.ts` → `criarApp()` → `AppModule` → `HealthModule` → `GET /api/health`); `e2e/` com Chromium real; `scripts/dev.mjs` sobe os dois servidores. O front ainda não chama a API (CORS e `fetch` na T-013).
+
+Notas:
+- [[docs/04-estudos/mapa-do-monorepo|Mapa do monorepo]] — nova.
+- [[docs/04-estudos/nestjs-modulos-controllers-e-bootstrap|NestJS: módulos, controllers e bootstrap]] — nova.
+- [[docs/04-estudos/vite-react-e-css-modules|Vite, React e CSS Modules]] — nova.
+- [[docs/04-estudos/tipos-de-teste-unitario-rota-e2e|Tipos de teste: unitário, rota e e2e]] — nova.
+- [[docs/04-estudos/lint-com-eslint-flat-config|Lint com ESLint flat config]] — nova.
+- [[docs/04-estudos/monorepo-com-npm-workspaces|Monorepo com npm workspaces]] — atualizada (seção "Na T-005").
+
+Exercícios sugeridos: (1) em `apps/web/src/compartilhamento.test.ts`, trocar `toEqualTypeOf<string>()` por `<number>()`, ver `npm test` passar e `npm run build` falhar, e explicar por quê; (2) rodar o Playwright em modo `--ui`, mudar a cor do texto para `#aaaaaa` e ver o teste de contraste falhar. Desfazer no fim.
+
 ## DevOps
 
 ### Rodada 1 — etapa 1 (agentes + raiz)
@@ -175,3 +191,5 @@ Commits do orquestrador: agentes/skill e raiz (ver Log).
 - 2026-10-10 — orquestrador: D1 (delegação) — aplicar opcionais 1–4 antes do QA
 - 2026-10-10 — dev e devops: CONCLUIDO — opcionais 1 (comentário) e 2–4 (lint da raiz, README, `engines`) aplicados; lint/test/validador OK
 - 2026-10-10 — qa: PASSOU — Supertest e Playwright (celular/desktop) criados; test, test:e2e (8/8), build, lint e validador OK
+- 2026-10-10 — instrutor: CONCLUIDO — 5 notas de estudo novas e 1 atualizada
+- 2026-10-10 — orquestrador: DoD OK; verificação `npm test`, `npm run test:e2e` (8/8) e validador verdes; tarefa concluída
