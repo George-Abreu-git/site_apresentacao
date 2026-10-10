@@ -4,7 +4,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 
 | ID | Título | Status | Modo | Tags |
 |---|---|---|---|---|
-| [[docs/03-tarefas/T-001-hooks-restricao-escrita|T-001]] | Hooks PreToolUse de restrição de escrita por agente | em-andamento | agente-faz | infra, orquestracao |
+| [[docs/03-tarefas/T-001-hooks-restricao-escrita|T-001]] | Hooks PreToolUse de restrição de escrita por agente | em-revisao | agente-faz | infra, orquestracao |
 | [[docs/03-tarefas/T-002-qa-revisa-arquivos-antes-adr|T-002]] | QA revisa todos os arquivos atuais antes da ADR de stack | concluida | agente-faz | qa |
 | [[docs/03-tarefas/T-003-corrige-achados-t002|T-003]] | Corrigir achados médios da T-002, formalizar o modo revisão e normalizar fim de linha | concluida | agente-faz | orquestracao, docs |
 | [[docs/03-tarefas/T-004-atualiza-agents-stack|T-004]] | Atualizar AGENTS.md com a stack e as áreas por caminho da ADR-0001 | concluida | agente-faz | orquestracao |

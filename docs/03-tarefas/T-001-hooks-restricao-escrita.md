@@ -1,7 +1,7 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [infra, orquestracao]
 rodadas: 1
@@ -116,6 +116,19 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
 3. Limite conhecido (no README dos hooks): o que scripts executados (`node x.mjs`, `npm run x`) fazem por dentro não é analisado; a conferência por `git status` e o code-reviewer continuam valendo.
 4. As 7 escolhas de interpretação → D3.
 
+### Rodada 2 (ajustes da revisão + D4)
+
+**Resultado:** CONCLUIDO — bloqueante e opcionais 2–5 da D4 aplicados; `npm run test:hooks` 236/236 (eram 152); `npm test`, `npm run lint` e validador verdes. Ao vivo, o hook negou um comando do próprio devops com `$TEMP` ("alvo dinâmico").
+1. **Bloqueante:** `{` fora de aspas com `,`/`..` marcado como curinga e chaves; `$'...'`/`$"..."` dinâmicos. Além do sugerido: as chaves são **expandidas em palavras separadas** antes da análise, como o bash (sem isso, `sed -i {s/a/b/,docs/03-tarefas/x}` editaria a nota); chaves misturadas com aspas e expansões com mais de 256 resultados são negadas. Corte do curinga inclui `{`; depois do corte, negado segmento `..` e nome com `.`/`[` inicial com curinga (`.?` casa com `..`). `cd`/`git -C` com curinga deixam o diretório desconhecido (antes, `cd apps/api/te* && rm -rf x` deixava o dev escrever na área do qa). Casos pedidos testados (4 negados; `mkdir -p apps/web/src/{components,hooks}` permitido).
+2. **Escrita por opção:** destino conferido em `curl` (`-o`, `-O`, `--output-dir`, cabeçalhos e cookies), `wget` (`-O`, `-P` ou pasta atual; `-e` negado), `rsync` (último argumento como pasta; remoto passa), `tar` (`-x` com `-C` ou pasta atual; `-c`/`-r`/`-u` com `-f`; forma antiga `xzf`), `unzip` (`-d` ou pasta atual; `-l` só lê; `-:` negado), `awk -i inplace`. Além do pedido: `find -exec` com comando fora da lista de escritores passa a ser analisado (`{}` = caminho desconhecido).
+3. **code-reviewer, negados:** `--fix`; `-u`, `--update*`, `--outputFile`, `--test-reporter-destination` em npm/npx/node; `node --test` com `--import`/`--require`/`--loader`/`--eval`/opção curta; `git -c`, `--config-env`, `--exec-path`; `git grep -O`. Além do pedido: variáveis antes do comando fora de uma lista segura (ex.: `GIT_EXTERNAL_DIFF`, `NODE_OPTIONS`); `PYTHONUTF8` liberada; `GIT_PAGER`/`PAGER` só com `cat`.
+4. **code-reviewer, liberados:** `for`, `for ((...))`, `select`, `case`, `done`/`fi`/`esac`, `while read`, `[[ ]]`, `awk` de leitura (só `-F`/`-v`, sem `system`, `@`, `>`, `|`). Corrigida brecha no python (`python -c "<código>" scripts/validar_estrutura.py` passava): `-X`/`-W` com valor, `-c`/`-m` negados.
+5. **README:** precedência do `permissions.deny` (exemplo `rm -rf apps/web/dist`); seções do Bash e de limites atualizadas.
+
+Arquivos: `.claude/hooks/shell.mjs`, `politica.mjs`, `tests/politica.test.mjs`, `README.md`.
+
+**Pendências:** item 6 da D4 (dividir o `politica.mjs`, agora com 1255 linhas, e unificar `separarArgs`/`separarOpcoesGnu`) segue para depois; conferir as duas extensões além do pedido (variáveis de ambiente do code-reviewer; `find -exec`); limites restantes no README (`gzip`, `zip`, `split`, `npx prettier --write`; opção dinâmica como `curl $OPT caminho`; `((i++))` solto no code-reviewer).
+
 ## Log
 
 - 2026-10-09 — tarefa criada
@@ -124,3 +137,4 @@ Hooks em `Edit|Write` não impedem escrita via `Bash` (`echo > arquivo`, `sed -i
 - 2026-10-10 — orquestrador: D2 (delegação) — sem bloco `autoMode` (ignorado pelo Claude Code no projeto); D3 — 7 interpretações aceitas; segue para revisão
 - 2026-10-10 — code-reviewer: AJUSTES — curingas/chaves com `..` e `$'...'` escapam da análise do Bash (critérios 25 e 28); rodadas = 1
 - 2026-10-10 — orquestrador: D4 (delegação) — aplicar o bloqueante e os opcionais 2–5; refatoração fica para depois
+- 2026-10-10 — devops: CONCLUIDO — brechas fechadas (chaves expandidas, `$'...'`, curinga com `..`, escrita por opção, code-reviewer); 236 testes; test/lint/validador OK
