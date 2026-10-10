@@ -20,7 +20,7 @@ Leia **somente** o que o seu papel precisa. Contexto enxuto = respostas melhores
 | code-reviewer | `git diff main...HEAD` e `git log main..HEAD --oneline`; skill `definition-of-done`; handoff do dev na tarefa |
 | qa | "Critérios de aceite" da tarefa; `git diff main...HEAD`; requisitos `RF/RNF` citados; testes existentes |
 | instrutor | Seções Dev/Revisão/QA/Estudo da tarefa (handoffs e guias anteriores); notas existentes em `docs/04-estudos/` sobre os conceitos citados |
-| devops | ADRs de stack e infra; arquivos de CI/infra existentes |
+| devops | ADRs de stack e infra; arquivos de CI/infra existentes; em tarefas `orquestracao`, os arquivos de plataforma citados na tarefa (`.claude/**`, `scripts/**`, `AGENTS.md`) e a spec da orquestração |
 
 ## Regras
 

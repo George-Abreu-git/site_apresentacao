@@ -35,6 +35,10 @@ Montar a estrutura de arquivos de contexto, subagentes, skills e comandos que pe
 | Integração | Testes + validador verdes → merge local em `main` e push para `origin` (github.com/George-Abreu-git/site_apresentacao); falhou → decisão do George |
 | Escrita na nota da tarefa | Só o orquestrador escreve; agentes devolvem um bloco `## Handoff` no formato definido por `atualizar-tarefa` |
 | Implementador de infra | Tarefas `infra`/`release` são implementadas pelo DevOps no lugar do Dev (DevOps → Reviewer → QA → Instrutor) |
+| Dono da plataforma (T-003) | O DevOps é dono da plataforma: orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz (`.gitignore`, `.gitattributes`, `.obsidian/**`) e `docs/**` exceto `03-tarefas` e `04-estudos`. Tarefas com tag `orquestracao` são implementadas por ele. Mudança em `.claude/agents/**` exige aprovação do George |
+| Tarefas de revisão (T-003) | Tag `revisao`: modo próprio, QA → Instrutor, sem implementador e sem code-reviewer; o QA só lê e lista achados (arquivo + severidade) |
+| Áreas de dev e qa (T-003) | Testes unitários são do dev (em `src/**`, junto do código); testes de aceitação/e2e são do qa (`tests/**`, `e2e/**`). O orquestrador tem linha própria na tabela (`docs/03-tarefas/**`) |
+| Fim de linha (T-003) | `.gitattributes` com `* text=auto eol=lf`: o repositório e o checkout usam LF |
 | Restrição de escrita por agente | Por instrução no prompt + conferência do orquestrador (`git status` vs. "Áreas por caminho" do AGENTS.md) após cada agente + checagem do Code-Reviewer, com commits de código e de nota separados; hooks `PreToolUse` depois da ADR de stack (tarefa T-001 no backlog) |
 | Modelo dos agentes | `model: inherit` em todos (troca de modelo centralizada na sessão) |
 
@@ -65,9 +69,9 @@ Site_Apresentação_George/
 |---|---|---|---|
 | dev | Implementa a tarefa com TDD seguindo ADRs e AGENTS.md | Read, Grep, Glob, Edit, Write, Bash | Seção "Dev" na nota da tarefa: arquivos alterados, decisões, pendências |
 | code-reviewer | Revisa o diff: convenções, segurança, legibilidade, aderência à tarefa | Read, Grep, Glob, Bash (somente git diff/log) — sem edição | `APROVADO` ou `AJUSTES` com lista numerada |
-| qa | Valida critérios de aceite, responsividade, acessibilidade; escreve/roda testes de aceitação | Read, Grep, Glob, Bash, Edit/Write apenas em pastas de teste | `PASSOU` ou `FALHOU` com bugs reproduzíveis |
+| qa | Valida critérios de aceite, responsividade, acessibilidade; escreve/roda testes de aceitação; faz a revisão documental nas tarefas `revisao` | Read, Grep, Glob, Bash, Edit/Write apenas em pastas de teste de aceitação/e2e (nenhuma na revisão documental) | `PASSOU` ou `FALHOU` com bugs reproduzíveis; na revisão, achados com arquivo e severidade |
 | instrutor | `eu-faco`: guia o George passo a passo sem escrever o código. `agente-faz`: explica o que foi feito e os conceitos | Read, Grep, Glob, Edit, Write apenas em `docs/04-estudos/` | Nota de estudo com links `[[ ]]` |
-| devops | Implementador de tarefas com tag `infra` ou `release` (CI, ambientes, deploy, hooks) | Read, Grep, Glob, Edit/Write em arquivos de infra, Bash | Configuração ou checklist de deploy |
+| devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`; dono da plataforma (CI, ambientes, deploy, hooks, orquestração, `scripts/**`, configs da raiz, `docs/**` exceto `03-tarefas`/`04-estudos`) | Read, Grep, Glob, Edit/Write na área de plataforma, Bash | Configuração ou checklist de deploy |
 
 Cada agente: descrição clara de quando é usado, lista do que lê (via skill `carregar-contexto`), formato fixo de saída e retorno obrigatório em bloco `## Handoff` (formato de `atualizar-tarefa`). Agentes não editam a nota da tarefa; o orquestrador transcreve.
 
@@ -77,16 +81,23 @@ Conduzido pela sessão principal com a skill `orquestrar-tarefa`, disparada por 
 
 **Modo `agente-faz`**
 1. Ler a nota da tarefa; status → `em-andamento`.
-2. Implementador (Dev; ou DevOps se a tarefa tem tag `infra`/`release`) implementa.
+2. Implementador (Dev; ou DevOps se a tarefa tem tag `infra`, `release` ou `orquestracao`) implementa.
 3. Code-Reviewer revisa. Se `AJUSTES` → volta ao implementador.
 4. QA valida. Se `FALHOU` → volta ao implementador.
 5. Instrutor gera a nota de estudo.
 6. Status → `concluida`; atualizar `backlog.md`.
 
+**Modo `revisao`** (tag `revisao`, qualquer `modo`)
+1. Status → `em-qa`; o QA faz a revisão documental (só lê; nenhum arquivo alterado) e devolve os achados com arquivo e severidade.
+2. Instrutor (explicador) gera a nota de estudo.
+3. Encerramento. Sem implementador, não há rodadas de retrabalho; `FALHOU` (revisão não cumprida) vai ao George como decisão.
+
 **Modo `eu-faco`**
 1. Instrutor guia; George codifica.
 2. Quando George sinaliza que terminou: Reviewer → QA (ajustes voltam para George, com dicas do Instrutor).
 3. Instrutor fecha com a nota de estudo; status → `concluida`.
+
+**Encerramento (todos os modos):** primeiro a verificação (suíte de testes + `scripts/validar_estrutura.py`; sem `src/` nem suíte, só o validador); só se estiver verde o status vira `concluida`, o backlog é atualizado e a branch é integrada em `main`. Falhou → `aguardando-decisao`, sem `concluida` e sem merge.
 
 **Limite de retrabalho:** no máximo 3 voltas ao implementador por tarefa (somando Reviewer e QA). Na quarta, o fluxo para, status → `bloqueada`, e o orquestrador pede decisão ao George. Se ele escolher mais rodadas, `rodadas` volta a 0.
 
@@ -131,7 +142,9 @@ Seções: Descrição, Critérios de aceite, Contexto relevante (links), Decisõ
 1. Criar a estrutura desta spec (plano de implementação via writing-plans).
 2. Rodar `levantar-requisitos`.
 3. ADR da stack.
-4. Primeiras tarefas no backlog.
+4. T-001 (hooks de restrição de escrita, depende da ADR) e demais tarefas no backlog.
+
+A ordem é obrigatória: levantamento de requisitos → ADR de stack → T-001 (registrada também no `AGENTS.md`).
 
 ## 10. Verificação
 

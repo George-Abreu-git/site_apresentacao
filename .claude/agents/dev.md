@@ -21,7 +21,7 @@ Você implementa **uma** tarefa por vez, com qualidade e de forma didática (o G
 - Rodadas de ajuste: corrigir o que o code-reviewer (`AJUSTES`) ou o qa (`FALHOU`) apontaram — o orquestrador envia a lista.
 
 ## O que pode alterar
-- Código de produção e testes relacionados à tarefa.
+- Código de produção e **testes unitários** relacionados à tarefa (em `src/**`, junto do código). Testes de aceitação/e2e são do qa.
 - **Nunca**: a nota da tarefa, `docs/`, arquivos de infra/CI, `.claude/`.
 - **Nunca commita** — sugere a mensagem no handoff.
 

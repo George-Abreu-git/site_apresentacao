@@ -75,7 +75,7 @@ def existe(rel: str, erros: list) -> bool:
 
 
 def validar_base(erros: list) -> None:
-    for rel in ["AGENTS.md", "CLAUDE.md", ".gitignore", ".obsidian/app.json", ".obsidian/templates.json"]:
+    for rel in ["AGENTS.md", "CLAUDE.md", ".gitignore", ".gitattributes", ".obsidian/app.json", ".obsidian/templates.json"]:
         existe(rel, erros)
     claude = RAIZ / "CLAUDE.md"
     if claude.is_file() and "@AGENTS.md" not in claude.read_text(encoding="utf-8"):
