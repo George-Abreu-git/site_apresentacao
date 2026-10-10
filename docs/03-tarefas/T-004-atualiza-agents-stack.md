@@ -1,7 +1,7 @@
 ---
 id: T-004
 titulo: Atualizar AGENTS.md com a stack e as áreas por caminho da ADR-0001
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -44,3 +44,4 @@ Atualiza o `AGENTS.md` (seção Stack, árvore de pastas e tabela "Áreas por ca
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-10 — orquestrador: início — implementador devops (tag `orquestracao`)
