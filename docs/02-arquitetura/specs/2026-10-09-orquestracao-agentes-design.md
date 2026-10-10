@@ -87,7 +87,7 @@ Conduzido pela sessão principal com a skill `orquestrar-tarefa`, disparada por 
 2. Quando George sinaliza que terminou: Reviewer → QA (ajustes voltam para George, com dicas do Instrutor).
 3. Instrutor fecha com a nota de estudo; status → `concluida`.
 
-**Limite de retrabalho:** no máximo 3 voltas ao Dev por tarefa (somando Reviewer e QA). Na quarta, o fluxo para, status → `bloqueada`, e o orquestrador pede decisão ao George. Se ele escolher mais rodadas, `rodadas` volta a 0.
+**Limite de retrabalho:** no máximo 3 voltas ao implementador por tarefa (somando Reviewer e QA). Na quarta, o fluxo para, status → `bloqueada`, e o orquestrador pede decisão ao George. Se ele escolher mais rodadas, `rodadas` volta a 0.
 
 **Handoff:** os agentes não compartilham conversa; tudo que um precisa do outro está na nota da tarefa.
 
