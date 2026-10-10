@@ -24,8 +24,8 @@ Monorepo com npm workspaces:
 # 1. Instalar as dependências de todos os workspaces (um único comando, na raiz)
 npm install
 
-# 2. Baixar os navegadores usados pelo Playwright (só na primeira vez)
-npx playwright install
+# 2. Baixar o navegador usado pelo Playwright (só na primeira vez; os testes usam só o Chromium)
+npx playwright install chromium
 
 # 3. Compilar tudo uma vez (gera o dist/ do packages/shared, usado pela API e pelo front)
 npm run build
@@ -52,6 +52,11 @@ Depois de mudar algo em `packages/shared`, rode `npm run build -w packages/share
 | `npm run lint` | Roda o ESLint em cada workspace e depois em `e2e/`, `scripts/` e `eslint.config.mjs` |
 
 Para rodar um comando em um workspace só, use `--workspace` (ou `-w`), por exemplo `npm test -w apps/api`.
+
+## Integração contínua (CI)
+
+A cada push ou pull request para a `main`, o GitHub Actions roda o validador da estrutura, o lint, o build (checagem de tipos), os testes unitários e os testes de aceitação, conforme [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+O cabeçalho desse arquivo lista os comandos, na mesma ordem do CI, para reproduzir a verificação localmente.
 
 ## Lint
 
