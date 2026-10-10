@@ -1,7 +1,7 @@
 ---
 id: T-014
 titulo: Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -100,6 +100,18 @@ Arquivos: `.claude/agents/devops.md`, `.claude/agents/documentador.md`, skills `
 
 **Pendências:** `instrutor.md` não foi tocado (sem aprovação naquela rodada) — coberto agora pela Q3-B; critérios 1, 30 e 34 da nota atualizados pelo orquestrador conforme as decisões.
 
+### Ajuste pela decisão Q3-B (não conta rodada)
+
+**Resultado:** CONCLUIDO — validador OK; 12 arquivos em UTF-8, LF, sem BOM. (A primeira execução travou por falta de progresso e a seguinte foi interrompida pelo fim da sessão; o agente foi retomado do próprio histórico e concluiu, mantendo os 9 arquivos já corretos.)
+- **Instrutor:** mentor no `eu-faco` + `/estudar` interativo; não consolida e não fecha o `eu-faco`.
+- **Documentador:** diário por tarefa + consolidação (`/estudar-consolidar`), sempre em segundo plano, worktree a partir de `origin/main`; a consolidação entra pela branch `estudos/consolidacao-AAAA-MM-DD`, com o mesmo procedimento da branch de estudos.
+- **`eu-faco`:** fecha com o encerramento após o QA e o documentador em paralelo, igual ao `agente-faz`.
+- **Alinhados:** `AGENTS.md` (estrutura, exceção das branches, papéis, áreas), `CLAUDE.md` (documentador também no `/estudar-consolidar` e no fim do `eu-faco`; linha do `/estudar`), spec (decisões, estrutura, tabelas de agentes e skills, fluxo do `eu-faco`, comandos). `definition-of-done` e validador conferidos, sem mudança (o item "diário disparado" não depende do modo; o validador não verifica quem executa o comando). Nenhuma menção restante ao papel antigo do instrutor fora do plano histórico de 2026-10-09.
+
+Arquivos: `.claude/agents/{documentador,instrutor}.md`, `.claude/commands/{estudar-consolidar,estudar}.md`, skills `atualizar-tarefa`, `carregar-contexto`, `commit-convencional`, `nota-de-estudo`, `orquestrar-tarefa`, `AGENTS.md`, `CLAUDE.md`, spec. Commit `b44b0d0`.
+
+**Pendência:** `docs/04-estudos/README.md` (linha ~8) ainda diz que o instrutor escreve no `/estudar-consolidar` — enviada ao instrutor.
+
 ## Log
 
 - 2026-10-10 — tarefa criada
@@ -110,3 +122,5 @@ Arquivos: `.claude/agents/devops.md`, `.claude/agents/documentador.md`, skills `
 - 2026-10-10 — orquestrador: George decidiu Q1-A, Q2-A e esclareceu acesso a `docs/04-estudos/**` e fim do fluxo; devops volta para alinhar (não conta rodada — mudança de decisão, não `AJUSTES`)
 - 2026-10-10 — devops: CONCLUIDO — Q1-A, Q2-A e esclarecimento aplicados; conflito no rebase tratado; validador OK
 - 2026-10-10 — orquestrador: George decidiu Q3-B (consolidação com o documentador); devops volta para aplicar
+- 2026-10-10 — devops: CONCLUIDO — Q3-B aplicada (após travamento e retomada); validador OK
+- 2026-10-10 — instrutor: CONCLUIDO — README de estudos atribui a consolidação ao documentador e o `/estudar` ao instrutor
