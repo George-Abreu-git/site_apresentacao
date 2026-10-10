@@ -70,7 +70,7 @@ Subagentes não decidem: registram a decisão no handoff e devolvem com `AGUARDA
 | code-reviewer | Revisa o diff (convenções, segurança, legibilidade, área de cada agente) | Nada (somente leitura) |
 | qa | Valida critérios de aceite, responsividade e acessibilidade | Apenas arquivos de teste |
 | instrutor | Guia (modo `eu-faco`) ou explica (modo `agente-faz`) | Apenas `docs/04-estudos/` |
-| devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`. **Dono da plataforma**: CI, ambientes, deploy, hooks, orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz e `docs/**` (exceto `03-tarefas` e `04-estudos`) | Apenas a área de plataforma (tabela abaixo) |
+| devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`. **Dono da plataforma**: CI, ambientes, deploy, hooks, orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz e `docs/**` (exceto `03-tarefas` e `04-estudos`). Não cria ADRs (`docs/02-arquitetura/ADR-*`): devolve `AGUARDANDO-DECISAO` e o orquestrador cria via `registrar-decisao`. `docs/00-visao/**` e `docs/01-requisitos/**` nascem do levantamento de requisitos, conduzido pela sessão principal | Apenas a área de plataforma (tabela abaixo) |
 
 O **orquestrador** (sessão principal) não é um subagente: coordena o fluxo, escreve nas notas de tarefa e no backlog e faz os commits.
 
@@ -84,7 +84,7 @@ Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. **
 | qa | **Testes de aceitação/e2e**: `tests/**` e `e2e/**` na raiz. Na revisão documental (tag `revisao`), nenhum arquivo |
 | instrutor | `docs/04-estudos/**` |
 | devops | `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, `.claude/**` (agentes, skills, comandos, `settings.json`, hooks), `AGENTS.md`, `CLAUDE.md`, `scripts/**`, configs da raiz (`.gitignore`, `.gitattributes`, `.obsidian/**`, `package.json`, `.env.example` etc.), `docs/**` exceto `docs/03-tarefas/**` e `docs/04-estudos/**` |
-| orquestrador | `docs/03-tarefas/**` (notas e backlog) e os commits; nenhum outro arquivo |
+| orquestrador | `docs/03-tarefas/**` (notas e backlog) os commits, e os arquivos que as skills `registrar-decisao` (ADRs) e `levantar-requisitos` (visão e requisitos) mandam a sessão principal criar |
 | todos os subagentes | nunca `docs/03-tarefas/**` (só o orquestrador) |
 
 Uma alteração em `.claude/agents/**` (a definição de um agente) exige **aprovação do George**, mesmo dentro da área do devops: nenhum agente altera a própria definição por conta própria. Na tarefa que pedir essa mudança, a aprovação é a decisão do George registrada em `## Decisões`.
