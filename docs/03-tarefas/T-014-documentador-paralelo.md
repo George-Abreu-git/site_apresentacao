@@ -34,7 +34,7 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 - [x] **Áreas por caminho** (`AGENTS.md`): documentador → `docs/04-estudos/**`; instrutor → `docs/04-estudos/**` (os dois leem e gravam — *esclarecimento do George*)
 - [x] As notas por conceito atuais **ficam onde estão** (nenhum link quebra); `docs/04-estudos/README.md` explica os dois formatos e a pasta `tarefas/`
 - [x] Spec e `scripts/validar_estrutura.py` incluem o novo agente, o comando e o template
-- [ ] **Prova:** o encerramento desta própria tarefa já usa o fluxo novo — o diário `docs/04-estudos/tarefas/T-014.md` é gerado em background e integrado na `main`
+- [x] **Prova:** o encerramento desta própria tarefa já usa o fluxo novo — o diário `docs/04-estudos/tarefas/T-014.md` é gerado em background e integrado na `main`
 
 ## Contexto relevante
 
@@ -92,6 +92,16 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 ### README de `docs/04-estudos/` (pendência 1 do devops)
 
 **Resultado:** CONCLUIDO — o instrutor substituiu as linhas 3-4 do README por: uma tabela com os dois formatos (onde fica, quem escreve, quando — a mesma da skill `nota-de-estudo`); um item sobre `tarefas/` (um diário por tarefa, template `docs/_templates/diario-estudo.md`, campo `consolidado`); um item sobre a raiz (nota por conceito em kebab-case, criada por `/estudar` ou `/estudar-consolidar`; notas existentes nunca são movidas nem renomeadas). Título, linha do grafo e links mantidos. Base: o resumo do devops na nota e a skill `nota-de-estudo`.
+
+### Diário de estudo (documentador, em paralelo)
+
+**Resultado:** CONCLUIDO — diário [[docs/04-estudos/tarefas/T-014|T-014]] escrito em segundo plano, no worktree isolado, a partir da nota da tarefa (8 conceitos: `caminho-critico`, `subagente-em-segundo-plano`, `git-worktree`, `rebase-e-fast-forward`, `diario-e-consolidacao-de-estudo`, `areas-por-caminho-de-escrita`, `dono-da-plataforma-e-aprovacao-humana`, `modo-de-fluxo-por-tag`). As conferências dele passaram (dentro de `.claude/worktrees/`; nota da tarefa `concluida`).
+
+Notas por conceito atualizadas com mudanças pequenas:
+- [[docs/04-estudos/modo-de-fluxo-por-tag|Modo de fluxo por tag]] — atualização (T-014): o instrutor saiu do fim do fluxo e o encerramento dispara o documentador; linha do modo `revisao` corrigida (diagrama e pseudocódigo da T-003 mantidos como registro).
+- [[docs/04-estudos/areas-por-caminho-de-escrita|Áreas por caminho de escrita]] — linha do documentador no resumo da tabela.
+
+**Prova do critério 37:** disparo depois do push do encerramento, sem esperar; integração pela branch `estudos/T-014` com `git -C` no worktree, enquanto a T-006 já estava em andamento no checkout principal. Observação: nenhum pedido de permissão do documentador apareceu na sessão principal durante esta execução.
 
 ## DevOps
 
@@ -168,3 +178,4 @@ Arquivo: `.claude/skills/orquestrar-tarefa/SKILL.md`. Opcionais não aplicados.
 - 2026-10-10 — code-reviewer: APROVADO — ajuste conferido, sem contradições; 1 opcional de texto
 - 2026-10-10 — qa: PASSOU — critérios 27 a 36 atendidos; validador e `npm test` verdes; nenhuma nota movida, nenhum link quebrado
 - 2026-10-10 — orquestrador: concluida — verificação verde (`npm test`, `npm run test:e2e` 8/8, validador); diário de estudo disparado após a integração (prova do critério 37)
+- 2026-10-10 — documentador: CONCLUIDO — diário integrado (branch `estudos/T-014`; 2 notas por conceito atualizadas); critério 37 cumprido
