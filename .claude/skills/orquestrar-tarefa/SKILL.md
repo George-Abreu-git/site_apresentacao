@@ -41,7 +41,9 @@ Ao chamar cada subagente, envie: id e caminho da tarefa, modo, e (em rodadas de 
 ## Encerramento
 1. Rode `definition-of-done` com base nos handoffs; pendências → apresente ao George.
 2. Status `concluida`; Log; backlog; commit.
-3. Apresente ao George a decisão de merge em `main` (ex.: merge agora, revisar manualmente antes, manter a branch aberta) no formato `apresentar-decisao`. Só faça merge/push com a escolha dele.
+3. **Integração (regra do George)**: rode a suíte de testes completa e `python3 scripts/validar_estrutura.py`.
+   - Tudo verde → merge local da branch em `main` (`git switch main && git merge --ff-only feat/T-XXX-<slug>`; se não for fast-forward, `git merge --no-ff`), apague a branch local e faça `git push origin main`.
+   - Algo falhou ou houve conflito → **não** faça merge; status `aguardando-decisao` e apresente ao George (`apresentar-decisao`).
 
 ## Regras de escrita na nota da tarefa
 

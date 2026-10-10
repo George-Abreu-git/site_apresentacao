@@ -24,7 +24,8 @@ Exemplos: `feat(contato): adiciona formulário de contato` · `test(api): cobre 
 
 - `main` é a principal; nunca commitar trabalho de tarefa direto nela. Exceção: a criação da nota de tarefa (`/nova-tarefa`) e atualizações do backlog fora de um fluxo são commitadas em `main`.
 - Uma branch por tarefa: `feat/T-XXX-<slug>` (ou `fix/...`).
-- Merge em `main` só após decisão do George.
+- Merge em `main`: automático quando **todos** os testes e o validador passam (merge local primeiro, depois `git push origin main`). Se algo falhar, nada de merge — decisão do George.
+- Remoto: `origin` = https://github.com/George-Abreu-git/site_apresentacao
 
 ## Quem commita
 

@@ -39,6 +39,8 @@ src/                    código — criado após a ADR de stack (monorepo)
 - Branch principal: `main`. Uma branch por tarefa: `feat/T-XXX-<slug>`.
 - Commits convencionais em português (detalhes na skill `commit-convencional`).
 - Quem commita é o orquestrador (sessão principal). Agentes sugerem a mensagem no handoff.
+- Integração: com todos os testes e o validador passando, o orquestrador faz merge local em `main` e depois `git push origin main`. Se algo falhar, não há merge — o George decide.
+- Remoto: `origin` → https://github.com/George-Abreu-git/site_apresentacao
 
 ## Definition of Done
 

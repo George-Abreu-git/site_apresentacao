@@ -32,6 +32,7 @@ Montar a estrutura de arquivos de contexto, subagentes, skills e comandos que pe
 | Decisões | Sempre apresentadas ao George com 3 opções × 3 prós × 3 contras + recomendação (skill `apresentar-decisao`, no estilo grilling); o George decide |
 | Repositório | Monorepo (front e back no mesmo repo), branch principal `main`, branches por tarefa `feat/T-XXX-...`; layout interno definido na ADR de stack |
 | Versionamento | Git ativo; o orquestrador commita automaticamente ao fim de cada etapa seguindo `commit-convencional` (dev/devops sugerem a mensagem no handoff) |
+| Integração | Testes + validador verdes → merge local em `main` e push para `origin` (github.com/George-Abreu-git/site_apresentacao); falhou → decisão do George |
 | Escrita na nota da tarefa | Só o orquestrador escreve; agentes devolvem um bloco `## Handoff` no formato definido por `atualizar-tarefa` |
 | Implementador de infra | Tarefas `infra`/`release` são implementadas pelo DevOps no lugar do Dev (DevOps → Reviewer → QA → Instrutor) |
 | Restrição de escrita por agente | Por instrução no prompt + conferência do orquestrador (`git status` vs. "Áreas por caminho" do AGENTS.md) após cada agente + checagem do Code-Reviewer, com commits de código e de nota separados; hooks `PreToolUse` depois da ADR de stack (tarefa T-001 no backlog) |
