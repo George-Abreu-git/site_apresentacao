@@ -97,6 +97,7 @@ Resumo da tabela vigente em `AGENTS.md` (abreviado; o texto completo está lá):
 |               | (inclui testes unitários *.spec.ts / *.test.ts(x) e configs de app) |
 | qa            | e2e/**, apps/api/test/** (aceitação/e2e); tag revisao: nenhum       |
 | instrutor     | docs/04-estudos/**                                                  |
+| documentador  | docs/04-estudos/** (no worktree dele; T-014)                        |
 | devops        | plataforma (.claude/**, AGENTS.md, CLAUDE.md, scripts/**, docs/**   |
 |               | exceto 03 e 04) + CI/deploy (.github/**, infra/**, Dockerfile*,     |
 |               | render.yaml, wrangler.*) + configs da raiz (package.json, lock...)  |

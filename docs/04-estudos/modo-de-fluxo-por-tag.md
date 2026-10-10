@@ -23,6 +23,8 @@ revisao:                                       qa -> instrutor -> encerramento
 
 Sem implementador (ninguém escreve nada) e, portanto, sem code-reviewer (não há diff para revisar).
 
+> **Atualização (T-014):** o instrutor saiu do fim do fluxo nos três modos. Hoje a tarefa termina no encerramento, logo após o `PASSOU` do qa, e o último passo do encerramento dispara o `documentador` em segundo plano (diário em `docs/04-estudos/tarefas/T-XXX.md`), sem esperar por ele: `agente-faz: implementador -> code-reviewer -> qa -> encerramento (-> documentador em paralelo)` e `revisao: qa -> encerramento (-> documentador em paralelo)`. No `eu-faco` o instrutor continua só como mentor. Os diagramas e o pseudocódigo abaixo mostram o fluxo da época da T-003. Ver [[docs/04-estudos/tarefas/T-014]].
+
 ## Por que importa
 
 Antes da T-003, a T-002 (uma revisão documental feita pelo QA) não cabia em nenhum modo. A skill mandava tarefas sem tag `infra`/`release` para o **dev**, então a revisão "caía" no implementador errado (achado **M2**). O George teve de decidir o fluxo na hora. Formalizar o modo:
@@ -33,7 +35,7 @@ Antes da T-003, a T-002 (uma revisão documental feita pelo QA) não cabia em ne
 
 ## Como aparece no projeto
 
-- `.claude/skills/orquestrar-tarefa/SKILL.md`, seção "Modo `revisao`": status `em-qa` → qa (passo "revisão documental") → instrutor → encerramento.
+- `.claude/skills/orquestrar-tarefa/SKILL.md`, seção "Modo `revisao`": status `em-qa` → qa (passo "revisão documental") → encerramento, que dispara o documentador em segundo plano (antes da T-014 havia um instrutor entre o qa e o encerramento).
 - Regra de precedência (interpretação do devops, aceita pelo code-reviewer): se a tarefa tem a tag `revisao`, esse modo vale **seja qual for o campo `modo`** da nota.
 - `.claude/agents/qa.md` ganhou o passo **"Revisão documental"**: lista achados com arquivo e severidade, sem alterar arquivos.
 - `.claude/commands/nova-tarefa.md` lista `revisao` (e também `orquestracao` e `docs`) entre as tags.
