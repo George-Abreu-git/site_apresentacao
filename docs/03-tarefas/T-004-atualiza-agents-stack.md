@@ -53,6 +53,16 @@ Atualiza o `AGENTS.md` (seção Stack, árvore de pastas e tabela "Áreas por ca
 
 ## QA
 
+### Rodada 1
+
+**Resultado:** PASSOU — os 5 critérios de aceite são atendidos no commit `5eb5741`; o QA não alterou nenhum arquivo. Sem suíte de testes; responsividade e acessibilidade não se aplicam.
+
+1. **Stack:** link para `docs/02-arquitetura/ADR-0001-stack.md` (arquivo existe); a tabela bate item por item com a "Decisão" da ADR (React + Vite + TS, NestJS monolito modular, npm workspaces, CSS Modules + variáveis, Vitest, Testing Library, Supertest, Playwright, Cloudflare Pages, Render) e traz as "Consequências" (RNF-03, RNF-05, token só no Render).
+2. **Árvore:** `apps/web/`, `apps/api/`, `packages/shared/`, `e2e/`; `src/` saiu; linha sobre npm workspaces.
+3. **Áreas:** dev → `apps/**` e `packages/**` exceto `apps/api/test/**` (testes unitários `*.spec.ts`, `*.test.ts(x)` junto do código); qa → `e2e/**` e `apps/api/test/**`; devops → plataforma, CI e deploy (`.github/**`, `infra/**`, `Dockerfile*`, `render.yaml`, `wrangler.*`) e configs da raiz. Sem sobreposição dev/qa; bate com as Consequências da ADR-0001.
+4. **`.gitignore`** (`git check-ignore --no-index`): ignorados `node_modules`, `dist`, `coverage`, `playwright-report`, `test-results` (na raiz e em subpastas) e `.env`, `.env.local`, `.env.production`, `apps/api/.env*`; **não** ignorados `.env.example`, `apps/api/.env.example`, `apps/web/.env.example` (regra `!.env.example`, linha 14).
+5. **Validador:** OK, código 0.
+
 ## Estudo
 
 ## DevOps
@@ -80,3 +90,4 @@ Arquivos alterados: `AGENTS.md`, `.gitignore`.
 - 2026-10-10 — orquestrador: início — implementador devops (tag `orquestracao`)
 - 2026-10-10 — devops: CONCLUIDO — Stack, árvore, áreas e `.gitignore` atualizados; validador OK
 - 2026-10-10 — code-reviewer: APROVADO — 5 critérios atendidos; remoção de "Sequência inicial" no escopo; 3 opcionais
+- 2026-10-10 — qa: PASSOU — 5 critérios atendidos; `.gitignore` conferido com `git check-ignore`; validador OK
