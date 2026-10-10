@@ -9,7 +9,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-003-corrige-achados-t002|T-003]] | Corrigir achados médios da T-002, formalizar o modo revisão e normalizar fim de linha | concluida | agente-faz | orquestracao, docs |
 | [[docs/03-tarefas/T-004-atualiza-agents-stack|T-004]] | Atualizar AGENTS.md com a stack e as áreas por caminho da ADR-0001 | concluida | agente-faz | orquestracao |
 | [[docs/03-tarefas/T-005-monorepo-base|T-005]] | Montar o monorepo base (workspaces, web, api, shared e ferramentas de teste) | concluida | agente-faz | infra |
-| [[docs/03-tarefas/T-006-ci-github-actions|T-006]] | CI no GitHub Actions (validador e testes a cada push) | backlog | agente-faz | infra |
+| [[docs/03-tarefas/T-006-ci-github-actions|T-006]] | CI no GitHub Actions (validador e testes a cada push) | em-andamento | agente-faz | infra |
 | [[docs/03-tarefas/T-007-layout-base|T-007]] | Layout base: menu com âncoras, tema escuro e responsividade | backlog | agente-faz | front-end |
 | [[docs/03-tarefas/T-008-conteudo-secoes-estaticas|T-008]] | Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato | backlog | eu-faco | front-end |
 | [[docs/03-tarefas/T-009-secao-stacks|T-009]] | Seção Stacks a partir de arquivo de conteúdo | backlog | eu-faco | front-end |
