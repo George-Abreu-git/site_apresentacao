@@ -2,6 +2,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+// O tema vem antes: index.css e os componentes usam as variáveis definidas nele.
+import './tema.css';
 import './index.css';
 
 const raiz = document.getElementById('root');

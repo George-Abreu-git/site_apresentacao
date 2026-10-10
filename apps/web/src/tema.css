@@ -1,0 +1,26 @@
+/*
+ * Tema escuro (RNF-04): o ÚNICO arquivo onde uma cor é escrita.
+ * Os componentes usam só as variáveis, ex.: `color: var(--cor-texto)`.
+ * O tema claro (v2) poderá redefinir estas mesmas variáveis, sem mexer nos componentes.
+ * O teste src/tema.test.ts falha se aparecer cor fixa em outro arquivo de CSS.
+ *
+ * Contraste aproximado sobre --cor-fundo: texto ~15:1, texto suave ~8,5:1, destaque ~10:1
+ * (WCAG AA pede pelo menos 4,5:1 para texto normal).
+ */
+:root {
+  /* Avisa o navegador que a página é escura: barras de rolagem e controles nativos também ficam escuros. */
+  color-scheme: dark;
+
+  --cor-fundo: #0f1115;
+  --cor-superficie: #181b22;
+  --cor-borda: #2c313c;
+  --cor-texto: #e6e8ec;
+  --cor-texto-suave: #a9b0bc;
+  --cor-destaque: #7cc4ff;
+  --cor-foco: #ffd166;
+
+  /* Medidas do layout usadas em mais de um arquivo. */
+  --altura-cabecalho: 4rem;
+  --largura-conteudo: 70rem;
+  --espaco-lateral: 1.25rem;
+}

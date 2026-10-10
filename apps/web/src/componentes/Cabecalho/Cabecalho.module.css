@@ -1,0 +1,29 @@
+.cabecalho {
+  /*
+   * `sticky`: o cabeçalho rola junto com a página até encostar no topo e ali fica.
+   * Diferente de `fixed`, ele continua ocupando o seu espaço, então não cobre o conteúdo inicial.
+   */
+  position: sticky;
+  top: 0;
+  /* Fica por cima das seções que passam por baixo dele. */
+  z-index: 10;
+  background-color: var(--cor-superficie);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.conteudo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: var(--altura-cabecalho);
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: 0 var(--espaco-lateral);
+}
+
+.marca {
+  font-weight: 700;
+  color: var(--cor-texto);
+  text-decoration: none;
+}

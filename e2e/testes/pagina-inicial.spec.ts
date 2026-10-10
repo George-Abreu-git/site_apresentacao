@@ -1,25 +1,9 @@
-// Teste de aceitação da página provisória (T-005): ela abre no celular e no desktop,
-// mostra o conteúdo, não estoura a largura da tela e cumpre a acessibilidade básica.
+// Teste de aceitação da página inicial (criado na T-005, com a página provisória): ela abre
+// no celular e no desktop, mostra o conteúdo, não estoura a largura da tela e cumpre a
+// acessibilidade básica. A navegação pelo menu (T-007) fica em navegacao.spec.ts.
 // Cada teste roda duas vezes, uma por projeto do playwright.config.ts (celular e desktop).
 import { expect, test, type Locator } from '@playwright/test';
-
-/** Converte "rgb(26, 26, 26)" (formato do getComputedStyle) em [26, 26, 26]. */
-function lerRgb(cor: string): [number, number, number] {
-  const numeros = cor.match(/\d+(\.\d+)?/g);
-  if (!numeros || numeros.length < 3) {
-    throw new Error(`Cor em formato inesperado: ${cor}`);
-  }
-  return [Number(numeros[0]), Number(numeros[1]), Number(numeros[2])];
-}
-
-/** Luminância relativa de uma cor, pela fórmula das WCAG 2.x. */
-function luminancia([r, g, b]: [number, number, number]): number {
-  const [rl, gl, bl] = [r, g, b].map((canal) => {
-    const c = canal / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
-}
+import { contraste } from '../apoio/cores';
 
 /** Razão de contraste entre a cor do texto do elemento e o fundo da página (1 a 21). */
 async function contrasteComOFundo(elemento: Locator): Promise<number> {
@@ -27,13 +11,10 @@ async function contrasteComOFundo(elemento: Locator): Promise<number> {
   const corDoFundo = await elemento
     .page()
     .evaluate(() => getComputedStyle(document.body).backgroundColor);
-  const [clara, escura] = [luminancia(lerRgb(corDoTexto)), luminancia(lerRgb(corDoFundo))].sort(
-    (a, b) => b - a,
-  );
-  return (clara + 0.05) / (escura + 0.05);
+  return contraste(corDoTexto, corDoFundo);
 }
 
-test.describe('página provisória', () => {
+test.describe('página inicial', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
