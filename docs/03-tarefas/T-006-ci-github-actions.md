@@ -1,7 +1,7 @@
 ---
 id: T-006
 titulo: CI no GitHub Actions (validador e testes a cada push)
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [infra]
 rodadas: 0
@@ -106,7 +106,16 @@ Arquivos: `.github/workflows/ci.yml` (novo), `README.md`.
 
 **Resultado:** CONCLUIDO — etapa 6 "Build (checagem de tipos)" (`npm run build`) depois do lint e antes de `npm test`, com comentário explicando que o `tsc` pega erros de tipo que lint e Vitest não veem (inclusive a prova `expectTypeOf` do `Projeto` da T-005) e confirma que front e API compilam para produção. Comentário da etapa de testes ajustado ("não dependem da etapa de build"); cabeçalho e numeração (etapas 7 a 10) atualizados. Fora do pedido: o nome do job passou a "Validador, lint, build e testes" (muda o nome do check no GitHub; só importa se houver proteção de branch com o nome antigo).
 
-**Verificação:** `npm run build` local com código 0 (shared `tsc`; api `tsc --noEmit && nest build`; web `tsc -b && vite build`); PyYAML leu as 10 etapas na ordem; actionlint 1.7.12 sem apontamentos; validador OK; UTF-8 sem BOM. Arquivo: `.github/workflows/ci.yml`.
+**Verificação (D2):** `npm run build` local com código 0 (shared `tsc`; api `tsc --noEmit && nest build`; web `tsc -b && vite build`); PyYAML leu as 10 etapas na ordem; actionlint 1.7.12 sem apontamentos; validador OK; UTF-8 sem BOM. Arquivo: `.github/workflows/ci.yml`.
+
+### Ajuste pela decisão D3 (não conta rodada)
+
+**Resultado:** CONCLUIDO — opcionais 2–4 aplicados; actionlint 1.7.12 sem apontamentos, PyYAML leu as 10 etapas e o `concurrency`, validador OK, UTF-8 sem BOM e LF.
+- **Validador primeiro:** virou a etapa 2, logo após o checkout e antes também do `setup-node` (um passo além do pedido, para falhar ainda mais cedo); conferido que `validar_estrutura.py` só usa `argparse`, `sys` e `pathlib` e lê `.md` em `docs/`. Cabeçalho (ordem, motivo, lista de reprodução local) e numeração 1–10 atualizados.
+- **`concurrency`:** `group: ci-${{ github.ref }}` e `cancel-in-progress: true`, com comentário sobre `github.ref` em push e PR e a economia de minutos.
+- **README:** seção "Integração contínua (CI)" depois de "Comandos", apontando para o workflow e para a reprodução local.
+
+Arquivos: `.github/workflows/ci.yml`, `README.md`. SHA fixo nas actions fica para o futuro (D3).
 
 ## Log
 
@@ -119,3 +128,4 @@ Arquivos: `.github/workflows/ci.yml` (novo), `README.md`.
 - 2026-10-10 — devops: CONCLUIDO — etapa de build no CI; build local, actionlint e validador OK
 - 2026-10-10 — code-reviewer: APROVADO — critérios 1–3, D1 e D2 atendidos; extras aceitáveis; 4 opcionais
 - 2026-10-10 — orquestrador: D3 (delegação) — aceitar extras e aplicar opcionais 2–4 antes do QA
+- 2026-10-10 — devops: CONCLUIDO — validador primeiro, `concurrency` e seção do CI no README; actionlint e validador OK
