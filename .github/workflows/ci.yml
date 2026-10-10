@@ -1,0 +1,109 @@
+# Integração contínua (CI) do site — T-006.
+#
+# O que é: a cada push ou pull request para a `main`, o GitHub sobe uma máquina
+# Linux limpa, baixa o repositório e roda as mesmas verificações que rodamos
+# localmente. Se alguma falhar, o "check" fica vermelho no GitHub.
+#
+# Ordem das etapas (do mais rápido ao mais lento, para falhar cedo):
+#   instalar dependências → validador da estrutura → lint → testes unitários
+#   → navegador do Playwright → testes de aceitação (e2e).
+#
+# Para reproduzir localmente, rode na raiz, nesta mesma ordem:
+#   npm ci
+#   python3 scripts/validar_estrutura.py
+#   npm run lint
+#   npm test
+#   npx playwright install --with-deps chromium
+#   npm run test:e2e
+#
+# Segredos: nenhum. O CI não precisa de token; se um dia precisar, ele entra
+# como "secret" do repositório (Settings → Secrets), nunca neste arquivo.
+
+# Nome que aparece na aba "Actions" e nos checks do pull request.
+name: CI
+
+# Gatilhos: quando o workflow roda.
+on:
+  # Todo push direto na main (inclusive o merge local + `git push origin main`).
+  push:
+    branches: [main]
+  # Todo pull request que tenha a main como destino.
+  pull_request:
+    branches: [main]
+
+# Permissão mínima do token automático do GitHub: só ler o código.
+# O CI não escreve nada no repositório.
+permissions:
+  contents: read
+
+jobs:
+  # Um único job: as etapas rodam em sequência, na mesma máquina.
+  verificar:
+    name: Validador, lint e testes
+    # Máquina virtual Linux mantida pelo GitHub (já vem com git e python3).
+    runs-on: ubuntu-latest
+    # Se algo travar (ex.: servidor do e2e que não sobe), cancela em 15 min
+    # em vez de gastar os minutos gratuitos do repositório privado.
+    timeout-minutes: 15
+
+    steps:
+      # 1. Baixa o código do commit que disparou o workflow.
+      - name: Baixar o código
+        uses: actions/checkout@v7
+
+      # 2. Instala o Node.js 24 (o mínimo pedido em "engines" no package.json).
+      #    `cache: npm` guarda a pasta de downloads do npm (~/.npm) entre
+      #    execuções, usando o package-lock.json como chave: enquanto o lock não
+      #    muda, os pacotes vêm do cache em vez da internet.
+      - name: Instalar o Node.js 24 (com cache do npm)
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      # 3. Instala as dependências de todos os workspaces (apps/* e packages/*).
+      #    `npm ci` (e não `npm install`) segue exatamente o package-lock.json e
+      #    falha se ele estiver desatualizado: instalação reprodutível.
+      - name: Instalar dependências
+        run: npm ci
+
+      # 4. Confere a estrutura do projeto (pastas, docs, skills, agentes e
+      #    comandos). Script em Python, sem dependências externas.
+      - name: Validar a estrutura do projeto
+        run: python3 scripts/validar_estrutura.py
+
+      # 5. Lint: o ESLint (configuração única em eslint.config.mjs, ADR-0002)
+      #    analisa cada workspace e também e2e/ e scripts/.
+      - name: Lint
+        run: npm run lint
+
+      # 6. Testes unitários (Vitest) e de rotas da API (Supertest) de todos os
+      #    workspaces. Não precisa de build antes: o pacote shared só é
+      #    importado como tipo (`import type`), que some ao transpilar.
+      - name: Testes unitários e da API
+        run: npm test
+
+      # 7. Baixa o Chromium usado pelo Playwright e, com `--with-deps`, as
+      #    bibliotecas do Linux de que ele precisa. Só o Chromium: os dois
+      #    projetos do e2e (celular e desktop) usam esse navegador.
+      - name: Instalar o navegador do Playwright
+        run: npx playwright install --with-deps chromium
+
+      # 8. Testes de aceitação no navegador. A config (e2e/playwright.config.ts)
+      #    sobe o front sozinha e, como o GitHub define CI=true, proíbe
+      #    `test.only` esquecido e repete até 2 vezes um teste instável.
+      - name: Testes de aceitação (e2e)
+        run: npm run test:e2e
+
+      # 9. Só se algo falhou: guarda o relatório do Playwright (com capturas e
+      #    rastro) para baixar na página da execução. Fica disponível 7 dias.
+      - name: Guardar o relatório do Playwright (se falhar)
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: relatorio-playwright
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore

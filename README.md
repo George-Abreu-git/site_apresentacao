@@ -24,8 +24,8 @@ Monorepo com npm workspaces:
 # 1. Instalar as dependências de todos os workspaces (um único comando, na raiz)
 npm install
 
-# 2. Baixar os navegadores usados pelo Playwright (só na primeira vez)
-npx playwright install
+# 2. Baixar o navegador usado pelo Playwright (só na primeira vez; os testes usam só o Chromium)
+npx playwright install chromium
 
 # 3. Compilar tudo uma vez (gera o dist/ do packages/shared, usado pela API e pelo front)
 npm run build
