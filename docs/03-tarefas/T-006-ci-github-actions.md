@@ -42,6 +42,17 @@ Pipeline de integração contínua que roda em cada push e pull request para `ma
     - ✅ Verificação automática, sem esperar ninguém. ✅ Critério fechado pelo próprio fluxo. ✅ Detecta vermelho na hora.
     - ❌ Manusear um segredo do George sem autorização explícita. ❌ Risco de vazar o token em logs. ❌ Contraria o RNF de segredos e a regra de não decidir sobre credenciais.
   - **Escolha: A.** Mantém o ritmo pedido sem tocar em credenciais. O critério 4 fica **sem marcar** até o George confirmar no GitHub; o resto da tarefa segue o fluxo normal. Se o CI ficar vermelho, a correção vira prioridade antes de qualquer outra tarefa.
+- 2026-10-10 — **D2 — Checagem de tipos no CI (decidido pelo orquestrador, delegação).** O devops notou que o CI não confere os tipos do TypeScript. Isso inclui a prova de compartilhamento do tipo `Projeto` da T-005 (`expectTypeOf`), que **só falha no `npm run build`** — com `npm test` verde.
+  - **A) Acrescentar a etapa `npm run build` ao CI agora (antes dos testes)**
+    - ✅ Pega erros de tipo que lint e testes não veem, inclusive a prova do `Projeto`. ✅ O script já existe e passa; custo de alguns segundos. ✅ Valida também que o front e a API compilam para produção (pré-requisito do deploy da T-013).
+    - ❌ Uma etapa a mais em cada execução. ❌ Pequena ampliação do escopo da T-006. ❌ Mais um passo a manter.
+  - **B) Deixar para uma tarefa futura**
+    - ✅ Escopo da T-006 intacto. ✅ Zero atraso. ✅ Pode ser decidido junto com outras melhorias do CI.
+    - ❌ A `main` pode receber erro de tipo com o CI verde. ❌ A prova do `Projeto` fica sem guarda automática. ❌ Vira pendência fácil de esquecer.
+  - **C) Criar scripts `typecheck` (`tsc --noEmit`) em cada workspace e rodá-los no CI**
+    - ✅ Checa só tipos, sem gerar `dist/`. ✅ Separa "compilar" de "checar". ✅ Pode ser um pouco mais rápido.
+    - ❌ Scripts novos em `apps/**`/`packages/**` (área do dev) e na raiz — mais gente envolvida. ❌ Duplica parte do que o `build` já faz. ❌ Não valida o build de produção.
+  - **Escolha: A.** É barato, usa o que já existe e fecha uma brecha real (a prova de tipos da T-005 só é checada no build). O devops acrescenta a etapa antes da revisão.
 
 ## Dev
 
@@ -53,9 +64,28 @@ Pipeline de integração contínua que roda em cada push e pull request para `ma
 
 ## DevOps
 
+### Rodada 1
+
+**Resultado:** CONCLUIDO — `.github/workflows/ci.yml` criado e simulado localmente, tudo verde; critério 4 sem marcar (D1).
+
+**Workflow:** gatilhos push e pull request para `main`; `permissions: contents: read`; um job em `ubuntu-latest` com `timeout-minutes: 15` (minutos gratuitos do repositório privado). Etapas comentadas em português: (1) checkout; (2) `actions/setup-node@v7` com Node `'24'` (do `engines`) e `cache: npm` (chave pelo `package-lock.json`); (3) `npm ci`; (4) `python3 scripts/validar_estrutura.py`; (5) `npm run lint`; (6) `npm test`; (7) `npx playwright install --with-deps chromium`; (8) `npm run test:e2e`; (9) só em falha, `actions/upload-artifact@v7` guarda o relatório do Playwright por 7 dias (não pedido; para diagnóstico). `checkout`, `setup-node` e `upload-artifact` na v7 (maior tag publicada, conferida com `git ls-remote`; `action.yml` em node24). Sem segredos. Sem `npm run build`: no clone limpo, lint e testes passaram sem o `dist/` do shared (importado só com `import type`) — comentado na etapa 6.
+
+**Verificação:** YAML lido sem erro pelo PyYAML (instalado em pasta temporária) e `actionlint` 1.7.12 sem apontamentos (shellcheck não roda no Windows). Simulação num clone limpo da branch, fora do repositório, com `CI=true`, na ordem do workflow: `npm ci` (441 pacotes), validador OK, lint 0 erros, `npm test` (api 8/8, web 3/3), Chromium instalado, `npm run test:e2e` 8/8. Pastas temporárias apagadas; validador do repositório OK; UTF-8 sem BOM.
+
+**README:** `npx playwright install` → `npx playwright install chromium` (pendência 1 da T-005).
+
+Arquivos: `.github/workflows/ci.yml` (novo), `README.md`.
+
+**Pendências:**
+1. Critério 4: o George confirma na aba Actions depois do push em `main` (D1).
+2. (sugestão) O CI não confere tipos do TypeScript (Vitest não checa tipos; o lint não usa informação de tipos); `npm run build` (que roda `tsc`) pegaria esses erros — ver D2.
+3. Simulado no Windows; o Ubuntu (e o `--with-deps` instalando bibliotecas do Linux) só é exercitado no GitHub.
+
 ## Log
 
 - 2026-10-10 — tarefa criada
 - 2026-10-10 — orquestrador: início — implementador devops (tag `infra`); D1 (delegação): simular CI localmente e deixar a confirmação no GitHub para o George
 - 2026-10-10 — orquestrador: **pausada a pedido do George** (ajuste no fluxo dos subagentes); devops interrompido antes de alterar arquivos; agendamento de retomada cancelado. Retomar do passo 1 (devops) com `/executar-tarefa T-006`.
 - 2026-10-10 — orquestrador: **retomada** após a T-014 (branch rebaseada sobre a `main` com o fluxo novo: a tarefa termina quando o QA passa e o documentador roda em paralelo); devops chamado do passo 1
+- 2026-10-10 — devops: CONCLUIDO — `ci.yml` criado; simulação local verde (lint, 8+3 unitários, e2e 8/8); YAML conferido com PyYAML e actionlint
+- 2026-10-10 — orquestrador: D2 (delegação) — acrescentar `npm run build` ao CI; devops volta antes da revisão (não conta rodada)
