@@ -49,7 +49,7 @@ AGENTS.md, CLAUDE.md
 docs/00-visao/README.md, docs/01-requisitos/README.md, docs/02-arquitetura/README.md,
 docs/03-tarefas/backlog.md, docs/04-estudos/README.md
 docs/_templates/tarefa.md, adr.md, nota-estudo.md
-.claude/skills/<8 skills>/SKILL.md
+.claude/skills/<9 skills: 7 compartilhadas + 2 de orquestração>/SKILL.md
 .claude/agents/dev.md, code-reviewer.md, qa.md, instrutor.md, devops.md
 .claude/commands/nova-tarefa.md, executar-tarefa.md, estudar.md
 ```

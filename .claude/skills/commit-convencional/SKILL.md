@@ -22,7 +22,7 @@ Exemplos: `feat(contato): adiciona formulário de contato` · `test(api): cobre 
 
 ## Branches
 
-- `main` é a principal; nunca commitar trabalho de tarefa direto nela.
+- `main` é a principal; nunca commitar trabalho de tarefa direto nela. Exceção: a criação da nota de tarefa (`/nova-tarefa`) e atualizações do backlog fora de um fluxo são commitadas em `main`.
 - Uma branch por tarefa: `feat/T-XXX-<slug>` (ou `fix/...`).
 - Merge em `main` só após decisão do George.
 

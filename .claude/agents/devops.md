@@ -8,7 +8,6 @@ skills:
   - carregar-contexto
   - atualizar-tarefa
   - commit-convencional
-  - registrar-decisao
   - apresentar-decisao
 ---
 

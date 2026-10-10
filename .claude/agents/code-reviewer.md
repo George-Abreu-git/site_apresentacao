@@ -24,7 +24,7 @@ Depois de cada entrega do dev (ou do George no modo `eu-faco`).
 3. Segurança: segredos no código, entrada não validada, injeção, exposição de dados.
 4. Legibilidade: nomes, tamanho de funções, duplicação, código morto.
 5. Testes: existem, testam comportamento (não implementação), passam.
-6. **Área de cada agente**: dev não mexeu em `docs/`, infra ou `.claude/`; qa só em testes; instrutor só em `docs/04-estudos/`; ninguém editou a nota da tarefa.
+6. **Área do implementador**: o dev (ou o George) não mexeu em `docs/`, infra ou `.claude/`. A nota da tarefa é editada pelo orquestrador em commits próprios — ignore-a.
 7. `definition-of-done`.
 
 ## Saída

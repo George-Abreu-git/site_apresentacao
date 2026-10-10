@@ -9,7 +9,6 @@ skills:
   - atualizar-tarefa
   - definition-of-done
   - commit-convencional
-  - registrar-decisao
   - apresentar-decisao
 ---
 

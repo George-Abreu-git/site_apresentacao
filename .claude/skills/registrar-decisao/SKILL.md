@@ -1,6 +1,6 @@
 ---
 name: registrar-decisao
-description: Use quando o George tomar uma decisão técnica ou de arquitetura que precisa ficar registrada (ex.: stack, padrão de API, hospedagem) — cria uma ADR.
+description: Use (somente na sessão principal) quando o George tomar uma decisão técnica ou de arquitetura que precisa ficar registrada (ex.: stack, padrão de API, hospedagem) — cria uma ADR.
 ---
 
 # Registrar decisão (ADR)

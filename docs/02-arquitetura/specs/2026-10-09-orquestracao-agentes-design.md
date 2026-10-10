@@ -91,7 +91,7 @@ Conduzido pela sessão principal com a skill `orquestrar-tarefa`, disparada por 
 
 **Handoff:** os agentes não compartilham conversa; tudo que um precisa do outro está na nota da tarefa.
 
-**Decisões no meio do fluxo:** se um subagente encontra uma decisão que não está coberta por ADR, requisito ou pela tarefa, ele não decide sozinho. Ele para, registra a decisão na nota da tarefa usando o formato de `apresentar-decisao` e devolve ao orquestrador com status `aguardando-decisao`. O orquestrador apresenta ao George, registra a escolha (na tarefa ou como ADR via `registrar-decisao`) e retoma o fluxo.
+**Decisões no meio do fluxo:** se um subagente encontra uma decisão que não está coberta por ADR, requisito ou pela tarefa, ele não decide sozinho. Ele para, registra a decisão no campo "Decisão pendente" do Handoff usando o formato de `apresentar-decisao` e devolve ao orquestrador com status `aguardando-decisao`. O orquestrador apresenta ao George, registra a escolha (na tarefa ou como ADR via `registrar-decisao`) e retoma o fluxo.
 
 **Commits:** ao final de cada etapa que altera arquivos, o orquestrador commita seguindo `commit-convencional`, referenciando o id da tarefa.
 
@@ -101,9 +101,9 @@ Compartilhadas:
 | Skill | Propósito | Usada por |
 |---|---|---|
 | carregar-contexto | Mapa "papel → arquivos a ler", evitando leitura do projeto inteiro | todos |
-| atualizar-tarefa | Contrato do bloco `## Handoff` que os agentes devolvem + regras de como o orquestrador atualiza status/seções/log | todos |
+| atualizar-tarefa | Contrato do bloco `## Handoff` que os agentes devolvem (as regras de escrita do orquestrador ficam em `orquestrar-tarefa`) | todos |
 | definition-of-done | Checklist único de "pronto" | dev, code-reviewer, qa |
-| registrar-decisao | Criar ADR a partir do template | sessão principal, dev, devops |
+| registrar-decisao | Criar ADR a partir do template | sessão principal |
 | nota-de-estudo | Formato de nota Obsidian (conceito, por que, exemplo do projeto, links) | instrutor (outros sugerem conceitos) |
 | commit-convencional | Conventional Commits e nomes de branch | dev, devops, sessão principal |
 | apresentar-decisao | Formato obrigatório de decisão: 3 opções, 3 prós e 3 contras cada, recomendação; perguntas numeradas em rodadas (estilo grilling). Subagentes registram e devolvem; só a sessão principal pergunta ao George | todos |

@@ -6,4 +6,4 @@ Decisões técnicas e documentos de desenho.
 - **Specs**: [[2026-10-09-orquestracao-agentes-design|Spec da orquestração de agentes]]
 - **Planos**: [[2026-10-09-estrutura-orquestracao-plano|Plano da estrutura de orquestração]]
 
-Quem escreve: sessão principal, dev e devops (sempre com a decisão tomada pelo George).
+Quem escreve: a sessão principal (orquestrador), sempre com a decisão tomada pelo George.
