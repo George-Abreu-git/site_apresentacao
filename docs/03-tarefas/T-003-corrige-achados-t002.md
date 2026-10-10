@@ -89,6 +89,21 @@ Os achados baixos (B1–B5, B7–B14) ficam para a ADR de stack ou para uma tare
 
 ## Estudo
 
+### Rodada 2
+
+**Resultado:** CONCLUIDO — o instrutor (modo explicador) explicou as correções (B6, M3, dono da plataforma e aprovação humana, M2, M5, M4 e M1) e atualizou/criou notas de estudo.
+
+Notas:
+- [[docs/04-estudos/areas-por-caminho-de-escrita|Áreas por caminho de escrita]] — atualizada para as áreas vigentes (o diagnóstico da T-002 virou subseção histórica; nova seção "Depois: a tabela vigente (T-003)"), como o QA apontou.
+- [[docs/04-estudos/gitattributes-e-fim-de-linha|.gitattributes e fim de linha]] — atualizada com a T-003 e o `--renormalize` (repositório × pasta local).
+- [[docs/04-estudos/modo-de-fluxo-por-tag|Modo de fluxo por tag]] — nova.
+- [[docs/04-estudos/dono-da-plataforma-e-aprovacao-humana|Dono da plataforma e aprovação humana]] — nova.
+- [[docs/04-estudos/verificar-antes-de-concluir|Verificar antes de concluir]] — nova.
+
+Exercícios sugeridos: (1) qual fluxo segue uma tarefa com tags `[revisao, front-end]` e `modo: eu-faco`, e quem pode alterar arquivos; (2) rodar `git ls-files` e dar o dono de cada pasta de primeiro nível pela tabela atual do `AGENTS.md`, comparando com as lacunas da T-002.
+
+Pendência fora da área do instrutor: o plano histórico `docs/02-arquitetura/planos/2026-10-09-estrutura-orquestracao-plano.md:146` ainda descreve as áreas antigas.
+
 ## DevOps
 
 ### Rodada 1
@@ -133,3 +148,4 @@ Arquivos alterados: `AGENTS.md`, `.claude/agents/devops.md`, spec da orquestraç
 - 2026-10-09 — devops: CONCLUIDO — 2 ajustes aplicados (rodada 2); validador OK
 - 2026-10-10 — code-reviewer: APROVADO — ajustes conferidos, sem contradição nova; 4 opcionais registrados
 - 2026-10-10 — qa: PASSOU — 8 critérios atendidos; validador OK; nenhum arquivo alterado
+- 2026-10-10 — instrutor: CONCLUIDO — 2 notas de estudo atualizadas e 3 criadas
