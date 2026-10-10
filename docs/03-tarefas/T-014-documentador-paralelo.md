@@ -47,6 +47,9 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 - 2026-10-10 — George (Q1-A): tirar a documentação do caminho crítico; formato **diário por tarefa** + consolidação sob demanda (`/estudar-consolidar`); execução em paralelo num worktree.
 - 2026-10-10 — consequência registrada na abertura: o diário fica com um **novo agente** (`documentador`), porque o instrutor em modo mentor precisa ler a branch da tarefa e não pode rodar isolado a partir da `main`. Se o George preferir manter um agente só, o orquestrador apresenta a alternativa (`apresentar-decisao`) antes de implementar.
 - 2026-10-10 — orquestrador: as alterações em `.claude/agents/**` desta tarefa (novo `documentador.md`; `instrutor.md` sem o modo explicador) estão **aprovadas pelo George** por constarem explicitamente nos critérios de aceite que ele definiu (decisão Q1-A).
+- 2026-10-10 — George (Q1-A, rodada 2 de decisões): aprova que o **devops atualize o próprio `devops.md`** nesta tarefa (fluxo termina no encerramento após o QA, com o documentador em paralelo; `docs/04-estudos/**` do instrutor e do documentador).
+- 2026-10-10 — George (Q2-A): a branch `estudos/T-XXX` entra na `main` **só com o validador** (sem a suíte), como **exceção explícita registrada no `AGENTS.md`** — ela só altera Markdown e o worktree não tem `node_modules`.
+- 2026-10-10 — George (esclarecimento, **altera o 1º critério e o de áreas**): **instrutor e documentador podem ler e gravar em `docs/04-estudos/**`** (o documentador não fica restrito ao próprio diário nem proibido de ler outras notas). **O fluxo da tarefa termina quando o QA passa** (verificação → `concluida` → merge → push); nesse momento o documentador é disparado **em paralelo** para documentar a tarefa recém-finalizada, enquanto a próxima tarefa já começa (ex.: o QA passa a T-006 → o documentador documenta a T-006 em paralelo e a T-007 já inicia). O fluxo não espera o documentador terminar.
 
 ## Dev
 
@@ -88,3 +91,4 @@ O modo `eu-faco` não muda: o instrutor continua síncrono como mentor (ele prec
 - 2026-10-10 — devops: CONCLUIDO — documentador, template, `/estudar-consolidar`, fluxo novo na `orquestrar-tarefa`, áreas e validador; README de estudos e `devops.md` pendentes
 - 2026-10-10 — instrutor: CONCLUIDO — README de `docs/04-estudos/` explica os dois formatos e a pasta `tarefas/`
 - 2026-10-10 — orquestrador: Q1 (`devops.md`) e Q2 (verificação da branch de estudos) apresentadas ao George; revisão aguarda a resposta
+- 2026-10-10 — orquestrador: George decidiu Q1-A, Q2-A e esclareceu acesso a `docs/04-estudos/**` e fim do fluxo; devops volta para alinhar (não conta rodada — mudança de decisão, não `AJUSTES`)
