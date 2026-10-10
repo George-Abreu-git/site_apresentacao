@@ -1,7 +1,7 @@
 ---
 id: T-003
 titulo: Corrigir achados médios da T-002, formalizar o modo revisão e normalizar fim de linha
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [orquestracao, docs]
 rodadas: 1
@@ -60,6 +60,16 @@ Os achados baixos (B1–B5, B7–B14) ficam para a ADR de stack ou para uma tare
 - Spec, linha "Implementador de infra": acrescentar `orquestracao`.
 - `AGENTS.md`, "Sequência inicial": deixar explícito que a ordem vale para o produto e que tarefas de plataforma (`orquestracao`, `docs`, `revisao`) não entram nela.
 
+### Rodada 2
+
+**Resultado:** APROVADO — os 2 ajustes da Rodada 1 estão aplicados (commit `4cfdf4e`), sem contradição nova entre `AGENTS.md`, `devops.md` e a spec; validador OK; arquivos na área do devops. "nenhum outro arquivo" não aparece mais em nenhum lugar. A sobreposição devops/orquestrador em `docs/02-arquitetura/`, `docs/00-visao/` e `docs/01-requisitos/` é coerente (o devops edita specs e planos; o orquestrador cria ADRs, visão e requisitos pelas skills).
+
+**Opcionais (não aplicados, ficam para o George decidir):**
+1. `AGENTS.md:87`: falta vírgula em "(notas e backlog) os commits,".
+2. A linha do devops na tabela "Áreas por caminho" (`AGENTS.md:86`) não repete a ressalva de ADRs/visão/requisitos, que aparece só na tabela de papéis e no `devops.md`.
+3. A frase abaixo da tabela de papéis ("O orquestrador ... escreve nas notas de tarefa e no backlog e faz os commits") pode citar ADRs e visão/requisitos.
+4. A linha "Dono da plataforma (T-003)" da spec não tem a ressalva sobre ADRs.
+
 ## QA
 
 ## Estudo
@@ -106,3 +116,4 @@ Arquivos alterados: `AGENTS.md`, `.claude/agents/devops.md`, spec da orquestraç
 - 2026-10-09 — devops: CONCLUIDO — B6, M1–M5 e dono da plataforma aplicados; validador OK
 - 2026-10-09 — code-reviewer: AJUSTES — 2 ajustes de coerência (área do orquestrador; ressalva de ADR do devops); rodadas = 1
 - 2026-10-09 — devops: CONCLUIDO — 2 ajustes aplicados (rodada 2); validador OK
+- 2026-10-10 — code-reviewer: APROVADO — ajustes conferidos, sem contradição nova; 4 opcionais registrados
