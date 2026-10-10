@@ -103,9 +103,11 @@ jobs:
         run: npm run build
 
       # 7. Testes unitários (Vitest) e de rotas da API (Supertest) de todos os
-      #    workspaces. Eles não dependem da etapa de build: o pacote shared só
-      #    é importado como tipo (`import type`), que some ao transpilar.
-      - name: Testes unitários e da API
+      #    workspaces, e depois os testes dos hooks do Claude Code
+      #    (`npm run test:hooks`, com o executor de testes do próprio Node, T-001).
+      #    Eles não dependem da etapa de build: o pacote shared só é importado
+      #    como tipo (`import type`), que some ao transpilar.
+      - name: Testes unitários, da API e dos hooks
         run: npm test
 
       # 8. Baixa o Chromium usado pelo Playwright e, com `--with-deps`, as

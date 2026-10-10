@@ -47,13 +47,15 @@ export default defineConfig([
   },
 
   // 4. Código que roda no Node: a API, o pacote compartilhado, os testes e2e,
-  //    os scripts da raiz e as configs (ex.: vite.config.ts, playwright.config.ts).
+  //    os scripts da raiz, os hooks do Claude Code (.claude/hooks, T-001) e as
+  //    configs (ex.: vite.config.ts, playwright.config.ts).
   {
     files: [
       'apps/api/**/*.ts',
       'packages/**/*.ts',
       'e2e/**/*.ts',
       'scripts/**/*.{js,mjs}',
+      '.claude/hooks/**/*.mjs',
       'apps/web/*.config.{ts,js,mjs}',
       '*.{js,mjs}',
     ],
