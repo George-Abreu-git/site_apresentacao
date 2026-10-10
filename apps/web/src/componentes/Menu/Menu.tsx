@@ -34,7 +34,7 @@ function Menu({ itens }: MenuProps) {
   }
 
   return (
-    <nav aria-label="Navegação principal" className={estilos.menu} onKeyDown={aoTeclar}>
+    <nav aria-label="Navegação principal" onKeyDown={aoTeclar}>
       <button
         ref={botaoRef}
         type="button"

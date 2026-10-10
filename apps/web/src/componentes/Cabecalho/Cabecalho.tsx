@@ -2,7 +2,7 @@ import { SECOES } from '../../secoes';
 import Menu from '../Menu/Menu';
 import estilos from './Cabecalho.module.css';
 
-/** Cabeçalho fixo no topo: o menu continua ao alcance enquanto a página rola (RF-01). */
+/** Cabeçalho preso ao topo (sticky): o menu continua ao alcance enquanto a página rola (RF-01). */
 function Cabecalho() {
   return (
     <header className={estilos.cabecalho}>

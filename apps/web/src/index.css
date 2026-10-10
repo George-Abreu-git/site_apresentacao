@@ -8,7 +8,7 @@
 }
 
 html {
-  /* Ao seguir uma âncora (#sobre), deixa espaço para o cabeçalho fixo não cobrir o título. */
+  /* Ao seguir uma âncora (#sobre), deixa espaço para o cabeçalho preso ao topo (sticky) não cobrir o título. */
   scroll-padding-top: var(--altura-cabecalho);
 }
 
