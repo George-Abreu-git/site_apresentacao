@@ -1,7 +1,7 @@
 ---
 id: T-007
 titulo: Layout base: menu com âncoras, tema escuro e responsividade
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -31,6 +31,7 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 ## Decisões
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
+- 2026-10-10 — George delegou ao orquestrador as decisões das tarefas T-005, T-006, T-001 e T-007 (ver T-005). Decisões abaixo marcadas "decidido pelo orquestrador (delegação)", com as opções documentadas, para revisão do George.
 
 ## Dev
 
@@ -45,3 +46,4 @@ Estrutura visual da página única: as seis seções vazias, o menu de navegaç�
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-10 — orquestrador: início — implementador dev (tag `front-end`); e2e com o qa
