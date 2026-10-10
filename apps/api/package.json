@@ -1,0 +1,33 @@
+{
+  "name": "@site-apresentacao/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "API do site (NestJS)",
+  "type": "module",
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "tsc --noEmit && nest build",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.1.2",
+    "@nestjs/core": "^12.1.2",
+    "@nestjs/platform-express": "^12.1.2",
+    "@site-apresentacao/shared": "*",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^12.0.8",
+    "@nestjs/schematics": "^12.0.6",
+    "@nestjs/testing": "^12.1.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.19.2",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.1",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
+  }
+}

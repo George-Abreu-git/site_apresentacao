@@ -1,0 +1,25 @@
+// Configuração usada para CHECAR os tipos de todo o código da API, inclusive os testes
+// (src/ e test/). O build (tsconfig.build.json) parte desta e gera o JavaScript só de src/.
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Módulos ES com as regras do Node (por isso os imports terminam em .js).
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    // Os decorators do NestJS (@Module, @Controller, @Get...) dependem destas duas opções.
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Cada arquivo precisa poder ser transformado sozinho (é o que o Vitest faz).
+    "isolatedModules": true,
+
+    // A API roda no Node: tipos de `process`, `fs` etc.
+    "types": ["node"],
+
+    "rootDir": ".",
+    "outDir": "dist",
+    "sourceMap": true
+  },
+  "include": ["src", "test", "vitest.config.ts"]
+}

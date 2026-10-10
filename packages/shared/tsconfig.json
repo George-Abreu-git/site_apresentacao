@@ -1,0 +1,20 @@
+// Pacote compartilhado: compilado para dist/ com os arquivos de tipos (.d.ts),
+// que são o que o front e a API leem ao importar "@site-apresentacao/shared".
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Módulos ES com as regras de resolução do Node (exigem a extensão .js nos imports).
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    // Gera os .d.ts junto do .js: sem eles, quem importa o pacote não enxerga os tipos.
+    "declaration": true,
+
+    "rootDir": "src",
+    "outDir": "dist",
+
+    // O pacote não depende de nenhum ambiente (nem Node, nem navegador).
+    "types": []
+  },
+  "include": ["src"]
+}

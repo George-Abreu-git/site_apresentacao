@@ -1,0 +1,27 @@
+/*
+ * CSS Module: o Vite troca cada nome de classe por um nome único (ex.: _pagina_x1y2z),
+ * então estas classes nunca colidem com as de outro componente.
+ */
+
+.pagina {
+  /* Centraliza o conteúdo na tela, em qualquer largura. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.titulo {
+  margin: 0;
+  /* Cresce com a largura da tela, entre 2rem (celular) e 3.5rem (desktop). */
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+
+.aviso {
+  margin: 0.75rem 0 0;
+  font-size: 1.125rem;
+}

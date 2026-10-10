@@ -1,0 +1,31 @@
+// Código do front (pasta src/), que roda no navegador.
+// As configs que rodam no Node (vite.config.ts) ficam em tsconfig.node.json,
+// para que tipos do Node (ex.: `process`) não "vazem" para o código do navegador.
+// `tsc -b` (script build) checa os dois projetos, por causa de "references".
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // Tipos que o Vite acrescenta ao navegador (ex.: importar .module.css).
+    "types": ["vite/client"],
+
+    // Modo "bundler": quem resolve os imports é o Vite, não o Node.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    // Exige `import type` para imports só de tipos (eles somem do JavaScript gerado).
+    "verbatimModuleSyntax": true,
+
+    // O TypeScript só checa; quem gera o JavaScript é o Vite.
+    "noEmit": true,
+    // `tsc -b` grava um arquivo de estado para checar mais rápido da próxima vez; fica fora do git.
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
+    // Avisos de código esquecido.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

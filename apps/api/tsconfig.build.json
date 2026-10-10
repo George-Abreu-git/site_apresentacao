@@ -1,0 +1,9 @@
+// Usada pelo `nest build`: gera dist/ só com o código de produção (sem os testes).
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["**/*.spec.ts"]
+}

@@ -1,0 +1,19 @@
+// Arquivos de configuração do front que rodam no Node (não no navegador).
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "verbatimModuleSyntax": true,
+
+    // Um projeto citado em "references" (ver tsconfig.json) precisa ser "composite",
+    // e um projeto "composite" não pode desligar a geração de arquivos.
+    // Por isso geramos só os .d.ts, e tudo vai para node_modules/.tmp, fora do git.
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./node_modules/.tmp/tsconfig-node",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo"
+  },
+  "include": ["vite.config.ts"]
+}
