@@ -1,7 +1,7 @@
 ---
 id: T-001
 titulo: Hooks PreToolUse de restrição de escrita por agente
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [infra, orquestracao]
 rodadas: 3
@@ -190,6 +190,21 @@ Arquivos: `.claude/hooks/politica.mjs`, `shell.mjs`, `tests/politica.test.mjs`, 
 
 **Para a revisão:** extensões além do pedido — `xargs`; negação de `CURL_HOME`, `WGETRC`, `HOME`, `XDG_CONFIG_HOME` (efeito: `HOME=... npm test` negado para subagentes); awk com programa de arquivo; embrulhos não analisados negados. Testes de `time -p rm -f .claude/agents/dev.md`: "negar" para o dev, "perguntar" para o devops (D3). Divisão do `politica.mjs` (~1500 linhas) segue para depois (D4).
 
+### Rodada 4 (ajustes da revisão 3 + D6)
+
+**Resultado:** CONCLUIDO — 4 bloqueantes e opcionais 5 e 6 da D6 aplicados, mais uma varredura adversarial; `test:hooks` 380/380 (eram 309); `npm test`, lint e validador verdes; UTF-8 preservado; lock inalterado. Os hooks bloquearam as próprias sondagens do devops que citavam caminhos protegidos (esperado).
+1. **`timeout` dinâmico:** embrulho com `posicionais` que consome argumento dinâmico → negado (`posicionalDinamico`); `timeout 60 npm test`/`git log` seguem permitidos.
+2. **`sed`:** parser de script (`separarSed`, `sedPerigoso`, `scriptSedPerigoso`, com `pularEnderecoSed`/`pularRegexSed`/`pularSubstituicaoSed`) para todos os subagentes: nega `e`/`w`/`W` com ou sem endereço (dígitos, `$`, `/re/`, `\cREc`, faixas, `!`), flag `e`/`w` no `s///` e `-f`/`--file`; `sedNoLugar` e o code-reviewer reusam o parser. Permitidos `sed -n '1,20p'`, `sed 's/foo/the bar/'`, `sed -i` na área.
+3. **Executores do Windows/Git Bash:** `cmd`, `start`, `winpty` (e `wsl`) em `EMBRULHOS_NAO_ANALISADOS`; `powershell`/`pwsh` via Bash vão para o `avaliarPowerShell` com os argumentos juntados (`powershellViaBash`, D3(7)); `-EncodedCommand` e argumento dinâmico negados; `powershell Get-ChildItem` permitido.
+4. **git executando programas, para todos:** `git -c`/`--config-env`/`--exec-path`/`grep -O` e qualquer `GIT_*`/`PAGER` antes do comando (exceto `GIT_PAGER=cat`/`PAGER=cat`) negados; `GIT_PAGER=cat git log -1` e `git add apps/web/src/a.ts` (dev) permitidos. O teste antigo `dev · git -c user.name=x log` passou de permitir para negar.
+5. **Rede de segurança** (`redeDeSeguranca`, `TRECHO_PROTEGIDO_REDE` com `.git/`): comando sem análise específica citando `docs/03-tarefas`, `.claude/agents` ou `.git/` → negado; leituras conhecidas (`LEITURA_CONHECIDA`: `cat`, `grep`, `head`, `tail`, `wc`, `diff`...) isentas; `sort`/`uniq` fora da isenção. Negados `npx rimraf docs/03-tarefas/x`, `sort -o docs/03-tarefas/x f`, `uniq f docs/03-tarefas/x`; permitidos `grep -n T-001 docs/03-tarefas/backlog.md` e `cat docs/03-tarefas/T-001-...md`.
+6. **`HOME`/`XDG_CONFIG_HOME`/`CURL_HOME`/`WGETRC`** negadas só com `curl`/`wget`/`git`; `HOME=/tmp npm test` volta a passar.
+- **Varredura adversarial:** `sort -o`/`shuf -o` com destino conferido contra a área; editores `ex`/`ed`/`red` e `vim`/`vi`/`nvim`/`view` em modo ex/script (`-c`, `+cmd`, `-E`, `-es`, `--cmd`) negados para quem escreve (`vim arquivo` interativo segue permitido); encadeamentos `env winpty`, `env powershell`, `timeout 5 powershell`, `nice -n 5 powershell`, `xargs ... cmd` confirmados nas regras novas.
+
+Arquivos: `.claude/hooks/politica.mjs`, `tests/politica.test.mjs`, `README.md`.
+
+**Pendências:** divisão do `politica.mjs` (~1600 linhas) e unificação dos separadores de argumentos ficam para depois (D4/D5); limites do README continuam (o que um script executado faz por dentro; `gzip`/`zip`/`split`/`csplit` fora das listas só são barrados pela rede quando citam caminho protegido).
+
 ## Log
 
 - 2026-10-09 — tarefa criada
@@ -204,3 +219,4 @@ Arquivos: `.claude/hooks/politica.mjs`, `shell.mjs`, `tests/politica.test.mjs`, 
 - 2026-10-10 — devops: CONCLUIDO — embrulhos com lista de opções, `env -S`/opção desconhecida negados, opcionais da D5; 309 testes (interrompido pelo limite de uso e retomado); test/lint/validador OK
 - 2026-10-10 — code-reviewer: AJUSTES — 4 bloqueantes (`timeout` dinâmico; `sed` `e`/`w`; `powershell`/`cmd`/`winpty`/`start`; `GIT_EXTERNAL_DIFF`/`git -c`); rodadas = 3 (última volta antes do limite)
 - 2026-10-10 — orquestrador: D6 (delegação) — corrigir os 4 bloqueantes + rede de segurança para comando não analisado em caminho protegido + restrição do `HOME`
+- 2026-10-10 — devops: CONCLUIDO — 4 bloqueantes, rede de segurança, `HOME` restrito e varredura adversarial (`sort -o`, `ex`/`ed`/`vim -c`); 380 testes; test/lint/validador OK
