@@ -53,6 +53,11 @@ Depois de mudar algo em `packages/shared`, rode `npm run build -w packages/share
 
 Para rodar um comando em um workspace só, use `--workspace` (ou `-w`), por exemplo `npm test -w apps/api`.
 
+## Integração contínua (CI)
+
+A cada push ou pull request para a `main`, o GitHub Actions roda o validador da estrutura, o lint, o build (checagem de tipos), os testes unitários e os testes de aceitação, conforme [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+O cabeçalho desse arquivo lista os comandos, na mesma ordem do CI, para reproduzir a verificação localmente.
+
 ## Lint
 
 O ESLint tem uma configuração única para o monorepo, em [`eslint.config.mjs`](eslint.config.mjs) ([ADR-0002](docs/02-arquitetura/ADR-0002-lint.md)): regras de JavaScript e TypeScript em tudo e regras de hooks do React só em `apps/web`.

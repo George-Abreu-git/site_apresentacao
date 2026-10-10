@@ -5,12 +5,14 @@
 # localmente. Se alguma falhar, o "check" fica vermelho no GitHub.
 #
 # Ordem das etapas (do mais rápido ao mais lento, para falhar cedo):
-#   instalar dependências → validador da estrutura → lint → build (tipos)
+#   validador da estrutura → instalar dependências → lint → build (tipos)
 #   → testes unitários → navegador do Playwright → testes de aceitação (e2e).
+# O validador vem primeiro porque só precisa do Python e do código baixado:
+# se a estrutura estiver quebrada, o CI falha antes de instalar os pacotes.
 #
 # Para reproduzir localmente, rode na raiz, nesta mesma ordem:
-#   npm ci
 #   python3 scripts/validar_estrutura.py
+#   npm ci
 #   npm run lint
 #   npm run build
 #   npm test
@@ -37,6 +39,17 @@ on:
 permissions:
   contents: read
 
+# Concorrência: no máximo uma execução por branch ou pull request.
+# `group` junta as execuções da mesma referência (`github.ref` é, por exemplo,
+# refs/heads/main num push ou refs/pull/12/merge num pull request). Com
+# `cancel-in-progress: true`, um push novo cancela a execução antiga ainda em
+# andamento do mesmo grupo: só o commit mais recente importa, e assim não se
+# gastam os minutos gratuitos do repositório privado com resultados que ninguém
+# vai olhar.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Um único job: as etapas rodam em sequência, na mesma máquina.
   verificar:
@@ -52,7 +65,14 @@ jobs:
       - name: Baixar o código
         uses: actions/checkout@v7
 
-      # 2. Instala o Node.js 24 (o mínimo pedido em "engines" no package.json).
+      # 2. Confere a estrutura do projeto (pastas, docs, skills, agentes e
+      #    comandos). Script em Python, só com a biblioteca padrão: não precisa
+      #    do Node nem do node_modules (o python3 já vem na máquina do GitHub).
+      #    Por isso roda antes de instalar qualquer coisa.
+      - name: Validar a estrutura do projeto
+        run: python3 scripts/validar_estrutura.py
+
+      # 3. Instala o Node.js 24 (o mínimo pedido em "engines" no package.json).
       #    `cache: npm` guarda a pasta de downloads do npm (~/.npm) entre
       #    execuções, usando o package-lock.json como chave: enquanto o lock não
       #    muda, os pacotes vêm do cache em vez da internet.
@@ -62,16 +82,11 @@ jobs:
           node-version: '24'
           cache: npm
 
-      # 3. Instala as dependências de todos os workspaces (apps/* e packages/*).
+      # 4. Instala as dependências de todos os workspaces (apps/* e packages/*).
       #    `npm ci` (e não `npm install`) segue exatamente o package-lock.json e
       #    falha se ele estiver desatualizado: instalação reprodutível.
       - name: Instalar dependências
         run: npm ci
-
-      # 4. Confere a estrutura do projeto (pastas, docs, skills, agentes e
-      #    comandos). Script em Python, sem dependências externas.
-      - name: Validar a estrutura do projeto
-        run: python3 scripts/validar_estrutura.py
 
       # 5. Lint: o ESLint (configuração única em eslint.config.mjs, ADR-0002)
       #    analisa cada workspace e também e2e/ e scripts/.
