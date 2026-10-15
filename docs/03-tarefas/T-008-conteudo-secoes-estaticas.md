@@ -1,7 +1,7 @@
 ---
 id: T-008
 titulo: Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -16,12 +16,12 @@ Preenche as seções estáticas com textos vindos de arquivo de conteúdo em por
 
 ## Critérios de aceite
 
-- [ ] RF-09: todos os textos visíveis em arquivo(s) de conteúdo; nenhum texto escrito direto nos componentes
-- [ ] RF-02: Início com nome, título, frase de apresentação e atalhos para Projetos e Contato, visíveis sem rolar
-- [ ] RF-03: Sobre com resumo e links para LinkedIn e GitHub (nova aba)
-- [ ] RF-07: Serviços com o que é oferecido, para quem, como funciona e botão para Contato
-- [ ] RF-08: Contato com LinkedIn, e-mail (`mailto:`) e GitHub
-- [ ] Testes unitários (dev/George) e e2e dos links e atalhos (qa)
+- [x] RF-09: todos os textos visíveis em arquivo(s) de conteúdo; nenhum texto escrito direto nos componentes
+- [x] RF-02: Início com nome, título, frase de apresentação e atalhos para Projetos e Contato, visíveis sem rolar
+- [x] RF-03: Sobre com resumo e links para LinkedIn e GitHub (nova aba)
+- [x] RF-07: Serviços com o que é oferecido, para quem, como funciona e botão para Contato
+- [x] RF-08: Contato com LinkedIn, e-mail (`mailto:`) e GitHub
+- [x] Testes unitários (dev/George) e e2e dos links e atalhos (qa)
 
 ## Contexto relevante
 
@@ -97,3 +97,4 @@ Conceitos para estudo: `context.route` para simular sites externos; `context.wai
 - 2026-10-15 — orquestrador: em-revisao — George escolheu B na Q1 (provisórios + nova tarefa T-015); segue para o code-reviewer
 - 2026-10-15 — code-reviewer: APROVADO — RF-02/03/07/08/09 atendidos; 42 testes, lint e build verdes; e2e pendente com o qa
 - 2026-10-15 — qa: PASSOU — e2e das seções estáticas (91 passando, 7 pulados); suíte, lint e validador verdes
+- 2026-10-15 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
