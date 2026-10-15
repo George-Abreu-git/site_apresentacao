@@ -1,7 +1,7 @@
 ---
 id: T-008
 titulo: Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -56,6 +56,18 @@ Commit: `cd4b210 feat(web): adiciona arquivo de conteúdo e seções Início, So
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff atende RF-02, RF-03, RF-07, RF-08 e RF-09 sem nada fora do escopo. Os textos estão centralizados e tipados em `apps/web/src/conteudo/`, e um teste confere que nenhum texto da página fica fora do conteúdo. Os links externos são seguros e acessíveis, e o `mailto:` está correto. Testes unitários (42 de 42), lint e build passaram. Todos os arquivos do dev estão na área dele. Os dados provisórios foram aceitos pela decisão Q1 → B.
+Arquivos alterados: nenhum
+Pendências:
+1. qa: `e2e/testes/pagina-inicial.spec.ts` ainda procura "Site em construção." — trocar pela frase de apresentação e escrever os e2e da tarefa (atalhos do Início, botão de Serviços, links em nova aba com `rel`, `mailto:`, Início visível sem rolar, sem rolagem horizontal de 360px a 1280px).
+2. *opcional*: `Sobre.test.tsx:55-56` e `Contato.test.tsx:244,253-254` montam `new RegExp(...)` com texto do conteúdo; caracteres especiais de regex num texto futuro podem quebrar os testes.
+3. *opcional*: `conteudo.test.tsx` só olha nós de texto e `aria-label`; incluir `alt`, `title` e `placeholder` se surgirem.
+Decisão pendente: nenhuma
+Conceitos para estudo: `as const` e tipos derivados; ciclo de importação só de tipo (`import type`); demais conceitos já listados em `## Dev`.
+
 ## QA
 
 ## Estudo
@@ -68,3 +80,4 @@ Commit: `cd4b210 feat(web): adiciona arquivo de conteúdo e seções Início, So
 - 2026-10-15 — orquestrador: em-andamento — início; modo trocado para agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: AGUARDANDO-DECISAO — conteúdo e seções implementados; LinkedIn e e-mail provisórios e textos sugeridos dependem do George
 - 2026-10-15 — orquestrador: em-revisao — George escolheu B na Q1 (provisórios + nova tarefa T-015); segue para o code-reviewer
+- 2026-10-15 — code-reviewer: APROVADO — RF-02/03/07/08/09 atendidos; 42 testes, lint e build verdes; e2e pendente com o qa
