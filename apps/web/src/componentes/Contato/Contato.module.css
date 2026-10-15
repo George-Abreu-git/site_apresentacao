@@ -1,0 +1,30 @@
+.texto {
+  max-width: 65ch;
+  margin: 1rem 0 0;
+}
+
+.canais {
+  /* Mobile-first: um canal por linha no celular; lado a lado quando houver espaço. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.canal {
+  display: inline-flex;
+  align-items: center;
+  /* Alvo de toque confortável (~44px) no celular. */
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: 0.5rem;
+}
+
+.canal:hover {
+  border-color: var(--cor-destaque);
+}

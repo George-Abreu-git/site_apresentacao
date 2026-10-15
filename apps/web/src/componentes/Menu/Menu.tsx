@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { conteudo } from '../../conteudo';
 import type { ItemDeSecao } from '../../secoes';
 import estilos from './Menu.module.css';
 
@@ -34,7 +35,7 @@ function Menu({ itens }: MenuProps) {
   }
 
   return (
-    <nav aria-label="Navegação principal" onKeyDown={aoTeclar}>
+    <nav aria-label={conteudo.navegacao.rotulo} onKeyDown={aoTeclar}>
       <button
         ref={botaoRef}
         type="button"
@@ -43,7 +44,7 @@ function Menu({ itens }: MenuProps) {
         aria-controls={idDaLista}
         onClick={alternar}
       >
-        Menu
+        {conteudo.navegacao.botaoMenu}
       </button>
 
       <ul id={idDaLista} className={aberto ? `${estilos.lista} ${estilos.aberta}` : estilos.lista}>
