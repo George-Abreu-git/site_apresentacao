@@ -68,6 +68,18 @@ Conceitos para estudo: rótulo acessível de lista com `aria-labelledby`; `getBy
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os critérios de RF-04 foram validados com e2e novos em `e2e/testes/stacks.spec.ts`: categorias e listas com nome vindas do arquivo de conteúdo, layout com 1, 2 e 4 colunas sem rolagem horizontal de 320 a 1920px, contraste AA, nenhum elemento focável na seção e um teste que protege o arquivo de conteúdo (sem categoria vazia, título repetido ou tecnologia repetida — cobre o risco de `key` duplicada). e2e completo com 115 passando e 7 pulados; unitários (web 47, API 8, hooks 412), lint e validador verdes.
+Arquivos alterados:
+- `e2e/testes/stacks.spec.ts` (novo)
+Pendências:
+1. Lista de tecnologias em `pt-BR.ts` ainda PROVISÓRIA (conteúdo, para o George revisar); os e2e acompanham qualquer mudança nela.
+2. *opcional* — `role="list"` nas listas sem marcador (Safari + VoiceOver); não verificado, o Playwright usa só o Chromium.
+Decisão pendente: nenhuma
+Conceitos para estudo: e2e guiados pelo arquivo de conteúdo; contar colunas de um grid com `getBoundingClientRect`; `toHaveText` com lista para conferir a ordem; contraste WCAG contra o fundo do próprio elemento; testes Playwright sem `page` para validar dados.
+
 ## Estudo
 
 ## DevOps
@@ -78,3 +90,4 @@ Conceitos para estudo: rótulo acessível de lista com `aria-labelledby`; `getBy
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — seção Stacks a partir do conteúdo; lista de tecnologias provisória para o George revisar
 - 2026-10-15 — code-reviewer: APROVADO — RF-04 com lista semântica e responsiva; 47 testes, lint e typecheck verdes
+- 2026-10-15 — qa: PASSOU — e2e da seção Stacks (115 passando, 7 pulados); suíte, lint e validador verdes
