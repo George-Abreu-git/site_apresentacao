@@ -1,7 +1,7 @@
 ---
 id: T-010
 titulo: API: módulo projetos lendo o arquivo curado
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -45,3 +45,4 @@ Primeiro módulo NestJS de domínio: lê o arquivo curado de projetos e expõe `
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
