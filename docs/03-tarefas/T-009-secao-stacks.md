@@ -82,6 +82,15 @@ Conceitos para estudo: e2e guiados pelo arquivo de conteúdo; contar colunas de 
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário da T-009 escrito em `docs/04-estudos/tarefas/T-009.md` (template `diario-estudo.md`, `consolidado: false`, 13 conceitos, 2 exercícios), com base nos handoffs de Dev, Revisão e QA e no código da seção Stacks e dos e2e. Explica a tela montada a partir dos dados, a prop opcional com valor padrão, a `key` estável, o `aria-labelledby` nas listas, o grid com `minmax` e as etiquetas com `flex-wrap`, as consultas por papel, o TDD e os e2e guiados pelo conteúdo. Reaproveita nomes de conceitos da T-008. Nenhuma outra nota de estudo alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-009.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -92,3 +101,4 @@ Conceitos para estudo: e2e guiados pelo arquivo de conteúdo; contar colunas de 
 - 2026-10-15 — code-reviewer: APROVADO — RF-04 com lista semântica e responsiva; 47 testes, lint e typecheck verdes
 - 2026-10-15 — qa: PASSOU — e2e da seção Stacks (115 passando, 7 pulados); suíte, lint e validador verdes
 - 2026-10-15 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
+- 2026-10-15 — documentador: CONCLUIDO — diário integrado
