@@ -1,8 +1,8 @@
 ---
 id: T-009
 titulo: Seção Stacks a partir de arquivo de conteúdo
-status: backlog
-modo: eu-faco
+status: em-andamento
+modo: agente-faz
 tags: [front-end]
 rodadas: 0
 criada: 2026-10-10
@@ -30,6 +30,7 @@ Lista de tecnologias agrupada por categoria, vinda de um arquivo de conteúdo. M
 ## Decisões
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
+- 2026-10-15 — George: modo trocado de `eu-faco` para `agente-faz` (o dev implementa).
 
 ## Dev
 
@@ -44,3 +45,4 @@ Lista de tecnologias agrupada por categoria, vinda de um arquivo de conteúdo. M
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
