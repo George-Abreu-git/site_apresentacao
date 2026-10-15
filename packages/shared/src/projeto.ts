@@ -1,9 +1,9 @@
 /**
  * Um projeto do portfólio, no formato que a API devolve e o front exibe.
  *
- * Por enquanto tem só os campos do arquivo curado (RF-06, item 1).
- * A T-010 (módulo projetos) confirma o formato e a T-011 acrescenta
- * os dados vivos do GitHub (linguagem, estrelas, última atualização).
+ * Por enquanto tem só os campos do arquivo curado (RF-06, item 1), documentados
+ * em apps/api/conteudo/README.md. A T-011 acrescenta os dados vivos do GitHub
+ * (linguagem, estrelas, última atualização).
  */
 export interface Projeto {
   titulo: string;

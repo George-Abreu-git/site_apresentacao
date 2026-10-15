@@ -1,0 +1,13 @@
+[
+  {
+    "titulo": "Site de apresentação",
+    "descricao": "Este site: portfólio pessoal com front-end em React e uma API própria em NestJS, construído como trilha de aprendizado.",
+    "stacks": ["React", "TypeScript", "NestJS", "CSS Modules", "Vitest", "Playwright"],
+    "repositorio": "https://github.com/George-Abreu-git/site_apresentacao"
+  },
+  {
+    "titulo": "Projeto de exemplo sem repositório",
+    "descricao": "Exemplo de projeto sem código público: aparece só com os dados deste arquivo. Substitua por um projeto real.",
+    "stacks": ["Node.js", "TypeScript"]
+  }
+]
