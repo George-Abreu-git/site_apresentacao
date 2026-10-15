@@ -41,6 +41,15 @@ export const ptBR: Conteudo = {
     linkLinkedin: 'LinkedIn',
     linkGithub: 'GitHub',
   },
+  stacks: {
+    // PROVISÓRIO: lista inicial com as tecnologias usadas neste site (ADR-0001); o George revisa e completa.
+    categorias: [
+      { titulo: 'Front-end', tecnologias: ['React', 'TypeScript', 'Vite', 'CSS Modules'] },
+      { titulo: 'Back-end', tecnologias: ['Node.js', 'NestJS', 'APIs REST'] },
+      { titulo: 'Testes', tecnologias: ['Vitest', 'Testing Library', 'Supertest', 'Playwright'] },
+      { titulo: 'Ferramentas', tecnologias: ['Git', 'GitHub', 'npm', 'ESLint'] },
+    ],
+  },
   servicos: {
     oQueOfereco: {
       titulo: 'O que eu ofereço',

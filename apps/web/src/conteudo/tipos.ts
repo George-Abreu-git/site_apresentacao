@@ -14,6 +14,12 @@ interface BlocoDeLista {
   itens: string[];
 }
 
+/** Um grupo da seção Stacks (ex.: "Front-end") e as tecnologias dele, na ordem em que aparecem. */
+export interface CategoriaDeStack {
+  titulo: string;
+  tecnologias: string[];
+}
+
 export interface Conteudo {
   /** Endereços dos perfis e o e-mail: não são traduzidos, mas ficam junto dos textos para mudar num lugar só. */
   links: {
@@ -47,6 +53,10 @@ export interface Conteudo {
     paragrafos: string[];
     linkLinkedin: string;
     linkGithub: string;
+  };
+  stacks: {
+    /** Para mostrar uma tecnologia nova, basta incluí-la aqui (RF-04): a tela não muda. */
+    categorias: CategoriaDeStack[];
   };
   servicos: {
     oQueOfereco: BlocoDeLista;
