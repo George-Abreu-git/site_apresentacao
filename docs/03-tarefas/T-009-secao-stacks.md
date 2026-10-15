@@ -1,7 +1,7 @@
 ---
 id: T-009
 titulo: Seção Stacks a partir de arquivo de conteúdo
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -12,7 +12,7 @@ criada: 2026-10-10
 
 ## Descrição
 
-Lista de tecnologias agrupada por categoria, vinda de um arquivo de conteúdo. Modo `eu-faco`.
+Lista de tecnologias agrupada por categoria, vinda de um arquivo de conteúdo. Modo `agente-faz` (decisão do George em 2026-10-15; originalmente `eu-faco`).
 
 ## Critérios de aceite
 
@@ -52,6 +52,20 @@ Commit: `feat(stacks): adiciona seção Stacks agrupada por categoria a partir d
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff entrega o RF-04 com a seção Stacks montada a partir do arquivo de conteúdo, em lista semântica com nome e layout responsivo mobile-first. Os testes unitários testam comportamento, por papel e nome acessível. Testes da web (47), lint e typecheck verdes. Todos os arquivos estão na área do dev; nada bloqueante.
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — `Stacks.test.tsx:10`: o nome do teste diz "com o título de nível 2", mas não confere o nível.
+2. *opcional* — `Stacks.tsx:25`: `role="list"` para o Safari + VoiceOver anunciar a lista (vale também para a seção Sobre, em tarefa à parte).
+3. *opcional* — `Stacks.tsx:20`: `key` é o título da categoria; títulos duplicados gerariam aviso do React.
+4. Lista de tecnologias em `pt-BR.ts` marcada como PROVISÓRIA (conteúdo, revisão do George).
+5. Descrição da nota ainda dizia "Modo `eu-faco`" — corrigida pelo orquestrador.
+Decisão pendente: nenhuma
+Conceitos para estudo: rótulo acessível de lista com `aria-labelledby`; `getByRole`/`within`; prop opcional com valor padrão; `key` estável em `.map`; `repeat(n, minmax(0, 1fr))`.
+
 ## QA
 
 ## Estudo
@@ -63,3 +77,4 @@ Commit: `feat(stacks): adiciona seção Stacks agrupada por categoria a partir d
 - 2026-10-10 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — seção Stacks a partir do conteúdo; lista de tecnologias provisória para o George revisar
+- 2026-10-15 — code-reviewer: APROVADO — RF-04 com lista semântica e responsiva; 47 testes, lint e typecheck verdes
