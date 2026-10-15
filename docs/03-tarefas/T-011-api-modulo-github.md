@@ -1,8 +1,8 @@
 ---
 id: T-011
 titulo: API: módulo github com cache e fallback
-status: backlog
-modo: eu-faco
+status: em-andamento
+modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
 criada: 2026-10-10
@@ -12,7 +12,7 @@ criada: 2026-10-10
 
 ## Descrição
 
-Integra a API do GitHub para completar os projetos com dados vivos. Modo `eu-faco`: integração com API externa é foco de aprendizado.
+Integra a API do GitHub para completar os projetos com dados vivos. Modo `agente-faz` (decisão do George em 2026-10-15; originalmente `eu-faco`, pois integração com API externa é foco de aprendizado — o aprendizado fica no diário de estudo).
 
 ## Critérios de aceite
 
@@ -31,6 +31,7 @@ Integra a API do GitHub para completar os projetos com dados vivos. Modo `eu-fac
 ## Decisões
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
+- 2026-10-15 — George: todas as tarefas restantes do backlog seguem em modo `agente-faz` (o dev implementa).
 
 ## Dev
 
@@ -45,3 +46,4 @@ Integra a API do GitHub para completar os projetos com dados vivos. Modo `eu-fac
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
