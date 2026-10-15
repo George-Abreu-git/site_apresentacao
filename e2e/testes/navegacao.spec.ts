@@ -4,6 +4,7 @@
 // fazem sentido num deles usam o `isMobile` do Playwright para pular o outro.
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { contraste } from '../apoio/cores';
+import { esperarFocoVisivel, esperarSecaoNaTela, medirEstouroHorizontal, medirSecao } from '../apoio/pagina';
 
 /** As seis seções de RF-01, na ordem do menu: `id` da seção e texto do link. */
 const SECOES = [
@@ -33,73 +34,6 @@ function linksDoMenu(page: Page): Locator {
 
 function linkDoMenu(page: Page, titulo: string): Locator {
   return navegacao(page).getByRole('link', { name: titulo, exact: true });
-}
-
-/**
- * Onde o título da seção está em relação ao cabeçalho e à janela.
- * Serve para saber se a seção apareceu na tela sem ficar escondida atrás do cabeçalho.
- */
-async function medirSecao(page: Page, id: string) {
-  return page.evaluate((idDaSecao) => {
-    const titulo = document.querySelector(`#${idDaSecao} h1, #${idDaSecao} h2`)!.getBoundingClientRect();
-    const cabecalho = document.querySelector('header')!.getBoundingClientRect();
-    return {
-      topoDoTitulo: titulo.top,
-      baseDoTitulo: titulo.bottom,
-      topoDoCabecalho: cabecalho.top,
-      baseDoCabecalho: cabecalho.bottom,
-      alturaDaJanela: window.innerHeight,
-      rolagemVertical: window.scrollY,
-    };
-  }, id);
-}
-
-/** Espera a rolagem (que pode ser suave) terminar com o título da seção visível abaixo do cabeçalho. */
-async function esperarSecaoNaTela(page: Page, id: string) {
-  await expect
-    .poll(
-      async () => {
-        const m = await medirSecao(page, id);
-        // 1px de folga para arredondamentos de subpixel.
-        return m.topoDoTitulo >= m.baseDoCabecalho - 1 && m.baseDoTitulo <= m.alturaDaJanela + 1;
-      },
-      { message: `o título de #${id} deveria aparecer abaixo do cabeçalho, dentro da janela` },
-    )
-    .toBe(true);
-}
-
-/** O elemento com foco mostra o contorno de foco do teclado (`:focus-visible`, RNF-02). */
-async function esperarFocoVisivel(elemento: Locator) {
-  await expect(elemento).toBeFocused();
-  const foco = await elemento.evaluate((el) => {
-    const estilo = getComputedStyle(el);
-    return {
-      focoDeTeclado: el.matches(':focus-visible'),
-      estiloDoContorno: estilo.outlineStyle,
-      larguraDoContorno: parseFloat(estilo.outlineWidth),
-    };
-  });
-  expect(foco.focoDeTeclado).toBe(true);
-  expect(foco.estiloDoContorno).not.toBe('none');
-  expect(foco.larguraDoContorno).toBeGreaterThanOrEqual(2);
-}
-
-/** Elementos que passam da borda direita da tela (o que geraria rolagem horizontal). */
-async function medirEstouroHorizontal(page: Page) {
-  return page.evaluate(() => {
-    const larguraDaTela = document.documentElement.clientWidth;
-    const estourados = [...document.querySelectorAll('body *')]
-      .filter((el) => {
-        const caixa = el.getBoundingClientRect();
-        return caixa.width > 0 && (caixa.right > larguraDaTela + 0.5 || caixa.left < -0.5);
-      })
-      .map((el) => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}`);
-    return {
-      larguraDoConteudo: document.documentElement.scrollWidth,
-      larguraDaTela,
-      estourados,
-    };
-  });
 }
 
 test.describe('layout base: estrutura semântica (RNF-02)', () => {
