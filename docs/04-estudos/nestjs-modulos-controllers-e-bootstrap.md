@@ -47,7 +47,7 @@ Atenção à ordem: os `import` de um arquivo ESM rodam **antes** do corpo do ar
 
 ## Como aparece no projeto
 
-- `apps/api/src/app.module.ts` — módulo raiz; `imports: [HealthModule]`. Novos assuntos entram aqui.
+- `apps/api/src/app.module.ts` — módulo raiz; `imports: [HealthModule, ProjetosModule]` (o `ProjetosModule` entrou na T-010). Novos assuntos entram aqui.
 - `apps/api/src/health/health.module.ts` e `health.controller.ts` — o primeiro módulo; `GET /api/health` → `{ status: "ok" }`, com o tipo `StatusDaApi`.
 - `apps/api/src/criar-app.ts` — `criarApp()` e a constante `PREFIXO_DAS_ROTAS`.
 - `apps/api/src/main.ts` — `.env` + `listen`.
