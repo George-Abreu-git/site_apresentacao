@@ -69,6 +69,16 @@ Conceitos para estudo: módulo/controller/service no NestJS; injeção por token
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os quatro critérios de aceite foram atendidos. Criei `apps/api/test/projetos.e2e-spec.ts` (19 testes de rota com Supertest), que cobre: resposta 200 em JSON igual ao arquivo curado e na mesma ordem; formato `Projeto`; projeto sem repositório; lista vazia; query string; prefixo `/api`; métodos não permitidos (404); arquivo lido uma vez só, ao subir; e oito casos de arquivo inválido que impedem a subida, com erro que traz o caminho. Todas as suítes passam: API 74, web 47, hooks 412, Playwright 115 (7 pulados que não vêm desta tarefa). Lint, typecheck e build da API sem erros. Responsividade e acessibilidade não se aplicam (sem interface).
+Arquivos alterados:
+- `apps/api/test/projetos.e2e-spec.ts` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: teste de rota vs. teste unitário; `Test.createTestingModule` + `overrideProvider().useFactory()`; `createNestApplication` + `setGlobalPrefix` em testes; `it.each`; provar "lido na inicialização" alterando o arquivo depois da subida; `mkdtempSync` em testes.
+
 ## Estudo
 
 ## DevOps
@@ -79,3 +89,4 @@ Conceitos para estudo: módulo/controller/service no NestJS; injeção por token
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — módulo projetos com GET /api/projetos e validação na inicialização; 29 testes novos
 - 2026-10-15 — code-reviewer: APROVADO — RF-06 parte 1 atendido; testes, lint e build verdes; falta teste de rota (qa)
+- 2026-10-15 — qa: PASSOU — 19 testes de rota com Supertest; todas as suítes verdes
