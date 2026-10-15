@@ -87,6 +87,15 @@ Conceitos para estudo: `context.route` para simular sites externos; `context.wai
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário da T-008 escrito em `docs/04-estudos/tarefas/T-008.md` a partir da nota da tarefa e dos trechos de código citados, no template `diario-estudo.md`, com `consolidado: false`. Cobre os 13 conceitos do campo `conceitos` (arquivo de conteúdo como i18n sem biblioteca, tipos derivados com `as const` e `Record`, `import type` no ciclo `secoes.ts`/`tipos.ts`, links externos com `target="_blank"` e `rel`, texto visualmente oculto e nome acessível, link × botão, `mailto:`, grid com `minmax(0, 1fr)`, teste com TreeWalker, e2e com sites externos simulados) e traz 2 exercícios. Reaproveitou nomes de conceitos da T-007 (`fonte-unica-de-dados-no-front`, `html-semantico-e-regioes-com-nome`, `teste-que-protege-convencao`, `tipos-de-teste-unitario-rota-e2e`). Nenhuma outra nota de estudo alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-008.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -98,3 +107,4 @@ Conceitos para estudo: `context.route` para simular sites externos; `context.wai
 - 2026-10-15 — code-reviewer: APROVADO — RF-02/03/07/08/09 atendidos; 42 testes, lint e build verdes; e2e pendente com o qa
 - 2026-10-15 — qa: PASSOU — e2e das seções estáticas (91 passando, 7 pulados); suíte, lint e validador verdes
 - 2026-10-15 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
+- 2026-10-15 — documentador: CONCLUIDO — diário integrado
