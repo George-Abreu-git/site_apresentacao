@@ -11,7 +11,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-005-monorepo-base|T-005]] | Montar o monorepo base (workspaces, web, api, shared e ferramentas de teste) | concluida | agente-faz | infra |
 | [[docs/03-tarefas/T-006-ci-github-actions|T-006]] | CI no GitHub Actions (validador e testes a cada push) | concluida | agente-faz | infra |
 | [[docs/03-tarefas/T-007-layout-base|T-007]] | Layout base: menu com âncoras, tema escuro e responsividade | concluida | agente-faz | front-end |
-| [[docs/03-tarefas/T-008-conteudo-secoes-estaticas|T-008]] | Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato | aguardando-decisao | agente-faz | front-end |
+| [[docs/03-tarefas/T-008-conteudo-secoes-estaticas|T-008]] | Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato | em-revisao | agente-faz | front-end |
 | [[docs/03-tarefas/T-009-secao-stacks|T-009]] | Seção Stacks a partir de arquivo de conteúdo | backlog | eu-faco | front-end |
 | [[docs/03-tarefas/T-010-api-modulo-projetos|T-010]] | API: módulo projetos lendo o arquivo curado | backlog | agente-faz | back-end, api |
 | [[docs/03-tarefas/T-011-api-modulo-github|T-011]] | API: módulo github com cache e fallback | backlog | eu-faco | back-end, api |

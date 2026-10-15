@@ -1,7 +1,7 @@
 ---
 id: T-008
 titulo: Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato
-status: aguardando-decisao
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -33,6 +33,7 @@ Preenche as seções estáticas com textos vindos de arquivo de conteúdo em por
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
 - 2026-10-15 — George: modo trocado de `eu-faco` para `agente-faz` no início da execução (o dev implementa).
+- 2026-10-15 — George: Q1 (dados de contato e textos reais) → **B**: a T-008 segue com o LinkedIn e o e-mail provisórios (`PREENCHER`) e os textos sugeridos; a substituição e a revisão dos textos viram a tarefa T-015 "Conteúdo real do site", que deve vir antes da T-013 (deploy).
 
 ## Dev
 
@@ -66,3 +67,4 @@ Commit: `cd4b210 feat(web): adiciona arquivo de conteúdo e seções Início, So
 - 2026-10-10 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início; modo trocado para agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: AGUARDANDO-DECISAO — conteúdo e seções implementados; LinkedIn e e-mail provisórios e textos sugeridos dependem do George
+- 2026-10-15 — orquestrador: em-revisao — George escolheu B na Q1 (provisórios + nova tarefa T-015); segue para o code-reviewer
