@@ -3,6 +3,6 @@
 // decide qual objeto entregar; os componentes não mudam.
 import { ptBR } from './pt-BR';
 
-export type { Conteudo } from './tipos';
+export type { CategoriaDeStack, Conteudo } from './tipos';
 
 export const conteudo = ptBR;

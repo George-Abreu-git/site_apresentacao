@@ -1,0 +1,41 @@
+/* Mobile-first (RNF-01): uma coluna no celular, duas a partir de 36rem e quatro a partir de 60rem. */
+.categorias {
+  display: grid;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* As tecnologias viram "etiquetas" lado a lado; flex-wrap quebra a linha quando falta espaço. */
+.tecnologias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tecnologia {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  background: var(--cor-superficie);
+}
+
+@media (min-width: 36rem) {
+  .categorias {
+    /* `minmax(0, 1fr)`: colunas iguais que podem encolher, sem o texto forçar a largura. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 60rem) {
+  .categorias {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
