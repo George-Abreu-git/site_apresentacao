@@ -1,7 +1,7 @@
 ---
 id: T-010
 titulo: API: módulo projetos lendo o arquivo curado
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -16,10 +16,10 @@ Primeiro módulo NestJS de domínio: lê o arquivo curado de projetos e expõe `
 
 ## Critérios de aceite
 
-- [ ] RF-06 (parte 1): `GET /api/projetos` responde JSON com todos os projetos do arquivo curado, na ordem definida, no formato do tipo `Projeto` de `packages/shared`
-- [ ] Arquivo curado com o formato documentado (título, descrição, stacks, links, imagem, repositório opcional) e ao menos 2 projetos de exemplo
-- [ ] Arquivo curado inválido gera erro claro na inicialização (não em tempo de requisição)
-- [ ] Testes unitários do service (dev) e de rota com Supertest (qa)
+- [x] RF-06 (parte 1): `GET /api/projetos` responde JSON com todos os projetos do arquivo curado, na ordem definida, no formato do tipo `Projeto` de `packages/shared`
+- [x] Arquivo curado com o formato documentado (título, descrição, stacks, links, imagem, repositório opcional) e ao menos 2 projetos de exemplo
+- [x] Arquivo curado inválido gera erro claro na inicialização (não em tempo de requisição)
+- [x] Testes unitários do service (dev) e de rota com Supertest (qa)
 
 ## Contexto relevante
 
@@ -90,3 +90,4 @@ Conceitos para estudo: teste de rota vs. teste unitário; `Test.createTestingMod
 - 2026-10-15 — dev: CONCLUIDO — módulo projetos com GET /api/projetos e validação na inicialização; 29 testes novos
 - 2026-10-15 — code-reviewer: APROVADO — RF-06 parte 1 atendido; testes, lint e build verdes; falta teste de rota (qa)
 - 2026-10-15 — qa: PASSOU — 19 testes de rota com Supertest; todas as suítes verdes
+- 2026-10-15 — orquestrador: concluida — verificação verde (API 52 testes, dos quais 22 de rota; o total 74 do handoff do qa era contagem dupla); diário de estudo disparado após a integração
