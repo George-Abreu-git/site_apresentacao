@@ -1,7 +1,7 @@
 ---
 id: T-009
 titulo: Seção Stacks a partir de arquivo de conteúdo
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -16,10 +16,10 @@ Lista de tecnologias agrupada por categoria, vinda de um arquivo de conteúdo. M
 
 ## Critérios de aceite
 
-- [ ] RF-04: tecnologias agrupadas por categoria (ex.: front-end, back-end, ferramentas)
-- [ ] Adicionar uma tecnologia no arquivo faz ela aparecer sem alterar código de tela
-- [ ] Responsivo e acessível (lista semântica)
-- [ ] Testes unitários e e2e
+- [x] RF-04: tecnologias agrupadas por categoria (ex.: front-end, back-end, ferramentas)
+- [x] Adicionar uma tecnologia no arquivo faz ela aparecer sem alterar código de tela
+- [x] Responsivo e acessível (lista semântica)
+- [x] Testes unitários e e2e
 
 ## Contexto relevante
 
@@ -91,3 +91,4 @@ Conceitos para estudo: e2e guiados pelo arquivo de conteúdo; contar colunas de 
 - 2026-10-15 — dev: CONCLUIDO — seção Stacks a partir do conteúdo; lista de tecnologias provisória para o George revisar
 - 2026-10-15 — code-reviewer: APROVADO — RF-04 com lista semântica e responsiva; 47 testes, lint e typecheck verdes
 - 2026-10-15 — qa: PASSOU — e2e da seção Stacks (115 passando, 7 pulados); suíte, lint e validador verdes
+- 2026-10-15 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
