@@ -1,7 +1,7 @@
 ---
 id: T-008
 titulo: Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato
-status: em-andamento
+status: aguardando-decisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -36,6 +36,23 @@ Preenche as seções estáticas com textos vindos de arquivo de conteúdo em por
 
 ## Dev
 
+### Rodada 1
+
+Resultado: AGUARDANDO-DECISAO
+Resumo: Criei o arquivo de conteúdo tipado (`apps/web/src/conteudo/`) e todos os textos visíveis, inclusive menu, `aria-label` e rodapé, passaram a vir dele (RF-09). Há um teste que renderiza a página e falha se aparecer texto fora do conteúdo. Implementei Início com atalhos (RF-02), Sobre (RF-03), Serviços com botão para Contato (RF-07) e Contato com `mailto:` (RF-08), com os componentes `LinkExterno` (nova aba + aviso ao leitor de tela) e `Atalho`. `npm test` verde (42 testes no web), lint e build verdes. O LinkedIn e o e-mail são provisórios (`PREENCHER`) e os textos são sugestões: dependem do George.
+Arquivos alterados:
+- `apps/web/src/conteudo/` (novos): `tipos.ts`, `pt-BR.ts`, `index.ts`, `conteudo.test.tsx`
+- `apps/web/src/componentes/` (novos): `Atalho/`, `LinkExterno/`, `Sobre/`, `Servicos/`, `Contato/` (componente, CSS Module e teste)
+- alterados: `Inicio/` (tsx, css, teste), `Cabecalho/Cabecalho.tsx`, `Menu/` (tsx e teste), `Rodape/Rodape.tsx`, `App.tsx`, `App.test.tsx`, `secoes.ts`, `tema.test.ts` (regex de cor fixa não confunde mais `white-space` com `white`)
+Pendências:
+1. Endereço do LinkedIn e e-mail reais em `apps/web/src/conteudo/pt-BR.ts` (hoje `https://www.linkedin.com/in/PREENCHER` e `PREENCHER@exemplo.com`); revisão dos textos sugeridos (título profissional, frase, resumo, Serviços).
+2. qa: `e2e/testes/pagina-inicial.spec.ts` (linhas 22 e 42, celular e desktop) procura "Site em construção.", que o RF-02 substituiu — trocar pela frase de apresentação e escrever os e2e da tarefa (atalhos do Início, botão de Serviços, links em nova aba e `mailto:`).
+3. Responsividade feita mobile-first, não conferida no navegador; fica com o e2e do qa (sem rolagem horizontal de 360px a 1280px, Início sem rolar).
+4. `Secao.module.css` mantém a altura mínima provisória enquanto Stacks e Projetos estão vazias.
+Decisão pendente: Q1 — dados de contato e textos reais (A: George informa agora e o dev faz rodada curta no `pt-BR.ts`; B: segue com provisórios e cria tarefa "Conteúdo real do site"; C: George edita depois do merge, fora do fluxo). Recomendação do dev: A.
+Conceitos para estudo: arquivo de conteúdo / i18n sem biblioteca; `Record` e tipos derivados de array `as const`; `target="_blank"` com `rel="noopener noreferrer"`; texto visualmente oculto para leitor de tela; nome acessível; link × botão; `mailto:`; `<ol>`/`<ul>`; CSS Grid com `minmax(0, 1fr)`; TreeWalker do DOM; lookbehind em regex.
+Commit: `cd4b210 feat(web): adiciona arquivo de conteúdo e seções Início, Sobre, Serviços e Contato`
+
 ## Revisão
 
 ## QA
@@ -48,3 +65,4 @@ Preenche as seções estáticas com textos vindos de arquivo de conteúdo em por
 
 - 2026-10-10 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início; modo trocado para agente-faz por decisão do George; dev chamado
+- 2026-10-15 — dev: AGUARDANDO-DECISAO — conteúdo e seções implementados; LinkedIn e e-mail provisórios e textos sugeridos dependem do George
