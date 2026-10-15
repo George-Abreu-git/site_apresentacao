@@ -81,6 +81,18 @@ Conceitos para estudo: teste de rota vs. teste unitário; `Test.createTestingMod
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-010.md` (`consolidado: false`) sobre o módulo `projetos` da API: módulo, controller e service; injeção por tipo e por token; `useFactory` com fail fast; validação de `unknown` com type guards; `import.meta.url`; `structuredClone`; testes com `overrideProvider` e Supertest; 2 exercícios. Mudança pontual em `docs/04-estudos/nestjs-modulos-controllers-e-bootstrap.md` (a linha do `app.module.ts` cita o `ProjetosModule`).
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-010.md` (novo)
+- `docs/04-estudos/nestjs-modulos-controllers-e-bootstrap.md`
+Pendências:
+1. Seis conceitos sem nota por conceito, para o `/estudar-consolidar`: injecao-de-dependencia-no-nestjs, provider-de-fabrica-e-fail-fast, validacao-em-tempo-de-execucao-com-type-guards, caminho-relativo-com-import-meta-url, copia-defensiva-com-structuredclone, testes-com-testing-module-e-override-provider.
+2. O exercício 2 (remover o `@Inject`) não foi executado; a mensagem exata do erro pode variar entre os testes e o `npm run dev`.
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -91,3 +103,4 @@ Conceitos para estudo: teste de rota vs. teste unitário; `Test.createTestingMod
 - 2026-10-15 — code-reviewer: APROVADO — RF-06 parte 1 atendido; testes, lint e build verdes; falta teste de rota (qa)
 - 2026-10-15 — qa: PASSOU — 19 testes de rota com Supertest; todas as suítes verdes
 - 2026-10-15 — orquestrador: concluida — verificação verde (API 52 testes, dos quais 22 de rota; o total 74 do handoff do qa era contagem dupla); diário de estudo disparado após a integração
+- 2026-10-15 — documentador: CONCLUIDO — diário integrado
