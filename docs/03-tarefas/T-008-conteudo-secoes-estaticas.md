@@ -1,7 +1,7 @@
 ---
 id: T-008
 titulo: Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato
-status: backlog
+status: em-andamento
 modo: eu-faco
 tags: [front-end]
 rodadas: 0
@@ -46,3 +46,4 @@ Preenche as seções estáticas com textos vindos de arquivo de conteúdo em por
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-15 — orquestrador: em-andamento — início no modo eu-faco; instrutor chamado como mentor
