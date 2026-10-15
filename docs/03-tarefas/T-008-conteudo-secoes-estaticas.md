@@ -70,6 +70,21 @@ Conceitos para estudo: `as const` e tipos derivados; ciclo de importação só d
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: e2e da T-008 em `e2e/testes/secoes-estaticas.spec.ts`: Início sem rolar de 360x640 a 1920x1080, atalhos por clique e teclado, links de Sobre e Contato abrindo em nova aba com `rel` seguro e aviso ao leitor de tela, `mailto:` com o endereço, botão de Serviços até o Contato, contraste, foco visível, hierarquia de títulos e todos os textos do arquivo de conteúdo presentes na página. Os testes leem textos e endereços de `pt-BR.ts`, então valem também depois da T-015. Em `pagina-inicial.spec.ts`, "Site em construção." virou a frase de apresentação. As funções de medir a página foram para `e2e/apoio/pagina.ts`. Resultados: e2e com 91 passando e 7 pulados; `npm test` com 8 da API, 42 do web e 412 dos hooks; lint, verificação de tipos e validador verdes.
+Arquivos alterados:
+- `e2e/testes/secoes-estaticas.spec.ts` (novo)
+- `e2e/apoio/pagina.ts` (novo)
+- `e2e/testes/pagina-inicial.spec.ts`
+- `e2e/testes/navegacao.spec.ts`
+Pendências:
+1. Observação, não é falha: com o celular deitado (740x360), os atalhos do Início ficam cerca de 7px abaixo da borda da tela (RF-02 e RNF-01 não citam essa orientação).
+2. Os e2e passam com o LinkedIn e o e-mail provisórios (Q1 → B); a troca é da T-015 e os testes não precisarão mudar.
+Decisão pendente: nenhuma
+Conceitos para estudo: `context.route` para simular sites externos; `context.waitForEvent('page')`; `toBeInViewport({ ratio: 1 })`; `toHaveAccessibleName`; importar o arquivo de conteúdo nos e2e; hierarquia h1/h2/h3.
+
 ## Estudo
 
 ## DevOps
@@ -81,3 +96,4 @@ Conceitos para estudo: `as const` e tipos derivados; ciclo de importação só d
 - 2026-10-15 — dev: AGUARDANDO-DECISAO — conteúdo e seções implementados; LinkedIn e e-mail provisórios e textos sugeridos dependem do George
 - 2026-10-15 — orquestrador: em-revisao — George escolheu B na Q1 (provisórios + nova tarefa T-015); segue para o code-reviewer
 - 2026-10-15 — code-reviewer: APROVADO — RF-02/03/07/08/09 atendidos; 42 testes, lint e build verdes; e2e pendente com o qa
+- 2026-10-15 — qa: PASSOU — e2e das seções estáticas (91 passando, 7 pulados); suíte, lint e validador verdes
