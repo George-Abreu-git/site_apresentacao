@@ -1,7 +1,7 @@
 ---
 id: T-010
 titulo: API: módulo projetos lendo o arquivo curado
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -54,6 +54,19 @@ Commit: `feat(api): adiciona módulo projetos com GET /api/projetos lendo o arqu
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O módulo `projetos` (controller, service, provider de fábrica com token e validação manual) atende ao RF-06 parte 1 e aos critérios de aceite da parte do dev. Testes, lint e build da API verdes (api 32, web 47, hooks 412); o caminho `../../conteudo/projetos.json` funciona também no `dist/`. Todos os arquivos na área do dev, sem segredos, entrada validada. O formato JSON em `apps/api/conteudo/` é detalhe de implementação (RF-06 só pede "um arquivo curado no repositório"), não decisão do George. Falta só o teste de rota com Supertest, do qa.
+Arquivos alterados: nenhum
+Pendências:
+1. (qa) Teste de rota com Supertest para `GET /api/projetos` em `apps/api/test/`, inclusive a falha na inicialização com arquivo inválido via `overrideProvider(PROJETOS_CURADOS)`.
+2. *opcional* — testes do `ProjetosModule` estão em `projetos.controller.spec.ts:21-45`; um `projetos.module.spec.ts` próprio seria mais claro.
+3. *opcional* — `validar-projetos-curados.ts:80`: `imagem` aceita qualquer texto não vazio; restringir a caminho relativo ou `http(s)`.
+4. *opcional* — `apps/api/src/compartilhamento.spec.ts` (anterior à tarefa) pode ser removido.
+Decisão pendente: nenhuma
+Conceitos para estudo: módulo/controller/service no NestJS; injeção por token (`Symbol` + `@Inject`); `useFactory` e fail fast; validação de `unknown` com type guards; `import.meta.url` + `fileURLToPath`; `overrideProvider`.
+
 ## QA
 
 ## Estudo
@@ -65,3 +78,4 @@ Commit: `feat(api): adiciona módulo projetos com GET /api/projetos lendo o arqu
 - 2026-10-10 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — módulo projetos com GET /api/projetos e validação na inicialização; 29 testes novos
+- 2026-10-15 — code-reviewer: APROVADO — RF-06 parte 1 atendido; testes, lint e build verdes; falta teste de rota (qa)
