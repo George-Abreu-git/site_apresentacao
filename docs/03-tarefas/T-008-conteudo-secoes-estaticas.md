@@ -2,7 +2,7 @@
 id: T-008
 titulo: Textos em arquivo de conteúdo e seções Início, Sobre, Serviços e Contato
 status: em-andamento
-modo: eu-faco
+modo: agente-faz
 tags: [front-end]
 rodadas: 0
 criada: 2026-10-10
@@ -32,6 +32,7 @@ Preenche as seções estáticas com textos vindos de arquivo de conteúdo em por
 ## Decisões
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
+- 2026-10-15 — George: modo trocado de `eu-faco` para `agente-faz` no início da execução (o dev implementa).
 
 ## Dev
 
@@ -46,4 +47,4 @@ Preenche as seções estáticas com textos vindos de arquivo de conteúdo em por
 ## Log
 
 - 2026-10-10 — tarefa criada
-- 2026-10-15 — orquestrador: em-andamento — início no modo eu-faco; instrutor chamado como mentor
+- 2026-10-15 — orquestrador: em-andamento — início; modo trocado para agente-faz por decisão do George; dev chamado
