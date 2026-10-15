@@ -1,0 +1,35 @@
+/* Mobile-first (RNF-01): uma coluna no celular; três colunas a partir de 48rem. */
+.blocos {
+  display: grid;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.lista {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.lista li + li {
+  margin-top: 0.5rem;
+}
+
+.texto {
+  margin: 0.75rem 0 0;
+}
+
+.acao {
+  margin-top: 2rem;
+}
+
+@media (min-width: 48rem) {
+  .blocos {
+    /* `minmax(0, 1fr)`: colunas iguais que podem encolher, sem o texto forçar a largura. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

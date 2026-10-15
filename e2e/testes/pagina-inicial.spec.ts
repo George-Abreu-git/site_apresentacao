@@ -1,8 +1,10 @@
 // Teste de aceitação da página inicial (criado na T-005, com a página provisória): ela abre
 // no celular e no desktop, mostra o conteúdo, não estoura a largura da tela e cumpre a
-// acessibilidade básica. A navegação pelo menu (T-007) fica em navegacao.spec.ts.
+// acessibilidade básica. A navegação pelo menu (T-007) fica em navegacao.spec.ts e as
+// seções com conteúdo (T-008) em secoes-estaticas.spec.ts.
 // Cada teste roda duas vezes, uma por projeto do playwright.config.ts (celular e desktop).
 import { expect, test, type Locator } from '@playwright/test';
+import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { contraste } from '../apoio/cores';
 
 /** Razão de contraste entre a cor do texto do elemento e o fundo da página (1 a 21). */
@@ -19,10 +21,11 @@ test.describe('página inicial', () => {
     await page.goto('/');
   });
 
-  test('mostra o nome e o aviso de site em construção', async ({ page }) => {
+  test('mostra o nome e a frase de apresentação', async ({ page }) => {
     await expect(page).toHaveTitle('George Siqueira');
     await expect(page.getByRole('heading', { level: 1, name: 'George Siqueira' })).toBeVisible();
-    await expect(page.getByText('Site em construção.')).toBeVisible();
+    // A frase vem do arquivo de conteúdo (RF-09): trocar a frase lá não quebra este teste.
+    await expect(page.getByText(ptBR.inicio.frase, { exact: true })).toBeVisible();
   });
 
   test('cabe na largura da tela, sem rolagem horizontal', async ({ page }) => {
@@ -50,7 +53,7 @@ test.describe('página inicial', () => {
 
     // WCAG AA: pelo menos 4,5:1 para texto normal (vale com folga também para o título).
     expect(await contrasteComOFundo(page.getByRole('heading', { level: 1 }))).toBeGreaterThanOrEqual(4.5);
-    expect(await contrasteComOFundo(page.getByText('Site em construção.'))).toBeGreaterThanOrEqual(4.5);
+    expect(await contrasteComOFundo(page.getByText(ptBR.inicio.frase, { exact: true }))).toBeGreaterThanOrEqual(4.5);
   });
 
   test('carrega sem erros no console do navegador', async ({ page }) => {

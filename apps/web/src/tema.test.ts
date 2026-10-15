@@ -11,8 +11,12 @@ const arquivosCss = import.meta.glob<string>('./**/*.css', {
   eager: true,
 });
 
-/** Formas de escrever uma cor "na mão": #rgb/#rrggbb, rgb(), hsl() e afins, e alguns nomes comuns. */
-const COR_FIXA = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(|\b(?:white|black|red|green|blue|gray|grey)\b/i;
+/**
+ * Formas de escrever uma cor "na mão": #rgb/#rrggbb, rgb(), hsl() e afins, e alguns nomes comuns.
+ * Os nomes não podem estar colados a um hífen: assim `white-space` (propriedade) não conta como cor.
+ */
+const COR_FIXA =
+  /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(|(?<![\w-])(?:white|black|red|green|blue|gray|grey)(?![\w-])/i;
 
 /** Comentários podem citar cores como exemplo; eles não contam. */
 function semComentarios(css: string): string {

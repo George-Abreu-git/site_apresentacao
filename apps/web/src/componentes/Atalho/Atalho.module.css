@@ -1,0 +1,32 @@
+.atalho {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Alvo de toque confortável (~44px) no celular. */
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid var(--cor-destaque);
+  border-radius: 0.5rem;
+}
+
+/* Texto escuro sobre o destaque claro: contraste de ~10:1 (ver tema.css). */
+.principal {
+  color: var(--cor-fundo);
+  background-color: var(--cor-destaque);
+}
+
+.principal:hover {
+  background-color: transparent;
+  color: var(--cor-destaque);
+}
+
+.secundario {
+  color: var(--cor-destaque);
+  background-color: transparent;
+}
+
+.secundario:hover {
+  background-color: var(--cor-superficie);
+}

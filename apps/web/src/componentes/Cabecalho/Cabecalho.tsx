@@ -1,3 +1,4 @@
+import { conteudo } from '../../conteudo';
 import { SECOES } from '../../secoes';
 import Menu from '../Menu/Menu';
 import estilos from './Cabecalho.module.css';
@@ -8,7 +9,7 @@ function Cabecalho() {
     <header className={estilos.cabecalho}>
       <div className={estilos.conteudo}>
         <a href="#inicio" className={estilos.marca}>
-          George Siqueira
+          {conteudo.pessoa.nome}
         </a>
         <Menu itens={SECOES} />
       </div>
