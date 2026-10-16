@@ -52,6 +52,18 @@ Commit: `fix(shared): resolve os tipos do pacote pelo código-fonte, sem depende
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: Diff do dev correto e dentro da área: o `types` do shared aponta para `src/index.ts`, e o `--traceResolution` mostra API e front resolvendo o shared no fonte; o build da API mantém o layout da `dist` (`node dist/main.js` e Render inalterados). Todos os imports do shared são `import type`. Cinco cenários de comportamento passando. Build, lint, shared 5/5, API 142/142 e hooks 412/412 verdes; web 72/74 só por causa do `pt-BR.ts` alterado fora do fluxo. Lock com 1 linha nova (`@types/node`), coerente.
+Arquivos alterados: nenhum
+Pendências:
+1. (devops, obrigatória para o critério 6) `README.md:30` e `README.md:40-42` ainda dizem que front e API dependem de `packages/shared/dist` e que é preciso fazer o build do shared; reescrever: os tipos vêm de `packages/shared/src` (T-017), sem build, e o `npm run build` só checa tipos e gera a versão de produção.
+2. *opcional* — `pacote.test.ts:185` confere a string literal do `package.json` (aceitável: o teste também confere a resolução real).
+3. (fora do fluxo) `apps/web/src/conteudo/pt-BR.ts` sem commit quebra `Cabecalho.test.tsx` e `Rodape.test.tsx`.
+Decisão pendente: nenhuma
+Conceitos para estudo: condição `types` em `exports`; apagamento de tipos; arquivos de node_modules fora do `rootDir`; `--traceResolution`; compiler host.
+
 ## QA
 
 ## Estudo
@@ -63,3 +75,4 @@ Commit: `fix(shared): resolve os tipos do pacote pelo código-fonte, sem depende
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-16 — dev: CONCLUIDO — tipos do shared pelo código-fonte; 5 cenários; alteração de nome no pt-BR.ts fora do fluxo deixada sem commit
+- 2026-10-16 — code-reviewer: APROVADO — tipos do shared pelo fonte; README desatualizado → devops (critério 6)
