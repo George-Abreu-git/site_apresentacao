@@ -1,7 +1,7 @@
 ---
 id: T-011
 titulo: API: módulo github com cache e fallback
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -56,6 +56,21 @@ Commit: `feat(api): adiciona módulo github com dados vivos, cache e fallback em
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff atende aos 5 critérios de aceite: dados vivos do GitHub, cache com validade configurável por variável de ambiente, plano B com `{ disponivel: false }` e status 200, token só no ambiente e fora dos logs e da resposta, e testes com o GitHub simulado para sucesso, falha (403, 429, 404, 500, 503, rede, tempo limite, formato inesperado) e cache. O dev ficou na área dele e não há dependência nova. Lint e build da API e do front verdes; front 47 testes. API 106 passando e 2 falhando em `apps/api/test/projetos.e2e-spec.ts` (esperados, por causa do campo `github`; ficam com o qa). Formato da resposta, nome/padrão do TTL e tempo limite de 5 s são detalhes de implementação, documentados em `apps/api/conteudo/README.md` — não são decisão do George.
+Arquivos alterados: nenhum
+Pendências:
+1. (qa) Ajustar `apps/api/test/projetos.e2e-spec.ts:55` e `:65`; usar `overrideProvider(GithubCliente).useValue(...)` para não chamar o GitHub real; cobrir na rota sucesso, GitHub indisponível e token ausente da resposta.
+2. (devops) `GITHUB_CACHE_TTL_SEGUNDOS=` no `.env.example`; na T-013, cadastrar no Render.
+3. *opcional* — `github.service.ts:398-419`: sem deduplicação de buscas simultâneas com o cache vazio (cache stampede).
+4. *opcional* — falhas não ficam no cache; com o GitHub lento, cada requisição espera até 5 s (RNF-03 continua atendido). Negative caching ou stale-if-error seria tarefa futura.
+5. *opcional* — `apps/api/src/compartilhamento.spec.ts` pode ser removido.
+6. *opcional* — avisar o George que o formato de `Projeto.github` (união discriminada por `disponivel`) é o que a T-012 vai consumir.
+Decisão pendente: nenhuma
+Conceitos para estudo: `fetch` e `AbortSignal.timeout`; cache com validade e relógio injetável; fallback; cache stampede; negative caching e stale-if-error; união discriminada; `Omit<T, K>`; `overrideProvider().useValue()`; segredo em variável de ambiente e logs.
+
 ## QA
 
 ## Estudo
@@ -67,3 +82,4 @@ Commit: `feat(api): adiciona módulo github com dados vivos, cache e fallback em
 - 2026-10-10 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — módulo github com cache e fallback; 2 testes de rota do qa a ajustar (campo github)
+- 2026-10-15 — code-reviewer: APROVADO — 5 critérios atendidos; 2 testes de rota a ajustar pelo qa
