@@ -12,7 +12,7 @@ criada: 2026-10-16
 
 ## Descrição
 
-BUG-Q4 da T-016, funcionalidades 5 e 11 (RNF-01). Em 360px, uma palavra longa sem espaço no título ou um endereço longo na descrição de um projeto fazem a página rolar para o lado (conteúdo com ~546px e ~363px). O item da grade (`1fr` = `minmax(auto, 1fr)`) cresce até caber a palavra; também estoura com o texto a 200%.
+BUG-Q4 da T-016, funcionalidades 5 e 11 (RNF-01). Em 360px, uma palavra longa sem espaço no título ou um endereço longo na descrição de um projeto fazem a página rolar para o lado (conteúdo com ~546px e ~363px). Causa (corrigida pelo documentador no diário da T-016): em `apps/web/src/componentes/Projetos/Projetos.module.css`, a `.lista` só define `minmax(0, 1fr)` a partir de 36rem; abaixo disso não define colunas, e a coluna implícita (`auto`) cresce até caber a palavra longa. Também estoura com o texto a 200%.
 
 Severidade: média.
 
