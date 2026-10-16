@@ -16,4 +16,16 @@ describe('HealthController', () => {
 
     expect(modulo.get(HealthController).verificar()).toEqual({ status: 'ok' });
   });
+
+  it('a resposta tem só o campo status (não expõe versão, ambiente nem variáveis)', () => {
+    expect(Object.keys(new HealthController().verificar())).toEqual(['status']);
+  });
+
+  it('cada resposta é um objeto novo (alterar uma não muda a próxima)', () => {
+    const controller = new HealthController();
+    const primeira = controller.verificar() as { status: string };
+    primeira.status = 'alterado';
+
+    expect(controller.verificar()).toEqual({ status: 'ok' });
+  });
 });

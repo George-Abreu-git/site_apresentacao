@@ -84,7 +84,45 @@ describe('GithubService', () => {
     expect(await service.dadosVivos(ENDERECO)).toEqual({ disponivel: false });
   });
 
+  it('sucesso: não registra aviso no log', async () => {
+    buscarRepositorio.mockResolvedValue(dados);
+    const service = new GithubService(cliente, configuracao);
+
+    await service.dadosVivos(ENDERECO);
+
+    expect(avisos).not.toHaveBeenCalled();
+  });
+
+  it('endereço inválido (texto qualquer) devolve undefined sem lançar erro', async () => {
+    const service = new GithubService(cliente, configuracao);
+
+    await expect(service.dadosVivos('não é endereço')).resolves.toBeUndefined();
+    expect(buscarRepositorio).not.toHaveBeenCalled();
+  });
+
   describe('cache', () => {
+    it('usa a validade lida da configuração (GITHUB_CACHE_TTL_SEGUNDOS)', async () => {
+      buscarRepositorio.mockResolvedValue(dados);
+      const service = new GithubService(cliente, { ...configuracao, validadeDoCacheEmMs: 1000 });
+
+      await service.dadosVivos(ENDERECO);
+      vi.advanceTimersByTime(999);
+      await service.dadosVivos(ENDERECO);
+      vi.advanceTimersByTime(1);
+      await service.dadosVivos(ENDERECO);
+
+      expect(buscarRepositorio).toHaveBeenCalledTimes(2);
+    });
+
+    it('cada instância do service tem o seu próprio cache', async () => {
+      buscarRepositorio.mockResolvedValue(dados);
+
+      await new GithubService(cliente, configuracao).dadosVivos(ENDERECO);
+      await new GithubService(cliente, configuracao).dadosVivos(ENDERECO);
+
+      expect(buscarRepositorio).toHaveBeenCalledTimes(2);
+    });
+
     it('dentro da validade, responde do cache sem chamar o GitHub de novo', async () => {
       buscarRepositorio.mockResolvedValue(dados);
       const service = new GithubService(cliente, configuracao);

@@ -78,4 +78,48 @@ describe('ProjetosService', () => {
     expect(projetos[1]).not.toHaveProperty('github');
     expect(await service.listar()).toHaveLength(3);
   });
+
+  it('com o arquivo curado vazio, responde a lista vazia sem consultar o GitHub', async () => {
+    const service = new ProjetosService([], github);
+
+    expect(await service.listar()).toEqual([]);
+    expect(dadosVivos).not.toHaveBeenCalled();
+  });
+
+  it('só consulta o GitHub para projetos com repositório (a demo não conta)', async () => {
+    const service = new ProjetosService(
+      [{ titulo: 'Só demo', descricao: 'D', stacks: ['React'], demo: 'https://github.com/x/demo' }],
+      github,
+    );
+
+    const [projeto] = await service.listar();
+
+    expect(dadosVivos).not.toHaveBeenCalled();
+    expect(projeto).not.toHaveProperty('github');
+  });
+
+  it('consulta os repositórios ao mesmo tempo, mas mantém a ordem do arquivo mesmo se o GitHub responder fora de ordem', async () => {
+    // O primeiro repositório demora mais que o segundo: a resposta ainda sai na ordem do arquivo.
+    const atrasos: Record<string, number> = { 'https://github.com/x/lento': 20, 'https://github.com/x/rapido': 0 };
+    const iniciadas: string[] = [];
+    dadosVivos.mockImplementation(async (endereco) => {
+      iniciadas.push(endereco);
+      await new Promise((resolver) => setTimeout(resolver, atrasos[endereco]));
+      return dadosDoGithub;
+    });
+    const service = new ProjetosService(
+      [
+        { titulo: 'Lento', descricao: 'L', stacks: ['A'], repositorio: 'https://github.com/x/lento' },
+        { titulo: 'Rápido', descricao: 'R', stacks: ['B'], repositorio: 'https://github.com/x/rapido' },
+      ],
+      github,
+    );
+
+    const promessa = service.listar();
+    // As duas consultas começaram antes de qualquer uma terminar (em paralelo, não em fila).
+    expect(iniciadas).toHaveLength(2);
+    const lista = await promessa;
+
+    expect(lista.map((projeto) => projeto.titulo)).toEqual(['Lento', 'Rápido']);
+  });
 });

@@ -42,6 +42,24 @@ describe('lerConfiguracaoDoGithub', () => {
     },
   );
 
+  it('o tempo limite de cada requisição ao GitHub é de 5 segundos', () => {
+    expect(lerConfiguracaoDoGithub({}).tempoLimiteDaRequisicaoEmMs).toBe(5000);
+  });
+
+  it('tira os espaços em volta do token e da validade', () => {
+    const configuracao = lerConfiguracaoDoGithub({ GITHUB_TOKEN: ' abc ', GITHUB_CACHE_TTL_SEGUNDOS: ' 60 ' });
+
+    expect(configuracao.token).toBe('abc');
+    expect(configuracao.validadeDoCacheEmMs).toBe(60_000);
+  });
+
+  it.each([
+    ['1', 1000],
+    ['0120', 120_000],
+  ])('aceita GITHUB_CACHE_TTL_SEGUNDOS="%s" (inteiro maior que zero)', (valor, esperadoEmMs) => {
+    expect(lerConfiguracaoDoGithub({ GITHUB_CACHE_TTL_SEGUNDOS: valor }).validadeDoCacheEmMs).toBe(esperadoEmMs);
+  });
+
   it('a mensagem de erro não mostra o token', () => {
     const lerComErro = () =>
       lerConfiguracaoDoGithub({ GITHUB_TOKEN: 'token-secreto', GITHUB_CACHE_TTL_SEGUNDOS: 'x' });

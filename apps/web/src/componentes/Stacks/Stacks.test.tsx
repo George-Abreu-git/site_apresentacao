@@ -55,4 +55,28 @@ describe('Stacks (RF-04)', () => {
     expect(within(lista).getByText('Tecnologia nova').tagName).toBe('LI');
     expect(screen.getByRole('list', { name: 'Banco de dados' })).toHaveTextContent('PostgreSQL');
   });
+
+  it('as categorias aparecem na ordem do arquivo de conteúdo', () => {
+    render(<Stacks />);
+
+    const titulos = screen.getAllByRole('heading', { level: 3 }).map((titulo) => titulo.textContent);
+    expect(titulos).toEqual(stacks.categorias.map((categoria) => categoria.titulo));
+  });
+
+  it('sem categorias, a seção continua de pé, só sem listas', () => {
+    render(<Stacks categorias={[]} />);
+
+    expect(screen.getByRole('region', { name: secoes.stacks })).toBeInTheDocument();
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+  });
+
+  it('cada subtítulo tem um id próprio, para cada lista ser nomeada pela sua categoria', () => {
+    render(<Stacks />);
+
+    const ids = screen.getAllByRole('heading', { level: 3 }).map((titulo) => titulo.id);
+    expect(new Set(ids).size).toBe(stacks.categorias.length);
+    for (const lista of screen.getAllByRole('list')) {
+      expect(ids).toContain(lista.getAttribute('aria-labelledby'));
+    }
+  });
 });

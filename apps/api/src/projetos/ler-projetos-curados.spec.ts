@@ -46,6 +46,35 @@ describe('lerProjetosCurados', () => {
     expect(() => lerProjetosCurados(arquivo)).toThrow(arquivo);
     expect(() => lerProjetosCurados(arquivo)).toThrow(/projeto 1 \("Sem stacks"\): campo "stacks"/);
   });
+
+  it('dá erro claro quando o arquivo está vazio', () => {
+    writeFileSync(arquivo, '');
+
+    expect(() => lerProjetosCurados(arquivo)).toThrow(/não é um JSON válido/);
+  });
+
+  it('dá erro claro quando o caminho é uma pasta, não um arquivo', () => {
+    expect(() => lerProjetosCurados(pasta)).toThrow(/não foi possível ler o arquivo/);
+  });
+
+  it('lê acentos e caracteres especiais em UTF-8', () => {
+    const projetos = [{ titulo: 'Aplicação de seleção', descricao: 'Ação, coração e “aspas”', stacks: ['C#'] }];
+    writeFileSync(arquivo, JSON.stringify(projetos), 'utf8');
+
+    expect(lerProjetosCurados(arquivo)).toEqual(projetos);
+  });
+
+  // BUG CONHECIDO (T-016): um arquivo salvo em "UTF-8 com BOM" (marca invisível U+FEFF no início, que
+  // alguns editores do Windows gravam) é recusado: readFileSync mantém o BOM e o JSON.parse não o aceita.
+  // Passos: salvar projetos.json com BOM e subir a API. Esperado: o arquivo é lido normalmente.
+  // Obtido: ArquivoDeProjetosInvalidoError "não é um JSON válido" e a API não sobe.
+  it.fails('lê um arquivo salvo em UTF-8 com BOM', () => {
+    const projetos = [{ titulo: 'Primeiro', descricao: 'A', stacks: ['React'] }];
+    const bom = String.fromCharCode(0xfeff);
+    writeFileSync(arquivo, `${bom}${JSON.stringify(projetos)}`, 'utf8');
+
+    expect(lerProjetosCurados(arquivo)).toEqual(projetos);
+  });
 });
 
 describe('arquivo curado do repositório (apps/api/conteudo/projetos.json)', () => {

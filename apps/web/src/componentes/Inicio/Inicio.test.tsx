@@ -27,4 +27,31 @@ describe('Inicio (RF-02)', () => {
     expect(screen.getByRole('link', { name: inicio.atalhoProjetos })).toHaveAttribute('href', '#projetos');
     expect(screen.getByRole('link', { name: inicio.atalhoContato })).toHaveAttribute('href', '#contato');
   });
+
+  it('mostra os elementos na ordem de leitura: nome, título profissional, frase e atalhos', () => {
+    const { container } = render(<Inicio />);
+
+    const textos = [...container.querySelectorAll('h1, p, a')].map((elemento) => elemento.textContent);
+    expect(textos).toEqual([
+      pessoa.nome,
+      inicio.tituloProfissional,
+      inicio.frase,
+      inicio.atalhoProjetos,
+      inicio.atalhoContato,
+    ]);
+  });
+
+  it('o atalho para Projetos é o principal e o de Contato é o secundário', () => {
+    render(<Inicio />);
+
+    expect(screen.getByRole('link', { name: inicio.atalhoProjetos }).className).toMatch(/principal/);
+    expect(screen.getByRole('link', { name: inicio.atalhoContato }).className).toMatch(/secundario/);
+  });
+
+  it('tem só os dois atalhos e nenhum subtítulo de nível 2 (o Início não é uma Secao comum)', () => {
+    render(<Inicio />);
+
+    expect(screen.getAllByRole('link')).toHaveLength(2);
+    expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument();
+  });
 });

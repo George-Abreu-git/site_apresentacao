@@ -100,4 +100,41 @@ describe('validarProjetosCurados', () => {
     expect(mensagem).toMatch(/projeto 2 \("Projeto quebrado"\): campo "stacks"/);
     expect(mensagem).toMatch(/projeto 2 \("Projeto quebrado"\): campo "demo"/);
   });
+
+  it.each([
+    ['null', null],
+    ['uma lista', [projetoMinimo]],
+    ['um número', 42],
+  ])('recusa um item que é %s (só objeto vale como projeto)', (_descricao, item) => {
+    expect(mensagemDeErro([item])).toMatch(/projeto 1: deve ser um objeto/);
+  });
+
+  it('sem título válido, identifica o projeto só pelo número (e ainda lista os outros problemas)', () => {
+    const mensagem = mensagemDeErro([{ titulo: '  ', descricao: 'A', stacks: ['React'], demo: 'exemplo.com' }]);
+
+    expect(mensagem).toMatch(/^projeto 1: campo "titulo"/m);
+    expect(mensagem).toMatch(/^projeto 1: campo "demo"/m);
+  });
+
+  it('numera os projetos a partir de 1 e aponta só os inválidos', () => {
+    const mensagem = mensagemDeErro([projetoMinimo, projetoMinimo, { ...projetoMinimo, descricao: '' }]);
+
+    expect(mensagem).toMatch(/projeto 3 \("Site de apresentação"\): campo "descricao"/);
+    expect(mensagem).not.toMatch(/projeto [12]\b/);
+  });
+
+  it('recusa stack só com espaços', () => {
+    expect(mensagemDeErro([{ ...projetoMinimo, stacks: ['React', '   '] }])).toMatch(/campo "stacks"/);
+  });
+
+  it('recusa campos opcionais presentes com null (no JSON, campo ausente é campo omitido)', () => {
+    const mensagem = mensagemDeErro([{ ...projetoMinimo, repositorio: null, imagem: null }]);
+
+    expect(mensagem).toMatch(/campo "repositorio", quando presente/);
+    expect(mensagem).toMatch(/campo "imagem", quando presente/);
+  });
+
+  it('recusa endereço com espaço no meio', () => {
+    expect(mensagemDeErro([{ ...projetoMinimo, demo: 'https://exemplo.com/meu projeto' }])).toMatch(/campo "demo"/);
+  });
 });

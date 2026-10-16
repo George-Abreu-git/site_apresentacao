@@ -56,6 +56,30 @@ describe('buscarProjetos (GET /api/projetos)', () => {
     await expect(buscarProjetos()).rejects.toThrow('lista');
   });
 
+  it('falha quando a API responde 404 (ex.: endereço da API configurado errado)', async () => {
+    simularFetch(respostaJson({ message: 'Not Found' }, 404));
+
+    await expect(buscarProjetos()).rejects.toThrow('404');
+  });
+
+  it('falha quando o corpo não é JSON (ex.: página HTML de erro de um proxy, com status 200)', async () => {
+    simularFetch(new Response('<html>Bad Gateway</html>', { status: 200 }));
+
+    await expect(buscarProjetos()).rejects.toThrow();
+  });
+
+  it('falha quando a API responde null', async () => {
+    simularFetch(respostaJson(null));
+
+    await expect(buscarProjetos()).rejects.toThrow('lista');
+  });
+
+  it('devolve a lista vazia quando a API não tem projetos', async () => {
+    simularFetch(respostaJson([]));
+
+    await expect(buscarProjetos()).resolves.toEqual([]);
+  });
+
   it('falha quando a rede falha (ex.: API fora do ar)', async () => {
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch')));
 

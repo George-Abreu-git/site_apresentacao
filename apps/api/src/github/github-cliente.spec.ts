@@ -142,6 +142,63 @@ describe('GithubCliente', () => {
     expect(erro.message).toMatch(/formato inesperado/);
   });
 
+  it('resposta 401 (token recusado) vira GithubIndisponivelError com o motivo', async () => {
+    fetchSimulado.mockResolvedValue(respostaJson({ message: 'Bad credentials' }, 401));
+
+    const erro = await erroDaBusca(new GithubCliente(configuracao));
+
+    expect(erro.message).toContain('GitHub respondeu 401 (token recusado)');
+  });
+
+  it('resposta 200 com corpo que não é JSON vira GithubIndisponivelError', async () => {
+    fetchSimulado.mockResolvedValue(new Response('<html>manutenção</html>', { status: 200 }));
+
+    const erro = await erroDaBusca(new GithubCliente(configuracao));
+
+    expect(erro.message).toMatch(/formato inesperado/);
+  });
+
+  it.each([
+    ['uma lista', []],
+    ['null', null],
+    ['sem pushed_at', { language: 'Go', stargazers_count: 1 }],
+    ['language numérica', { ...respostaDoGithub, language: 42 }],
+  ])('corpo fora do formato (%s) vira GithubIndisponivelError', async (_descricao, corpo) => {
+    fetchSimulado.mockResolvedValue(respostaJson(corpo));
+
+    const erro = await erroDaBusca(new GithubCliente(configuracao));
+
+    expect(erro.message).toMatch(/formato inesperado/);
+  });
+
+  it('codifica dono e nome no endereço (um nome estranho não muda o caminho da requisição)', async () => {
+    fetchSimulado.mockResolvedValue(respostaJson(respostaDoGithub));
+
+    await new GithubCliente(configuracao).buscarRepositorio({ dono: 'dono', nome: 'a/../b?x' });
+
+    expect(fetchSimulado.mock.calls[0][0]).toBe('https://api.github.com/repos/dono/a%2F..%2Fb%3Fx');
+  });
+
+  it('passa um sinal de tempo limite para o fetch', async () => {
+    fetchSimulado.mockResolvedValue(respostaJson(respostaDoGithub));
+
+    await new GithubCliente(configuracao).buscarRepositorio(repositorio);
+
+    expect(fetchSimulado.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  // BUG CONHECIDO (T-016): `pushed_at` só é conferido como texto, não como data. Um texto qualquer
+  // passa e chega ao front, onde o CartaoDeProjeto lança RangeError ao formatar a data (ver
+  // CartaoDeProjeto.test.tsx). Esperado: data inválida vira GithubIndisponivelError ("formato inesperado").
+  // Obtido: a busca dá certo com `ultimaAtualizacao: "não é uma data"`.
+  it.fails('pushed_at que não é uma data vira GithubIndisponivelError', async () => {
+    fetchSimulado.mockResolvedValue(respostaJson({ ...respostaDoGithub, pushed_at: 'não é uma data' }));
+
+    const erro = await erroDaBusca(new GithubCliente(configuracao));
+
+    expect(erro.message).toMatch(/formato inesperado/);
+  });
+
   it('as mensagens de erro nunca trazem o token', async () => {
     fetchSimulado
       .mockResolvedValueOnce(respostaJson({ message: 'Bad credentials' }, 401))

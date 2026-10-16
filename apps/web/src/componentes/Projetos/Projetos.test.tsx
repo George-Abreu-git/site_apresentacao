@@ -94,4 +94,63 @@ describe('Projetos (RF-05, RNF-03)', () => {
 
     expect(opcoes?.signal?.aborted).toBe(true);
   });
+
+  it('busca os projetos uma única vez, mesmo com a seção renderizada de novo', () => {
+    const fetchFalso = simularApiRespondendo(PROJETOS);
+
+    const { rerender } = render(<Projetos />);
+    rerender(<Projetos />);
+
+    expect(fetchFalso).toHaveBeenCalledTimes(1);
+  });
+
+  it('uma resposta que chega depois de a seção sair da tela é ignorada, sem erro nem aviso', async () => {
+    // Promessa "pendurada": o teste decide quando a API responde.
+    let responder: (resposta: Response) => void = () => undefined;
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>(() => new Promise<Response>((resolver) => (responder = resolver))));
+    const avisos = vi.spyOn(console, 'error');
+
+    try {
+      const { unmount } = render(<Projetos />);
+      unmount();
+      responder(new Response(JSON.stringify(PROJETOS), { status: 200 }));
+      // Deixa a fila de promessas andar, para o .then() do hook rodar.
+      await new Promise((resolver) => setTimeout(resolver, 0));
+
+      expect(avisos).not.toHaveBeenCalled();
+    } finally {
+      avisos.mockRestore();
+    }
+  });
+
+  it('resposta 200 que não é JSON (ex.: página HTML de erro de um proxy) mostra a mensagem amigável', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response('<html>Bad Gateway</html>', { status: 200 })),
+    );
+
+    render(<Projetos />);
+
+    expect(await screen.findByText(textos.erro)).toBeInTheDocument();
+  });
+
+  // BUG CONHECIDO (T-016): a lista usa o título como `key` do React (`key={projeto.titulo}`), mas nada
+  // garante títulos únicos (a validação do arquivo curado na API não confere repetição). Com dois projetos
+  // de mesmo título, o React avisa "Encountered two children with the same key" e pode trocar ou repetir
+  // cards em atualizações da lista. Esperado: nenhum aviso. Obtido: aviso de chave duplicada no console.
+  it.fails('dois projetos com o mesmo título não geram aviso de chave duplicada', async () => {
+    simularApiRespondendo([
+      { titulo: 'Mesmo título', descricao: 'Primeiro', stacks: ['React'] },
+      { titulo: 'Mesmo título', descricao: 'Segundo', stacks: ['NestJS'] },
+    ]);
+    const avisos = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      render(<Projetos />);
+      expect(await screen.findAllByRole('article')).toHaveLength(2);
+      expect(avisos).not.toHaveBeenCalled();
+    } finally {
+      avisos.mockRestore();
+    }
+  });
 });

@@ -44,4 +44,34 @@ describe('Servicos (RF-07)', () => {
     const regiao = screen.getByRole('region', { name: secoes.servicos });
     expect(within(regiao).getByRole('link', { name: servicos.botaoContato })).toHaveAttribute('href', '#contato');
   });
+
+  it('os três blocos aparecem na ordem: o que ofereço, para quem e como funciona', () => {
+    render(<Servicos />);
+
+    const subtitulos = screen.getAllByRole('heading', { level: 3 }).map((titulo) => titulo.textContent);
+    expect(subtitulos).toEqual([servicos.oQueOfereco.titulo, servicos.paraQuem.titulo, servicos.comoFunciona.titulo]);
+  });
+
+  it('"o que ofereço" é lista sem ordem (<ul>) e "como funciona" é lista ordenada (<ol>), na ordem do conteúdo', () => {
+    render(<Servicos />);
+
+    const [oferta, passos] = screen.getAllByRole('list');
+    expect(oferta.tagName).toBe('UL');
+    expect(within(oferta).getAllByRole('listitem').map((item) => item.textContent)).toEqual(
+      servicos.oQueOfereco.itens,
+    );
+    expect(passos.tagName).toBe('OL');
+    expect(within(passos).getAllByRole('listitem').map((item) => item.textContent)).toEqual(
+      servicos.comoFunciona.itens,
+    );
+  });
+
+  it('o botão para o Contato é o atalho principal e o único link da seção', () => {
+    render(<Servicos />);
+
+    const regiao = screen.getByRole('region', { name: secoes.servicos });
+    const links = within(regiao).getAllByRole('link');
+    expect(links).toHaveLength(1);
+    expect(links[0].className).toMatch(/principal/);
+  });
 });

@@ -22,4 +22,22 @@ describe('endereço da API (variável de ambiente do Vite)', () => {
     expect(enderecoDaApi()).toBe(ENDERECO_PADRAO_DA_API);
     expect(ENDERECO_PADRAO_DA_API).toBe('http://localhost:3000');
   });
+
+  it('variável só com espaços conta como vazia', () => {
+    vi.stubEnv('VITE_API_URL', '   ');
+
+    expect(enderecoDaApi()).toBe(ENDERECO_PADRAO_DA_API);
+  });
+
+  it('tira espaços em volta e várias barras do final', () => {
+    vi.stubEnv('VITE_API_URL', '  https://api.exemplo.com///  ');
+
+    expect(enderecoDaApi()).toBe('https://api.exemplo.com');
+  });
+
+  it('mantém um caminho base, se a API estiver numa subpasta', () => {
+    vi.stubEnv('VITE_API_URL', 'https://exemplo.com/servicos/');
+
+    expect(enderecoDaApi()).toBe('https://exemplo.com/servicos');
+  });
 });

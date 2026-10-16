@@ -71,6 +71,60 @@ describe('Menu', () => {
     expect(botaoDoMenu()).toHaveFocus();
   });
 
+  it('Esc com a lista fechada não mexe no foco (não "rouba" o foco de quem está em outro lugar)', () => {
+    render(<Menu itens={ITENS} />);
+
+    const link = screen.getByRole('link', { name: 'Contato' });
+    link.focus();
+    fireEvent.keyDown(link, { key: 'Escape' });
+
+    expect(link).toHaveFocus();
+    expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('outras teclas (Enter, Tab) não fecham a lista aberta', () => {
+    render(<Menu itens={ITENS} />);
+
+    fireEvent.click(botaoDoMenu());
+    const link = screen.getByRole('link', { name: 'Início' });
+    fireEvent.keyDown(link, { key: 'Enter' });
+    fireEvent.keyDown(link, { key: 'Tab' });
+
+    expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('escolher uma seção com a lista fechada (desktop) não a abre', () => {
+    render(<Menu itens={ITENS} />);
+
+    fireEvent.click(screen.getByRole('link', { name: 'Início' }));
+
+    expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('mantém a ordem recebida, com cada link dentro de um item de lista', () => {
+    const itens: ItemDeSecao[] = [
+      { id: 'sobre', titulo: 'Sobre' },
+      { id: 'stacks', titulo: 'Stacks' },
+      { id: 'projetos', titulo: 'Projetos' },
+    ];
+    render(<Menu itens={itens} />);
+
+    const itensDaLista = within(screen.getByRole('list')).getAllByRole('listitem');
+    expect(itensDaLista.map((item) => item.textContent)).toEqual(['Sobre', 'Stacks', 'Projetos']);
+    for (const item of itensDaLista) {
+      expect(within(item).getByRole('link')).toBeInTheDocument();
+    }
+  });
+
+  it('com a lista aberta, a lista ganha a classe "aberta" (que o CSS usa para mostrá-la no celular)', () => {
+    render(<Menu itens={ITENS} />);
+
+    // Nos testes o CSS não é processado, mas o nome da classe continua no className.
+    expect(screen.getByRole('list').className).not.toMatch(/aberta/);
+    fireEvent.click(botaoDoMenu());
+    expect(screen.getByRole('list').className).toMatch(/aberta/);
+  });
+
   it('usa elementos nativos (button e a href), que já recebem foco pelo Tab', () => {
     render(<Menu itens={ITENS} />);
 

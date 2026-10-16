@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { conteudo } from '../../conteudo';
 import Contato from './Contato';
 
-const { secoes, contato, links } = conteudo;
+const { secoes, contato, links, geral } = conteudo;
 
 function regiaoContato() {
   return screen.getByRole('region', { name: secoes.contato });
@@ -36,5 +36,32 @@ describe('Contato (RF-08)', () => {
     expect(linkedin).toHaveAttribute('target', '_blank');
     expect(github).toHaveAttribute('href', links.github);
     expect(github).toHaveAttribute('target', '_blank');
+  });
+
+  it('tem exatamente três canais, numa lista, na ordem LinkedIn, e-mail e GitHub', () => {
+    render(<Contato />);
+
+    const itens = within(within(regiaoContato()).getByRole('list')).getAllByRole('listitem');
+    expect(itens).toHaveLength(3);
+    expect(itens.map((item) => within(item).getByRole('link').getAttribute('href'))).toEqual([
+      links.linkedin,
+      `mailto:${links.email}`,
+      links.github,
+    ]);
+  });
+
+  it('os links externos protegem a página (rel="noopener noreferrer") e avisam o leitor de tela da nova aba', () => {
+    render(<Contato />);
+
+    const linkedin = screen.getByRole('link', { name: `${contato.linkLinkedin} ${geral.abreEmNovaAba}` });
+    const github = screen.getByRole('link', { name: `${contato.linkGithub} ${geral.abreEmNovaAba}` });
+    expect(linkedin).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(github).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('o link de e-mail não diz que abre nova aba (ele abre o programa de e-mail)', () => {
+    render(<Contato />);
+
+    expect(screen.getByRole('link', { name: contato.linkEmail })).toHaveAccessibleName(contato.linkEmail);
   });
 });

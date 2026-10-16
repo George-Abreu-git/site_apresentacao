@@ -1,6 +1,7 @@
 import type { Projeto } from '@site-apresentacao/shared';
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { capturarErrosDeRenderizacao } from '../../apoio-de-testes/capturar-erros-de-renderizacao';
 import { conteudo } from '../../conteudo';
 import CartaoDeProjeto from './CartaoDeProjeto';
 
@@ -106,5 +107,63 @@ describe('CartaoDeProjeto (RF-05)', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(screen.queryByText(textos.estrelas)).not.toBeInTheDocument();
     expect(screen.getByRole('list', { name: textos.rotuloStacks })).toHaveTextContent('Node.js');
+  });
+
+  it('só com a demo (sem repositório), mostra só o link da demo', () => {
+    render(<CartaoDeProjeto projeto={{ ...PROJETO_SO_CURADO, demo: 'https://demo.exemplo.com' }} />);
+
+    const links = screen.getAllByRole('link');
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAccessibleName(new RegExp(textos.linkDemo));
+    expect(links[0]).toHaveAttribute('href', 'https://demo.exemplo.com');
+  });
+
+  it('com repositório fora do GitHub (sem campo github), mostra o link mas não os dados vivos', () => {
+    render(<CartaoDeProjeto projeto={{ ...PROJETO_SO_CURADO, repositorio: 'https://gitlab.com/dono/repo' }} />);
+
+    expect(screen.getByRole('link', { name: new RegExp(textos.linkRepositorio) })).toHaveAttribute(
+      'href',
+      'https://gitlab.com/dono/repo',
+    );
+    expect(screen.queryByText(textos.estrelas)).not.toBeInTheDocument();
+  });
+
+  it('números grandes de estrelas usam o separador de milhar do idioma do conteúdo', () => {
+    const projeto: Projeto = {
+      ...PROJETO_COMPLETO,
+      github: { disponivel: true, linguagem: 'Go', estrelas: 1234567, ultimaAtualizacao: '2026-10-01T12:00:00Z' },
+    };
+
+    render(<CartaoDeProjeto projeto={projeto} />);
+
+    expect(valorDoDado(textos.estrelas)).toBe('1.234.567');
+  });
+
+  it('os links do card são externos seguros (rel="noopener noreferrer") e avisam da nova aba', () => {
+    render(<CartaoDeProjeto projeto={PROJETO_COMPLETO} />);
+
+    for (const link of screen.getAllByRole('link')) {
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+      expect(link).toHaveAccessibleName(expect.stringContaining(conteudo.geral.abreEmNovaAba));
+    }
+  });
+
+  // BUG CONHECIDO (T-016): `formatoDeData.format(new Date(...))` lança RangeError ("Invalid time value")
+  // quando `ultimaAtualizacao` não é uma data válida. Sem error boundary, o erro derruba a página inteira.
+  // A API só confere que `pushed_at` é um texto (github-cliente.ts), então um texto qualquer chega até aqui.
+  // Esperado: o card aparece, sem a data (ou com ela omitida). Obtido: a renderização lança erro.
+  it.fails('data de atualização inválida não derruba o card', () => {
+    const projeto: Projeto = {
+      ...PROJETO_COMPLETO,
+      github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1, ultimaAtualizacao: 'não é uma data' },
+    };
+    const captura = capturarErrosDeRenderizacao();
+
+    try {
+      render(<CartaoDeProjeto projeto={projeto} />);
+      expect(screen.getByRole('article', { name: PROJETO_COMPLETO.titulo })).toBeInTheDocument();
+    } finally {
+      captura.parar();
+    }
   });
 });

@@ -1,5 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { capturarErrosDeRenderizacao } from './apoio-de-testes/capturar-erros-de-renderizacao';
 import App from './App';
 import { conteudo } from './conteudo';
 import { IDS_DAS_SECOES } from './secoes';
@@ -60,5 +61,41 @@ describe('App (layout base da página única)', () => {
       conteudo.sobre.paragrafos[0],
     );
     expect(screen.getByRole('region', { name: conteudo.secoes.contato })).toHaveTextContent(conteudo.contato.texto);
+  });
+
+  it('com a API fora do ar, só a seção Projetos mostra o erro; o resto da página continua (RF-05)', async () => {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    render(<App />);
+
+    expect(await screen.findByText(conteudo.projetos.erro)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: conteudo.pessoa.nome })).toBeInTheDocument();
+    expect(within(screen.getByRole('main')).getAllByRole('region')).toHaveLength(IDS_DAS_SECOES.length);
+  });
+
+  // BUG CONHECIDO (T-016): o front confia no formato de cada projeto que a API devolve
+  // (src/api/projetos.ts só confere que é uma lista) e não há error boundary. Um item fora do formato
+  // (ex.: sem `stacks`) faz o CartaoDeProjeto lançar erro e o React desmonta a PÁGINA INTEIRA (tela em branco).
+  // Esperado (RF-05): mensagem amigável na seção Projetos e o resto da página de pé.
+  // Obtido: nenhum elemento na tela (nem o <h1>).
+  it.fails('um projeto fora do formato na resposta da API não derruba a página inteira', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify([{ titulo: 'Sem stacks', descricao: 'Item fora do formato' }]), { status: 200 }),
+      ),
+    );
+    const captura = capturarErrosDeRenderizacao();
+
+    try {
+      render(<App />);
+      // Espera a resposta da API ser tratada (o aviso de carregamento some, de um jeito ou de outro).
+      await waitFor(() => expect(screen.queryByText(conteudo.projetos.carregando)).not.toBeInTheDocument());
+
+      expect(screen.getByRole('heading', { level: 1, name: conteudo.pessoa.nome })).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: conteudo.secoes.projetos })).toBeInTheDocument();
+    } finally {
+      captura.parar();
+    }
   });
 });

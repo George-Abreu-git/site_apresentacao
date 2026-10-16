@@ -4,6 +4,7 @@
 // `import.meta.glob` é um recurso do Vite (o Vitest usa o mesmo motor): junta vários
 // arquivos de uma vez. Com `query: '?raw'`, cada arquivo chega como texto puro.
 import { describe, expect, it } from 'vitest';
+import pontoDeEntrada from './main.tsx?raw';
 
 const arquivosCss = import.meta.glob<string>('./**/*.css', {
   query: '?raw',
@@ -42,4 +43,65 @@ describe('tema escuro (RNF-04)', () => {
       expect(semComentarios(conteudo), caminho).not.toMatch(COR_FIXA);
     }
   });
+
+  it('toda variável usada no CSS (var(--...)) está definida em tema.css (pega erro de digitação)', () => {
+    const definidas = new Set(Object.keys(variaveisDoTema()));
+
+    for (const [caminho, css] of Object.entries(arquivosCss)) {
+      for (const [, nome] of semComentarios(css).matchAll(/var\(\s*(--[\w-]+)/g)) {
+        expect(definidas, `${caminho} usa ${nome}`).toContain(nome);
+      }
+    }
+  });
+
+  it.each([
+    ['--cor-texto', '--cor-fundo'],
+    ['--cor-texto', '--cor-superficie'],
+    ['--cor-texto-suave', '--cor-fundo'],
+    ['--cor-texto-suave', '--cor-superficie'],
+    ['--cor-destaque', '--cor-fundo'],
+    ['--cor-destaque', '--cor-superficie'],
+    // Atalho principal: texto na cor do fundo sobre o botão na cor de destaque.
+    ['--cor-fundo', '--cor-destaque'],
+  ])('texto em %s sobre %s tem contraste de pelo menos 4,5:1 (WCAG AA)', (texto, fundo) => {
+    const cores = variaveisDoTema();
+
+    expect(contraste(cores[texto], cores[fundo])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('o contorno de foco se destaca do fundo e da superfície (pelo menos 3:1, como pede a WCAG para foco)', () => {
+    const cores = variaveisDoTema();
+
+    expect(contraste(cores['--cor-foco'], cores['--cor-fundo'])).toBeGreaterThanOrEqual(3);
+    expect(contraste(cores['--cor-foco'], cores['--cor-superficie'])).toBeGreaterThanOrEqual(3);
+  });
+
+  it('o tema é carregado antes dos estilos globais no ponto de entrada (main.tsx)', () => {
+    expect(pontoDeEntrada.indexOf("import './tema.css'")).toBeGreaterThan(-1);
+    expect(pontoDeEntrada.indexOf("import './tema.css'")).toBeLessThan(pontoDeEntrada.indexOf("import './index.css'"));
+  });
 });
+
+/** As variáveis declaradas em tema.css, ex.: { "--cor-fundo": "#0f1115" }. */
+function variaveisDoTema(): Record<string, string> {
+  const tema = semComentarios(arquivosCss['./tema.css']);
+  return Object.fromEntries([...tema.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(([, nome, valor]) => [nome, valor.trim()]));
+}
+
+/**
+ * Razão de contraste da WCAG entre duas cores #rrggbb: vai de 1:1 (iguais) a 21:1 (preto e branco).
+ * Fórmula: (L1 + 0,05) / (L2 + 0,05), com L a luminância relativa da cor mais clara (L1) e da mais escura (L2).
+ */
+function contraste(corA: string, corB: string): number {
+  const [clara, escura] = [luminancia(corA), luminancia(corB)].sort((a, b) => b - a);
+  return (clara + 0.05) / (escura + 0.05);
+}
+
+function luminancia(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map((inicio) => {
+    const canal = parseInt(hex.slice(inicio, inicio + 2), 16) / 255;
+    // Converte do sRGB para luz "linear", como o olho percebe a intensidade.
+    return canal <= 0.04045 ? canal / 12.92 : ((canal + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}

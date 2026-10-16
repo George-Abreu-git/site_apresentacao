@@ -14,6 +14,7 @@ describe('carregarVariaveisDeAmbiente', () => {
   afterEach(() => {
     rmSync(pasta, { recursive: true, force: true });
     delete process.env.VARIAVEL_DE_TESTE_T005;
+    delete process.env.VARIAVEL_DE_TESTE_T016;
   });
 
   it('lê as variáveis do arquivo .env para process.env', () => {
@@ -36,5 +37,25 @@ describe('carregarVariaveisDeAmbiente', () => {
     carregarVariaveisDeAmbiente(arquivo);
 
     expect(process.env.VARIAVEL_DE_TESTE_T005).toBe('definida-no-ambiente');
+  });
+
+  it('ignora comentários e linhas vazias, e tira as aspas dos valores', () => {
+    const arquivo = join(pasta, '.env');
+    writeFileSync(
+      arquivo,
+      ['# comentário', '', 'VARIAVEL_DE_TESTE_T005="valor com espaços"', 'VARIAVEL_DE_TESTE_T016=outra'].join('\n'),
+    );
+
+    carregarVariaveisDeAmbiente(arquivo);
+
+    expect(process.env.VARIAVEL_DE_TESTE_T005).toBe('valor com espaços');
+    expect(process.env.VARIAVEL_DE_TESTE_T016).toBe('outra');
+  });
+
+  it('um arquivo .env vazio é lido sem erro', () => {
+    const arquivo = join(pasta, '.env');
+    writeFileSync(arquivo, '');
+
+    expect(carregarVariaveisDeAmbiente(arquivo)).toBe(true);
   });
 });

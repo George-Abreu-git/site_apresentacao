@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { conteudo } from '../../conteudo';
 import Sobre from './Sobre';
 
-const { secoes, sobre, links } = conteudo;
+const { secoes, sobre, links, geral } = conteudo;
 
 describe('Sobre (RF-03)', () => {
   it('é a seção #sobre, com o título de nível 2', () => {
@@ -32,5 +32,30 @@ describe('Sobre (RF-03)', () => {
     expect(github).toHaveAttribute('href', links.github);
     expect(linkedin).toHaveAttribute('target', '_blank');
     expect(github).toHaveAttribute('target', '_blank');
+  });
+
+  it('os parágrafos aparecem como <p>, na ordem do arquivo de conteúdo', () => {
+    render(<Sobre />);
+
+    const regiao = screen.getByRole('region', { name: secoes.sobre });
+    const paragrafos = [...regiao.querySelectorAll('p')].map((p) => p.textContent);
+    expect(paragrafos).toEqual(sobre.paragrafos);
+  });
+
+  it('os links abrem em nova aba com segurança (rel="noopener noreferrer")', () => {
+    render(<Sobre />);
+
+    const links = within(screen.getByRole('region', { name: secoes.sobre })).getAllByRole('link');
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  });
+
+  it('o nome lido pelo leitor de tela avisa que o link abre em nova aba', () => {
+    render(<Sobre />);
+
+    expect(screen.getByRole('link', { name: `${sobre.linkLinkedin} ${geral.abreEmNovaAba}` })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: `${sobre.linkGithub} ${geral.abreEmNovaAba}` })).toBeInTheDocument();
   });
 });
