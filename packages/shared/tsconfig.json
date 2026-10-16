@@ -1,5 +1,7 @@
-// Pacote compartilhado: compilado para dist/ com os arquivos de tipos (.d.ts),
-// que são o que o front e a API leem ao importar "@site-apresentacao/shared".
+// Pacote compartilhado. O front e a API leem os tipos direto de src/index.ts
+// (campo "types" do package.json, T-017), então NÃO precisam da dist/ para compilar.
+// O `npm run build` ainda gera a dist/: confere os tipos do pacote e entrega o
+// JavaScript apontado em "default", que hoje fica vazio (o pacote só exporta tipos).
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
@@ -7,7 +9,8 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
 
-    // Gera os .d.ts junto do .js: sem eles, quem importa o pacote não enxerga os tipos.
+    // Gera também os .d.ts na dist/, para quem um dia consumir o pacote já compilado
+    // (o front e a API, dentro do monorepo, leem o src/ direto).
     "declaration": true,
 
     "rootDir": "src",
