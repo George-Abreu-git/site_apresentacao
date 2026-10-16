@@ -105,3 +105,4 @@ Conceitos para estudo: `it.fails` e falso positivo; error boundary; erros não t
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz; dev chamado para os unitários
 - 2026-10-15 — dev: CONCLUIDO — unitários com 5+ cenários nas 14 funcionalidades; 4 bugs marcados com it.fails
 - 2026-10-15 — code-reviewer: APROVADO — só testes alterados; it.fails conferidos com os 4 bugs
+- 2026-10-16 — orquestrador: em-qa — qa (rodada 1) interrompido no corte de 05:45 sem handoff; trabalho parcial guardado em stash, branch atualizada com a main (T-017) e qa retomado a pedido do George
