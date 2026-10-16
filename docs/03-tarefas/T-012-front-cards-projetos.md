@@ -102,6 +102,15 @@ Conceitos para estudo: fixture automática do Playwright (`test.extend` com `aut
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-012.md` (`consolidado: false`) a partir da nota da tarefa (Dev, Revisão, QA rodadas 1 e 2, Decisões, Log) e do código de `apps/web/src/api/*`, `Projetos/*`, `CartaoDeProjeto/*` e `e2e/apoio/*`. 15 conceitos (3 com o mesmo nome do diário da T-011, para a consolidação juntar), incluindo variáveis de ambiente do Vite, custom hook, `useEffect` com `AbortController`, região viva, `Intl`, fixture automática do Playwright, teste instável e CORS. Pontos em aberto (Error Boundary, `key` repetida, CORS na T-013, sem tempo limite no front) entraram como conteúdo de estudo. Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-012.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -115,3 +124,4 @@ Conceitos para estudo: fixture automática do Playwright (`test.extend` com `aut
 - 2026-10-15 — orquestrador: em-qa — George escolheu A; rodadas = 1; qa chamado para simular a API nos e2e que abrem a página inteira
 - 2026-10-15 — qa: PASSOU (rodada 2) — API simulada em todos os e2e; 0 falhas em 1.680 execuções
 - 2026-10-15 — orquestrador: concluida — verificação verde (teste do console 20/20 com repetição); diário de estudo disparado após a integração
+- 2026-10-15 — documentador: CONCLUIDO — diário integrado
