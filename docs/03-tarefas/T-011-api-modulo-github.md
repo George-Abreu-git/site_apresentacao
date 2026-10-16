@@ -90,6 +90,15 @@ Conceitos para estudo: teste de rota com só a fronteira externa simulada (`vi.s
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-011.md` (`consolidado: false`) sobre `GET /api/projetos` com os dados vivos do GitHub, com 11 conceitos (5 reaproveitados de diários anteriores; novos: `fetch-nativo-e-tempo-limite`, `cache-com-ttl` — inclui cache stampede, negative caching e stale-if-error —, `fallback-e-degradacao-graciosa`, `segredo-em-variavel-de-ambiente`, `uniao-discriminada` — inclui `Omit<T, K>` — e `promise-all`) e 2 exercícios (cache e plano B na API rodando; checagem da união discriminada). Nenhuma outra nota de estudo alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-011.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -100,3 +109,4 @@ Conceitos para estudo: teste de rota com só a fronteira externa simulada (`vi.s
 - 2026-10-15 — code-reviewer: APROVADO — 5 critérios atendidos; 2 testes de rota a ajustar pelo qa
 - 2026-10-15 — qa: PASSOU — testes de rota do módulo github; suíte inteira verde
 - 2026-10-15 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
+- 2026-10-15 — documentador: CONCLUIDO — diário integrado
