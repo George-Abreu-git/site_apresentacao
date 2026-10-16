@@ -3,10 +3,11 @@
 // Os textos esperados são lidos do próprio arquivo de conteúdo: quando o George trocar uma
 // frase ou o endereço do LinkedIn lá, estes testes continuam valendo sem mudança.
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { contraste } from '../apoio/cores';
 import { esperarFocoVisivel, esperarSecaoNaTela } from '../apoio/pagina';
+import { expect, test } from '../apoio/teste';
 
 const { pessoa, inicio, sobre, servicos, contato, links, secoes, geral } = ptBR;
 

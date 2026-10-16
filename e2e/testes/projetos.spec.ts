@@ -2,68 +2,18 @@
 // (RF-05), aviso de carregamento sem segurar o resto da página (RNF-03) e mensagem amigável
 // quando a API falha. A API é simulada com `page.route`: o Playwright intercepta a requisição
 // no navegador e responde o que o teste quiser (sucesso, demora, erro), sem subir a API de verdade.
+// A simulação de cada teste substitui a padrão do `test` de e2e/apoio/teste.ts (API sem resposta).
 // Os textos esperados são lidos do arquivo de conteúdo, como nos outros testes.
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop).
-import { expect, test, type Locator, type Page, type Route } from '@playwright/test';
-import type { Projeto } from '../../packages/shared/src/projeto';
+import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
+import { PROJETOS_DE_EXEMPLO as PROJETOS, ROTA_DA_API, responder, simularApi } from '../apoio/api';
 import { contraste } from '../apoio/cores';
 import { esperarFocoVisivel, medirEstouroHorizontal } from '../apoio/pagina';
+import { expect, test } from '../apoio/teste';
 
 const { pessoa, secoes, sobre, servicos, contato, geral } = ptBR;
 const textos = ptBR.projetos;
-
-/** Qualquer endereço terminado em /api/projetos: vale para a API local e para a publicada. */
-const ROTA_DA_API = '**/api/projetos';
-
-/** Uma lista que cobre os casos do card: completo, sem linguagem, GitHub fora do ar e sem repositório. */
-const PROJETOS: Projeto[] = [
-  {
-    titulo: 'Site de apresentação',
-    descricao: 'Portfólio com front em React e API própria em NestJS.',
-    stacks: ['React', 'TypeScript', 'NestJS'],
-    repositorio: 'https://github.com/George-Abreu-git/site_apresentacao',
-    demo: 'https://site-do-george.exemplo.dev/',
-    github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1234, ultimaAtualizacao: '2026-10-01T12:00:00Z' },
-  },
-  {
-    titulo: 'Repositório ainda vazio',
-    descricao: 'O GitHub não identifica a linguagem de um repositório sem código.',
-    stacks: ['Markdown'],
-    repositorio: 'https://github.com/George-Abreu-git/vazio',
-    github: { disponivel: true, linguagem: null, estrelas: 0, ultimaAtualizacao: '2026-09-15T08:30:00Z' },
-  },
-  {
-    titulo: 'GitHub fora do ar',
-    descricao: 'Quando o GitHub não responde, o card mostra só os dados curados.',
-    stacks: ['Node.js'],
-    repositorio: 'https://github.com/George-Abreu-git/outro',
-    github: { disponivel: false },
-  },
-  {
-    titulo: 'Projeto sem repositório',
-    descricao: 'Sem código público: nem links nem dados do GitHub.',
-    stacks: ['Node.js', 'TypeScript'],
-  },
-];
-
-/**
- * Responde como a API: JSON com o status pedido (texto puro, se `corpo` já for string).
- * A resposta simulada não passa pela checagem de CORS do navegador: o CORS da API real
- * (RNF-05) não é testado aqui.
- */
-function responder(rota: Route, corpo: unknown, status = 200) {
-  return rota.fulfill({
-    status,
-    contentType: 'application/json',
-    body: typeof corpo === 'string' ? corpo : JSON.stringify(corpo),
-  });
-}
-
-/** Simula a API respondendo na hora com a lista recebida. */
-async function simularApi(page: Page, corpo: unknown, status = 200) {
-  await page.route(ROTA_DA_API, (rota) => responder(rota, corpo, status));
-}
 
 /**
  * Simula a API "acordando" (partida a frio): a requisição fica pendurada até o teste chamar

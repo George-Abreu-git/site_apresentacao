@@ -2,9 +2,10 @@
 // HTML semântico (RNF-02) e ausência de rolagem horizontal de 360px a 1280px+ (RNF-01).
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop); os que só
 // fazem sentido num deles usam o `isMobile` do Playwright para pular o outro.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { contraste } from '../apoio/cores';
 import { esperarFocoVisivel, esperarSecaoNaTela, medirEstouroHorizontal, medirSecao } from '../apoio/pagina';
+import { expect, test } from '../apoio/teste';
 
 /** As seis seções de RF-01, na ordem do menu: `id` da seção e texto do link. */
 const SECOES = [
