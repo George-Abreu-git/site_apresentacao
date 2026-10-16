@@ -1,7 +1,7 @@
 ---
 id: T-016
 titulo: Pente-fino de testes unitários, de regressão e de ponta a ponta
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [qa, front-end, back-end, api]
 rodadas: 0
@@ -65,3 +65,4 @@ Funcionalidades (requisitos já implementados):
 ## Log
 
 - 2026-10-15 — tarefa criada
+- 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz; dev chamado para os unitários
