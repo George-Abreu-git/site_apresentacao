@@ -120,6 +120,16 @@ Conceitos para estudo: `test.fail` condicional; rolagem até a âncora numa SPA;
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-016.md` (`consolidado: false`) explicando o pente-fino (5 cenários por funcionalidade em três níveis, sem mexer em código de produção) e ligando 12 conceitos aos bugs encontrados (BUG-1 a 4 e BUG-Q1 a Q5), com caminhos reais dos testes e 2 exercícios (falso positivo do `it.fails`; BUG-Q4 no inspetor). Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-016.md` (novo)
+Pendências:
+1. A causa do BUG-Q4 no handoff do qa não descreve bem o celular: em `Projetos.module.css`, a `.lista` só define `minmax(0, 1fr)` a partir de 36rem; abaixo disso a coluna implícita (`auto`) cresce até caber a palavra longa. Repassado à T-025.
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -131,3 +141,4 @@ Conceitos para estudo: `test.fail` condicional; rolagem até a âncora numa SPA;
 - 2026-10-16 — orquestrador: em-qa — qa (rodada 1) interrompido no corte de 05:45 sem handoff; trabalho parcial guardado em stash, branch atualizada com a main (T-017) e qa retomado a pedido do George
 - 2026-10-16 — qa: PASSOU — rotas e e2e com 5+ cenários por funcionalidade; 5 bugs novos (BUG-Q1 a Q5) marcados como conhecidos
 - 2026-10-16 — orquestrador: concluida — verificação verde no estado commitado (shared 5; API 227 + 4 falhas esperadas; web 145 + 3; hooks 412; e2e 250 + 12 pulados; lint; validador), com o `pt-BR.ts` do George guardado em stash durante a verificação e devolvido; 9 bugs + 1 erro viram tarefas; diário de estudo disparado após a integração
+- 2026-10-16 — documentador: CONCLUIDO — diário integrado
