@@ -1,7 +1,7 @@
 ---
 id: T-016
 titulo: Pente-fino de testes unitários, de regressão e de ponta a ponta
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [qa, front-end, back-end, api]
 rodadas: 0
@@ -78,6 +78,21 @@ Commit: `test: pente-fino dos testes unitários do front e da API`
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff do dev só altera testes unitários e um helper de testes (`apps/web/src/apoio-de-testes/`, fora do bundle). Nenhum código de produção alterado; tudo na área do dev. Os 5 `it.fails` correspondem aos BUG-1 a BUG-4 (BUG-2 com um teste na API e um no front), todos comentados e conferidos no código de produção. Sem `.only`/`.skip` esquecidos, sem segredos. `npm test` verde (API 191 + 2 esperadas; web 145 + 3; hooks 412), lint, tsc e validador verdes. Cobertura de 5 cenários conferida por amostragem.
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — comentário de `css.include` em `apps/web/vite.config.ts` desatualizado (o `?raw` agora é usado em mais testes).
+2. *opcional* — `arquivosCss` e `semComentarios` duplicados em `tema.test.ts`, `responsividade.test.ts`, `acessibilidade.test.tsx`.
+3. *opcional* — `capturarErrosDeRenderizacao` devolve `erros` sem uso; usá-lo deixaria os `it.fails` mais precisos (risco de falso positivo).
+4. *opcional* — `acessibilidade.test.tsx:153` junta tabindex e `alt` (sem `<img>`, a parte do `alt` não confere nada).
+5. *opcional* — `criar-app.spec.ts`, "cada chamada cria uma aplicação nova": verificação fraca (`not.toBe`).
+6. (orquestrador) Pendências 2 do dev (`"stacks": []` aceito; consulta dupla ao GitHub com cache vazio) devem ir ao George.
+Decisão pendente: nenhuma
+Conceitos para estudo: `it.fails` e falso positivo; error boundary; erros não tratados no jsdom; `?raw` e `import.meta.glob`; testes que leem CSS × layout no e2e; contraste WCAG; BOM.
+
 ## QA
 
 ## Estudo
@@ -89,3 +104,4 @@ Commit: `test: pente-fino dos testes unitários do front e da API`
 - 2026-10-15 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz; dev chamado para os unitários
 - 2026-10-15 — dev: CONCLUIDO — unitários com 5+ cenários nas 14 funcionalidades; 4 bugs marcados com it.fails
+- 2026-10-15 — code-reviewer: APROVADO — só testes alterados; it.fails conferidos com os 4 bugs
