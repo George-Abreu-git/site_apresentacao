@@ -3,6 +3,7 @@
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop); os que só
 // fazem sentido num deles usam o `isMobile` do Playwright para pular o outro.
 import type { Locator, Page } from '@playwright/test';
+import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { contraste } from '../apoio/cores';
 import { esperarFocoVisivel, esperarSecaoNaTela, medirEstouroHorizontal, medirSecao } from '../apoio/pagina';
 import { expect, test } from '../apoio/teste';
@@ -19,6 +20,11 @@ const SECOES = [
 
 function navegacao(page: Page): Locator {
   return page.getByRole('navigation', { name: 'Navegação principal' });
+}
+
+/** A marca no cabeçalho: o nome do George, lido do arquivo de conteúdo (RF-09), leva ao Início. */
+function marca(page: Page): Locator {
+  return page.getByRole('banner').getByRole('link', { name: ptBR.pessoa.nome, exact: true });
 }
 
 function botaoMenu(page: Page): Locator {
@@ -62,7 +68,7 @@ test.describe('layout base: estrutura semântica (RNF-02)', () => {
       await expect(secao).toHaveAttribute('id', id);
       // Cada <section> tem nome (aria-labelledby) e por isso vira uma "região" para o leitor de tela.
       // A região Início tem o nome do <h1> da página.
-      const nome = id === 'inicio' ? 'George Siqueira' : titulo;
+      const nome = id === 'inicio' ? ptBR.pessoa.nome : titulo;
       await expect(page.getByRole('region', { name: nome, exact: true })).toHaveAttribute('id', id);
     }
   });
@@ -180,7 +186,7 @@ test.describe('layout base: menu compacto no celular', () => {
 
   test('pelo teclado: Tab chega ao botão, Enter abre, Tab percorre os links com foco visível', async ({ page }) => {
     await page.keyboard.press('Tab');
-    await esperarFocoVisivel(page.getByRole('link', { name: 'George Siqueira' }));
+    await esperarFocoVisivel(marca(page));
     await page.keyboard.press('Tab');
     await esperarFocoVisivel(botaoMenu(page));
 
@@ -245,7 +251,7 @@ test.describe('layout base: menu em linha no desktop', () => {
 
   test('pelo teclado: Tab percorre a marca e os seis links com foco visível; Enter leva à seção', async ({ page }) => {
     await page.keyboard.press('Tab');
-    await esperarFocoVisivel(page.getByRole('link', { name: 'George Siqueira' }));
+    await esperarFocoVisivel(marca(page));
     for (const { titulo } of SECOES) {
       await page.keyboard.press('Tab');
       await esperarFocoVisivel(linkDoMenu(page, titulo));
@@ -318,4 +324,144 @@ test.describe('layout base: sem rolagem horizontal de 360px a 1280px+ (RNF-01)',
       }
     });
   }
+});
+
+test.describe('navegação: bordas e regressão (pente-fino da T-016)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  /** Clica no link do menu, abrindo a lista antes quando está no celular. */
+  async function irPeloMenu(page: Page, titulo: string, isMobile: boolean) {
+    if (isMobile) await botaoMenu(page).click();
+    await linkDoMenu(page, titulo).click();
+  }
+
+  test('a marca (nome do George) no cabeçalho leva de volta ao Início', async ({ page }) => {
+    await page.goto('/#contato');
+    await esperarSecaoNaTela(page, 'contato');
+
+    await expect(marca(page)).toHaveAttribute('href', '#inicio');
+    await marca(page).click();
+    await expect(page).toHaveURL(/#inicio$/);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(1);
+  });
+
+  test('o botão Voltar do navegador volta à seção anterior', async ({ page, isMobile }) => {
+    await irPeloMenu(page, 'Sobre', isMobile);
+    await esperarSecaoNaTela(page, 'sobre');
+    await irPeloMenu(page, 'Contato', isMobile);
+    await esperarSecaoNaTela(page, 'contato');
+
+    await page.goBack();
+    await expect(page).toHaveURL(/#sobre$/);
+    await esperarSecaoNaTela(page, 'sobre');
+  });
+
+  test('recarregar a página numa âncora mantém a seção na tela', async ({ page }) => {
+    await page.goto('/#projetos');
+    await esperarSecaoNaTela(page, 'projetos');
+    await page.reload();
+    await expect(page).toHaveURL(/#projetos$/);
+    await esperarSecaoNaTela(page, 'projetos');
+  });
+
+  test('âncora que não existe abre a página no topo, sem erro', async ({ page }) => {
+    const erros: string[] = [];
+    page.on('pageerror', (erro) => erros.push(erro.message));
+    await page.goto('/#secao-que-nao-existe');
+    await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    expect(erros).toEqual([]);
+  });
+
+  test('no celular, Esc com a lista fechada não abre o menu nem tira o foco do lugar', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'comportamento só do celular');
+    await botaoMenu(page).focus();
+    await page.keyboard.press('Escape');
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(botaoMenu(page)).toBeFocused();
+  });
+
+  test('girar ou redimensionar a tela troca entre menu compacto e menu em linha sem travar', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'começa no celular e alarga a tela');
+    await botaoMenu(page).click();
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'true');
+
+    // Largura de desktop: o botão some e os links ficam em linha, visíveis.
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await expect(botaoMenu(page)).toBeHidden();
+    for (const { titulo } of SECOES) {
+      await expect(linkDoMenu(page, titulo)).toBeVisible();
+    }
+    expect((await medirEstouroHorizontal(page)).estourados).toEqual([]);
+
+    // De volta ao celular: o botão volta e continua abrindo e fechando a lista.
+    await page.setViewportSize({ width: 412, height: 800 });
+    await expect(botaoMenu(page)).toBeVisible();
+    await botaoMenu(page).click();
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(linksDoMenu(page).first()).toBeHidden();
+  });
+
+  // BUG CONHECIDO (T-016): no celular, com a lista do menu aberta, tocar na marca (nome do George)
+  // leva ao Início mas a lista continua aberta, cobrindo o começo da página. Os links do menu fecham
+  // a lista ao serem escolhidos; a marca, que também navega, não fecha (o `fechar` do Menu só está
+  // ligado aos links da lista). Esperado: lista fechada (aria-expanded="false"). Obtido: "true".
+  test('no celular, tocar na marca com a lista aberta fecha o menu', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'comportamento só do celular');
+    test.fail();
+    await page.goto('/#contato');
+    await botaoMenu(page).click();
+    await marca(page).click();
+    await expect(page).toHaveURL(/#inicio$/);
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false', { timeout: 2000 });
+  });
+});
+
+test.describe('abrir o site direto numa âncora (achado da T-012, pente-fino da T-016)', () => {
+  // Sem beforeEach: aqui o endereço com âncora é a PRIMEIRA visita da página (como quem abre um
+  // link compartilhado). O teste "abrir a página já numa âncora..." acima não pega o problema
+  // porque o beforeEach dele abre "/" antes, e o segundo goto só troca a âncora na mesma página.
+  //
+  // BUG CONHECIDO (T-016): abrir o site direto em /#servicos (ou qualquer outra seção) deixa a
+  // página no topo. O navegador procura a âncora quando o HTML chega, mas as seções só existem
+  // depois que o React monta a página; ninguém rola até ela depois disso.
+  // Esperado: o título da seção abaixo do cabeçalho, como ao clicar no menu. Obtido: rolagem 0
+  // (o título de Serviços fica ~2.500 px abaixo da janela).
+  for (const id of ['servicos', 'contato'] as const) {
+    test(`abrir /#${id} numa visita nova mostra a seção na tela`, async ({ page }) => {
+      test.fail();
+      await page.goto(`/#${id}`);
+      await esperarSecaoNaTela(page, id);
+    });
+  }
+});
+
+test.describe('menu do celular em paisagem com pouca altura (pente-fino da T-016)', () => {
+  test.skip(({ isMobile }) => !isMobile, 'comportamento só do celular');
+
+  test('640x360 (celular comum deitado): a lista aberta cabe inteira na tela', async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 360 });
+    await page.goto('/');
+    await botaoMenu(page).click();
+    for (const { titulo } of SECOES) {
+      await expect(linkDoMenu(page, titulo)).toBeInViewport({ ratio: 1 });
+    }
+  });
+
+  // BUG CONHECIDO (T-016): com a tela mais baixa que o cabeçalho + a lista (~360 px), como um
+  // celular pequeno deitado (568x320), o fim da lista fica fora da janela e não há como rolar até
+  // ele: a lista é `position: absolute` dentro do cabeçalho preso ao topo (sticky), então rolar a
+  // página não a move. Esperado: todos os links inteiros na tela (ou a lista rolando por dentro).
+  // Obtido: o link "Contato" termina em y=360, abaixo da janela de 320 px (só ~8 px dele aparecem).
+  test('568x320 (celular pequeno deitado): a lista aberta cabe na tela ou rola por dentro', async ({ page }) => {
+    test.fail();
+    await page.setViewportSize({ width: 568, height: 320 });
+    await page.goto('/');
+    await botaoMenu(page).click();
+    const ultimo = linkDoMenu(page, SECOES[SECOES.length - 1].titulo);
+    await ultimo.scrollIntoViewIfNeeded();
+    await expect(ultimo).toBeInViewport({ ratio: 1, timeout: 2000 });
+  });
 });

@@ -386,3 +386,127 @@ describe('formato da resposta (contrato com o front, T-012)', () => {
     expect(projetos.map((p) => p.github)).toEqual([DADOS_DO_SITE, undefined, { disponivel: false }, undefined]);
   });
 });
+
+describe('pente-fino da T-016: tempo limite, endereços do repositório e segurança', () => {
+  it('GitHub que não responde: depois do tempo limite (5 s) a rota responde 200 com "disponivel": false', { timeout: 15_000 }, async () => {
+    // O GitHub simulado só "responde" quando a API desiste: o fetch é cancelado pelo sinal de tempo limite.
+    simularGithub(
+      (_endereco, opcoes) =>
+        new Promise<Response>((_resolver, rejeitar) => {
+          opcoes?.signal?.addEventListener('abort', () => rejeitar(opcoes.signal?.reason));
+        }),
+    );
+    const log = new LogEmMemoria();
+    const app = await criarApi([SEM_REPOSITORIO, SITE], log);
+
+    const inicio = Date.now();
+    const resposta = await pedirProjetos(app);
+    const duracao = Date.now() - inicio;
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toEqual([SEM_REPOSITORIO, { ...SITE, github: { disponivel: false } }]);
+    expect(duracao).toBeGreaterThanOrEqual(4_500);
+    expect(duracao).toBeLessThan(10_000);
+    expect(log.linhas.some((linha) => linha.startsWith('[warn]'))).toBe(true);
+  });
+
+  it('o cache não diferencia maiúsculas: o mesmo repositório escrito de outro jeito sai do cache', async () => {
+    const fetchSimulado = simularGithub(() => respostaJson(repositorioNoGithub()));
+    const MAIUSCULAS = { ...SITE, titulo: 'Mesmo repositório', repositorio: 'https://github.com/George-Abreu-git/SITE_APRESENTACAO' };
+    const app = await criarApi([SITE, MAIUSCULAS]);
+
+    const primeira = await pedirProjetos(app);
+    const consultasNaPrimeira = fetchSimulado.mock.calls.length;
+    const segunda = await pedirProjetos(app);
+
+    // Na primeira requisição as duas consultas saem ao mesmo tempo, com o cache ainda vazio
+    // (ponto já levado ao George pelo dev, pendência 2b da T-016); a partir da segunda, nenhuma.
+    expect(consultasNaPrimeira).toBeGreaterThanOrEqual(1);
+    expect(fetchSimulado).toHaveBeenCalledTimes(consultasNaPrimeira);
+    for (const resposta of [primeira, segunda]) {
+      expect(resposta.body.map((p: Projeto) => p.github)).toEqual([DADOS_DO_SITE, DADOS_DO_SITE]);
+    }
+  });
+
+  it.each([
+    ['com .git no final', 'https://github.com/George-Abreu-git/site_apresentacao.git'],
+    ['apontando para uma pasta', 'https://github.com/George-Abreu-git/site_apresentacao/tree/main/apps'],
+    ['com www', 'https://www.github.com/George-Abreu-git/site_apresentacao'],
+    ['com barra, query e âncora', 'https://github.com/George-Abreu-git/site_apresentacao/?tab=readme#topo'],
+  ])('repositório %s: consulta /repos/George-Abreu-git/site_apresentacao', async (_caso, endereco) => {
+    const fetchSimulado = simularGithub(() => respostaJson(repositorioNoGithub()));
+    const app = await criarApi([{ ...SITE, repositorio: endereco }]);
+
+    const resposta = await pedirProjetos(app);
+
+    expect(fetchSimulado.mock.calls[0]?.[0]).toBe('https://api.github.com/repos/George-Abreu-git/site_apresentacao');
+    // O endereço curado volta como está no arquivo; só o "github" é acrescentado.
+    expect(resposta.body).toEqual([{ ...SITE, repositorio: endereco, github: DADOS_DO_SITE }]);
+  });
+
+  it.each([
+    ['domínio que imita o GitHub', 'https://github.com.exemplo.com/George-Abreu-git/site_apresentacao'],
+    ['GitHub só no caminho', 'https://exemplo.com/github.com/George-Abreu-git/site_apresentacao'],
+    ['subdomínio do GitHub (gist)', 'https://gist.github.com/George-Abreu-git/abc123'],
+    ['perfil, sem repositório', 'https://github.com/George-Abreu-git'],
+  ])('%s: não consulta o GitHub e o projeto fica só com os dados curados', async (_caso, endereco) => {
+    const fetchSimulado = simularGithub(() => respostaJson(repositorioNoGithub()));
+    const app = await criarApi([{ ...SITE, repositorio: endereco }]);
+
+    const resposta = await pedirProjetos(app);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toEqual([{ ...SITE, repositorio: endereco }]);
+    expect(fetchSimulado).not.toHaveBeenCalled();
+  });
+
+  it('caracteres especiais no endereço não tiram a consulta de /repos/<dono>/<nome> em api.github.com', async () => {
+    const fetchSimulado = simularGithub(() => respostaJson({ message: 'Not Found' }, 404));
+    const enderecos = [
+      'https://github.com/George-Abreu-git/..%2F..%2Fusers%2Foutro',
+      'https://github.com/George-Abreu-git/a%3Fx=1%23y',
+      'https://github.com/%2e%2e/%2e%2e/orgs/outra',
+    ];
+    const app = await criarApi(enderecos.map((repositorio, i) => ({ ...SITE, titulo: `P${i}`, repositorio })));
+
+    const resposta = await pedirProjetos(app);
+
+    expect(resposta.status).toBe(200);
+    for (const [endereco] of fetchSimulado.mock.calls) {
+      const url = new URL(String(endereco));
+      expect(url.origin).toBe('https://api.github.com');
+      expect(url.search).toBe('');
+      // Sempre exatamente /repos/<dono>/<nome>: nenhum "..", "/" ou "?" escapou da codificação.
+      const partes = url.pathname.split('/').filter(Boolean);
+      expect(partes, url.pathname).toHaveLength(3);
+      expect(partes[0]).toBe('repos');
+      expect(partes).not.toContain('..');
+    }
+  });
+
+  it('as chamadas ao GitHub levam os cabeçalhos recomendados (Accept, versão da API e User-Agent)', async () => {
+    const fetchSimulado = simularGithub(() => respostaJson(repositorioNoGithub()));
+    const app = await criarApi([SITE]);
+
+    await pedirProjetos(app);
+
+    const cabecalhos = cabecalhosDaChamada(fetchSimulado);
+    expect(cabecalhos.Accept).toBe('application/vnd.github+json');
+    expect(cabecalhos['X-GitHub-Api-Version']).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(cabecalhos['User-Agent']).toBeTruthy();
+  });
+
+  it('o token só vai para api.github.com, sem espaços em volta, mesmo com vários repositórios', async () => {
+    vi.stubEnv('GITHUB_TOKEN', `  ${TOKEN}  `);
+    const fetchSimulado = simularGithub(() => respostaJson(repositorioNoGithub()));
+    const app = await criarApi([SITE, NO_GITLAB, OUTRO_NO_GITHUB]);
+
+    await pedirProjetos(app);
+
+    expect(fetchSimulado).toHaveBeenCalledTimes(2);
+    for (const [indice, [endereco]] of fetchSimulado.mock.calls.entries()) {
+      expect(new URL(String(endereco)).origin).toBe('https://api.github.com');
+      expect(cabecalhosDaChamada(fetchSimulado, indice).Authorization).toBe(`Bearer ${TOKEN}`);
+    }
+  });
+});

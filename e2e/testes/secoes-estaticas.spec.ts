@@ -5,6 +5,7 @@
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop).
 import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
+import { PROJETOS_DE_EXEMPLO, simularApi } from '../apoio/api';
 import { contraste } from '../apoio/cores';
 import { esperarFocoVisivel, esperarSecaoNaTela } from '../apoio/pagina';
 import { expect, test } from '../apoio/teste';
@@ -325,5 +326,139 @@ test.describe('textos do arquivo de conteúdo (RF-09)', () => {
     for (let i = 1; i < niveis.length; i++) {
       expect(niveis[i], `título ${i + 1} (h${niveis[i]}) depois de um h${niveis[i - 1]}`).toBeLessThanOrEqual(niveis[i - 1] + 1);
     }
+  });
+});
+
+test.describe('Sobre (RF-03): pente-fino da T-016', () => {
+  test('é a região #sobre, com o título de nível 2 e os parágrafos em <p>, na ordem do arquivo', async ({ page }) => {
+    await page.goto('/#sobre');
+    const secao = regiao(page, secoes.sobre);
+    await expect(secao).toHaveAttribute('id', 'sobre');
+    await expect(secao.getByRole('heading', { level: 2, name: secoes.sobre, exact: true })).toBeVisible();
+    await expect(secao.locator('p')).toHaveText([...sobre.paragrafos]);
+  });
+
+  test('pelo teclado: Tab chega ao LinkedIn e ao GitHub com foco visível', async ({ page }) => {
+    await page.goto('/');
+    const secao = regiao(page, secoes.sobre);
+    await tabAte(page, link(secao, sobre.linkLinkedin));
+    await esperarFocoVisivel(link(secao, sobre.linkLinkedin));
+    await page.keyboard.press('Tab');
+    await esperarFocoVisivel(link(secao, sobre.linkGithub));
+  });
+
+  test('os links têm contraste suficiente e o contorno de foco pelo menos 3:1', async ({ page }) => {
+    await page.goto('/#sobre');
+    const secao = regiao(page, secoes.sobre);
+    const fundo = await corDeFundoDaPagina(page);
+    for (const texto of [sobre.linkLinkedin, sobre.linkGithub]) {
+      expect(contraste(await corDoTexto(link(secao, texto)), fundo), texto).toBeGreaterThanOrEqual(4.5);
+    }
+    await link(secao, sobre.linkGithub).focus();
+    const corDoFoco = await link(secao, sobre.linkGithub).evaluate((el) => getComputedStyle(el).outlineColor);
+    expect(contraste(corDoFoco, fundo)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+test.describe('Serviços (RF-07): pente-fino da T-016', () => {
+  test('360px: a seção cabe na tela e o botão tem alvo de toque de pelo menos 44px', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto('/#servicos');
+    const secao = regiao(page, secoes.servicos);
+    const botao = secao.getByRole('link', { name: servicos.botaoContato });
+    await expect(botao).toBeVisible();
+    expect((await botao.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    const caixa = (await secao.boundingBox())!;
+    expect(caixa.x).toBeGreaterThanOrEqual(0);
+    expect(caixa.x + caixa.width).toBeLessThanOrEqual(360);
+  });
+
+  test('subtítulos, textos e o botão têm contraste suficiente (WCAG AA)', async ({ page }) => {
+    await page.goto('/#servicos');
+    const secao = regiao(page, secoes.servicos);
+    const fundo = await corDeFundoDaPagina(page);
+    const elementos = [
+      secao.getByRole('heading', { level: 3, name: servicos.oQueOfereco.titulo }),
+      secao.getByRole('listitem').filter({ hasText: servicos.oQueOfereco.itens[0] }),
+      secao.getByText(servicos.paraQuem.texto, { exact: true }),
+      secao.locator('ol > li').first(),
+    ];
+    for (const elemento of elementos) {
+      expect(contraste(await corDoTexto(elemento), fundo)).toBeGreaterThanOrEqual(4.5);
+    }
+    // O botão é preenchido: o texto é medido contra o fundo dele.
+    const botao = secao.getByRole('link', { name: servicos.botaoContato });
+    const fundoDoBotao = await botao.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(contraste(await corDoTexto(botao), fundoDoBotao)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+test.describe('Contato (RF-08): pente-fino da T-016', () => {
+  test('o mailto: leva só o destinatário (sem cópia, assunto ou corpo escondidos)', async ({ page }) => {
+    await page.goto('/#contato');
+    const email = regiao(page, secoes.contato).getByRole('link', { name: contato.linkEmail, exact: true });
+    const href = (await email.getAttribute('href'))!;
+    expect(href).toBe(`mailto:${links.email}`);
+    expect(href).not.toMatch(/[?&](cc|bcc|subject|body)=/i);
+  });
+
+  test('360px: os três canais cabem na tela, com alvo de toque de pelo menos 44px', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto('/#contato');
+    const secao = regiao(page, secoes.contato);
+    const canais = [link(secao, contato.linkLinkedin), secao.getByRole('link', { name: contato.linkEmail, exact: true }), link(secao, contato.linkGithub)];
+    for (const canal of canais) {
+      const caixa = (await canal.boundingBox())!;
+      expect(caixa.height).toBeGreaterThanOrEqual(44);
+      expect(caixa.x).toBeGreaterThanOrEqual(0);
+      expect(caixa.x + caixa.width).toBeLessThanOrEqual(360);
+    }
+  });
+});
+
+test.describe('textos do arquivo de conteúdo (RF-09): pente-fino da T-016', () => {
+  /** Todos os textos de um valor (objeto, lista ou texto), em qualquer profundidade. */
+  function todosOsTextos(valor: unknown): string[] {
+    if (typeof valor === 'string') return [valor];
+    if (Array.isArray(valor)) return valor.flatMap(todosOsTextos);
+    if (valor && typeof valor === 'object') return Object.values(valor).flatMap(todosOsTextos);
+    return [];
+  }
+
+  test('nenhum texto visível nasce no código: cada trecho com letras vem do conteúdo ou da API', async ({ page }) => {
+    // Com os cards na tela, os textos da API (títulos, descrições, stacks, linguagem) também contam.
+    await simularApi(page, PROJETOS_DE_EXEMPLO);
+    await page.goto('/');
+    await expect(page.getByRole('article')).toHaveCount(PROJETOS_DE_EXEMPLO.length);
+
+    const permitidos = new Set([...todosOsTextos(ptBR), ...todosOsTextos(PROJETOS_DE_EXEMPLO)]);
+    // Cada nó de texto da página (o React gera um nó por trecho: "© ", "2026", " ", nome).
+    const trechos = await page.evaluate(() => {
+      const caminhante = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const lista: string[] = [];
+      while (caminhante.nextNode()) lista.push((caminhante.currentNode.textContent ?? '').trim());
+      return lista;
+    });
+    // Números, datas e símbolos ("1.234", "01/10/2026", "©") não são frases: ficam de fora.
+    const comLetras = trechos.filter((trecho) => /\p{L}/u.test(trecho));
+    const foraDoConteudo = comLetras.filter((trecho) => !permitidos.has(trecho));
+    expect(foraDoConteudo, 'textos na página que não estão no arquivo de conteúdo').toEqual([]);
+  });
+
+  test('o idioma da página (lang) é o mesmo do conteúdo (geral.localidade)', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('html')).toHaveAttribute('lang', geral.localidade);
+  });
+
+  test('o rodapé mostra o ano atual e o nome do arquivo de conteúdo', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('contentinfo')).toHaveText(`© ${new Date().getFullYear()} ${pessoa.nome}`);
+  });
+
+  test('o nome da navegação e o botão do menu vêm do conteúdo (lidos pelo leitor de tela)', async ({ page }) => {
+    await page.goto('/');
+    const navegacao = page.getByRole('navigation', { name: ptBR.navegacao.rotulo, exact: true });
+    await expect(navegacao).toHaveCount(1);
+    await expect(navegacao.getByRole('button', { includeHidden: true })).toHaveText(ptBR.navegacao.botaoMenu);
   });
 });

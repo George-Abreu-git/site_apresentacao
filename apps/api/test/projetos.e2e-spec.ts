@@ -216,6 +216,10 @@ describe('arquivo curado: lido na inicialização, não na requisição', () => 
     ['com stacks vazias de texto', '[{ "titulo": "X", "descricao": "d", "stacks": [""] }]', /campo "stacks"/],
     ['com repositório sem http(s)', '[{ "titulo": "X", "descricao": "d", "stacks": ["A"], "repositorio": "github.com/x" }]', /campo "repositorio"/],
     ['com campo desconhecido', '[{ "titulo": "X", "descricao": "d", "stacks": ["A"], "titlo": "Y" }]', /campo "titlo" não faz parte do formato/],
+    // O "github" é preenchido pela API (T-011): o arquivo curado não pode trazê-lo pronto.
+    ['com o campo "github" preenchido à mão', '[{ "titulo": "X", "descricao": "d", "stacks": ["A"], "github": { "disponivel": true } }]', /campo "github" não faz parte do formato/],
+    ['com projeto que não é objeto', '["só um texto"]', /projeto 1: deve ser um objeto/],
+    ['com demo em javascript:', '[{ "titulo": "X", "descricao": "d", "stacks": ["A"], "demo": "javascript:alert(1)" }]', /campo "demo"/],
   ])('arquivo %s: a API não sobe, com erro claro que traz o caminho', async (_caso, conteudo, problema) => {
     if (conteudo !== null) writeFileSync(arquivo, conteudo);
 
@@ -224,5 +228,107 @@ describe('arquivo curado: lido na inicialização, não na requisição', () => 
     await expect(subida).rejects.toThrow(problema);
     await expect(criarAppComArquivo(arquivo)).rejects.toThrow(arquivo);
     await expect(criarAppComArquivo(arquivo)).rejects.toThrow(/Arquivo curado de projetos inválido/);
+  });
+});
+
+describe('GET /api/projetos: bordas e segurança (pente-fino da T-016)', () => {
+  let pasta: string;
+  let arquivo: string;
+  const apps: INestApplication[] = [];
+
+  beforeEach(() => {
+    pasta = mkdtempSync(join(tmpdir(), 'api-projetos-bordas-'));
+    arquivo = join(pasta, 'projetos.json');
+  });
+
+  afterEach(async () => {
+    await Promise.all(apps.splice(0).map((app) => app.close()));
+    rmSync(pasta, { recursive: true, force: true });
+  });
+
+  async function subirCom(projetos: object[]): Promise<INestApplication> {
+    writeFileSync(arquivo, JSON.stringify(projetos, null, 2));
+    const app = await criarAppComArquivo(arquivo);
+    apps.push(app);
+    return app;
+  }
+
+  it('HEAD /api/projetos responde 200 sem corpo', async () => {
+    const app = await subirCom([{ titulo: 'A', descricao: 'd', stacks: ['Go'] }]);
+
+    const resposta = await request(app.getHttpServer()).head('/api/projetos');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.headers['content-type']).toMatch(/application\/json/);
+    expect(resposta.text).toBeUndefined();
+  });
+
+  it('todos os campos opcionais (demo, imagem, repositório fora do GitHub) chegam intactos', async () => {
+    const projeto = {
+      titulo: 'Completo',
+      descricao: 'Todos os campos do formato.',
+      stacks: ['Go', 'Rust'],
+      repositorio: 'https://gitlab.com/george/completo',
+      demo: 'https://completo.exemplo.dev/',
+      imagem: '/imagens/projetos/completo.png',
+    };
+    const app = await subirCom([projeto]);
+
+    const resposta = await request(app.getHttpServer()).get('/api/projetos');
+
+    expect(resposta.body).toEqual([projeto]);
+  });
+
+  it('acentos, emoji, aspas e marcação HTML voltam como texto, iguais aos do arquivo, em JSON UTF-8', async () => {
+    // O corpo é JSON (não HTML): o navegador não interpreta a marcação, e o front a mostra como texto.
+    const projeto = {
+      titulo: 'Integração "ponta a ponta" 🚀',
+      descricao: '<img src=x onerror=alert(1)> & <script>alert(2)</script> — ação, coração',
+      stacks: ['C#', 'Node.js', 'Ação/Reação'],
+    };
+    const app = await subirCom([projeto]);
+
+    const resposta = await request(app.getHttpServer()).get('/api/projetos');
+
+    expect(resposta.headers['content-type']).toBe('application/json; charset=utf-8');
+    expect(resposta.body).toEqual([projeto]);
+  });
+
+  it('com 30 projetos, devolve todos na ordem do arquivo e consulta o GitHub uma vez por repositório', async () => {
+    const fetchSimulado = simularGithub(() => respostaJson(repositorioNoGithub()));
+    const projetos = Array.from({ length: 30 }, (_, i) => ({
+      titulo: `Projeto ${String(i + 1).padStart(2, '0')}`,
+      descricao: `Descrição ${i + 1}`,
+      stacks: ['TypeScript'],
+      // Um a cada três tem repositório no GitHub.
+      ...(i % 3 === 0 ? { repositorio: `https://github.com/George-Abreu-git/projeto-${i + 1}` } : {}),
+    }));
+    const app = await subirCom(projetos);
+
+    const resposta = await request(app.getHttpServer()).get('/api/projetos');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.map((p: Projeto) => p.titulo)).toEqual(projetos.map((p) => p.titulo));
+    expect(fetchSimulado).toHaveBeenCalledTimes(10);
+  });
+
+  it('a resposta não expõe o caminho do arquivo curado nem detalhes do servidor', async () => {
+    const app = await subirCom([{ titulo: 'A', descricao: 'd', stacks: ['Go'] }]);
+
+    const resposta = await request(app.getHttpServer()).get('/api/projetos');
+
+    expect(resposta.text).not.toContain('projetos.json');
+    expect(resposta.text).not.toContain(pasta);
+    expect(resposta.text).not.toMatch(/node_modules|conteudo\//);
+  });
+
+  it('a barra no final do endereço devolve a mesma lista', async () => {
+    const app = await subirCom([{ titulo: 'A', descricao: 'd', stacks: ['Go'] }]);
+
+    const semBarra = await request(app.getHttpServer()).get('/api/projetos');
+    const comBarra = await request(app.getHttpServer()).get('/api/projetos/');
+
+    expect(comBarra.status).toBe(200);
+    expect(comBarra.body).toEqual(semBarra.body);
   });
 });

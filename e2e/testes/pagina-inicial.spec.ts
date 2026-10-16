@@ -3,6 +3,8 @@
 // acessibilidade básica. A navegação pelo menu (T-007) fica em navegacao.spec.ts e as
 // seções com conteúdo (T-008) em secoes-estaticas.spec.ts.
 // Cada teste roda duas vezes, uma por projeto do playwright.config.ts (celular e desktop).
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { Locator } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { PROJETOS_DE_EXEMPLO, simularApi } from '../apoio/api';
@@ -24,10 +26,21 @@ test.describe('página inicial', () => {
   });
 
   test('mostra o nome e a frase de apresentação', async ({ page }) => {
-    await expect(page).toHaveTitle('George Siqueira');
-    await expect(page.getByRole('heading', { level: 1, name: 'George Siqueira' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: ptBR.pessoa.nome, exact: true })).toBeVisible();
     // A frase vem do arquivo de conteúdo (RF-09): trocar a frase lá não quebra este teste.
     await expect(page.getByText(ptBR.inicio.frase, { exact: true })).toBeVisible();
+  });
+
+  // O título da aba fica no index.html (<title>), que precisa ser atualizado junto com
+  // `pessoa.nome` do arquivo de conteúdo; quem cobra a dupla é o teste unitário
+  // conteudo.test.tsx ("o título da aba (index.html) é o nome do arquivo de conteúdo").
+  // Aqui o teste lê os dois arquivos: com os nomes iguais, confere a aba no navegador; com nomes
+  // diferentes (uma troca de nome pela metade, como a da T-015 em andamento), ele é esperado
+  // falhando, para a suíte e2e não acusar de novo o que o unitário já acusa.
+  test('o título da aba é o nome do arquivo de conteúdo (RF-09)', async ({ page }) => {
+    const tituloDoIndex = readFileSync(join(__dirname, '../../apps/web/index.html'), 'utf-8').match(/<title>(.*)<\/title>/)?.[1];
+    test.fail(tituloDoIndex !== ptBR.pessoa.nome, `<title> do index.html ("${tituloDoIndex}") diferente do nome no conteúdo`);
+    await expect(page).toHaveTitle(ptBR.pessoa.nome, { timeout: 2000 });
   });
 
   test('cabe na largura da tela, sem rolagem horizontal', async ({ page }) => {

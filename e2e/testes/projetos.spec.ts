@@ -360,3 +360,61 @@ test.describe('Projetos: acessibilidade', () => {
     expect(await contrasteDe(regiaoViva)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+test.describe('Projetos: bordas (pente-fino da T-016)', () => {
+  test('com 20 projetos, todos aparecem na ordem da API, sem rolagem horizontal, e o menu leva além deles', async ({ page, isMobile }) => {
+    const muitos = Array.from({ length: 20 }, (_, i) => ({ ...PROJETOS[i % PROJETOS.length], titulo: `Projeto ${i + 1}` }));
+    await simularApi(page, muitos);
+    await page.goto('/#projetos');
+
+    await expect(secaoProjetos(page).getByRole('heading', { level: 3 })).toHaveText(muitos.map((p) => p.titulo));
+    expect((await medirEstouroHorizontal(page)).estourados).toEqual([]);
+
+    // A seção ficou bem mais alta: o menu continua levando ao Contato, depois dela.
+    if (isMobile) await page.getByRole('button', { name: ptBR.navegacao.botaoMenu }).click();
+    await page.getByRole('navigation').getByRole('link', { name: secoes.contato, exact: true }).click();
+    await expect(page.getByRole('link', { name: contato.linkEmail, exact: true })).toBeInViewport();
+  });
+
+  test('projeto só com os campos obrigatórios (sem links nem GitHub): card com título, descrição e stacks', async ({ page }) => {
+    const minimo = { titulo: 'Mínimo', descricao: 'Só o obrigatório.', stacks: ['Go'] };
+    await simularApi(page, [minimo]);
+    await page.goto('/#projetos');
+    const card = cartao(page, minimo.titulo);
+    await expect(card.getByText(minimo.descricao, { exact: true })).toBeVisible();
+    await expect(card.getByRole('list', { name: textos.rotuloStacks }).getByRole('listitem')).toHaveText(minimo.stacks);
+    await expect(card.getByRole('link')).toHaveCount(0);
+    await expect(card.locator('dl')).toHaveCount(0);
+  });
+
+  test('números grandes de estrelas saem formatados em pt-BR', async ({ page }) => {
+    const famoso = { ...PROJETOS[0], github: { disponivel: true as const, linguagem: 'Go', estrelas: 1234567, ultimaAtualizacao: '2026-12-31T23:00:00Z' } };
+    await simularApi(page, [famoso]);
+    await page.goto('/#projetos');
+    await expect(cartao(page, famoso.titulo).locator('dd').nth(1)).toHaveText('1.234.567');
+  });
+
+  // BUG CONHECIDO (T-016): uma palavra longa sem espaço no título ou na descrição de um projeto
+  // (ex.: um endereço colado na descrição, ou um nome de classe no título) alarga o card além da
+  // tela no celular e cria rolagem horizontal (RNF-01). O `overflow-wrap: break-word` do body não
+  // basta: o item da grade (`1fr` = no mínimo o maior conteúdo) cresce até caber a palavra.
+  // Esperado: o texto quebra dentro do card. Obtido em 360px: card de ~550px (título) ou ~363px
+  // (endereço na descrição), com a página rolando para o lado.
+  for (const [caso, projeto] of [
+    ['título com uma palavra longa', { titulo: 'ConfiguracaoDoGithubComCacheEFallbackParaAPI', descricao: 'd', stacks: ['TypeScript'] }],
+    [
+      'endereço longo na descrição',
+      { titulo: 'Integração', descricao: 'Detalhes em https://github.com/George-Abreu-git/site_apresentacao/tree/main/apps/api.', stacks: ['TypeScript'] },
+    ],
+  ] as const) {
+    test(`360px: ${caso} quebra dentro do card, sem rolagem horizontal`, async ({ page }) => {
+      test.fail();
+      await page.setViewportSize({ width: 360, height: 640 });
+      await simularApi(page, [projeto]);
+      await page.goto('/#projetos');
+      await expect(cartao(page, projeto.titulo)).toBeVisible();
+      const medida = await medirEstouroHorizontal(page);
+      expect(medida.estourados, 'elementos que passam da borda da tela').toEqual([]);
+    });
+  }
+});
