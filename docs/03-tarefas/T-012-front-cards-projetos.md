@@ -87,6 +87,19 @@ Pendências:
 Decisão pendente: nenhuma
 Conceitos para estudo: `page.route` e `route.fulfill`/`route.abort`; requisição pendurada com Promise; `page.clock`; `page.on('pageerror')`; seletor `:scope > li`; região viva persistente; respostas simuladas e CORS.
 
+### Rodada 2
+
+Resultado: PASSOU
+Resumo: O e2e "carrega sem erros no console" ficou estável e nenhum e2e chama mais a API de verdade. O `test` comum de `e2e/apoio/teste.ts` simula, antes de cada teste, a API sem resposta (a seção Projetos fica no carregando e a página não muda de tamanho); quem precisa de resposta registra a própria simulação. O teste do console ficou mais rigoroso: simula 4 projetos e só confere os erros depois de os cards aparecerem. A lista vazia como padrão foi descartada: gerou 1 falha em 1.680 execuções em `navegacao.spec.ts:131` (a seção Projetos encolhia no meio da rolagem). Verificação: e2e 161 passaram e 7 pulados; com `--repeat-each=10`, 1610 passaram, 70 pulados, 0 falhas; teste do console 20/20; servidor espião na porta 3000 não recebeu nenhuma requisição; lint, unitários (web 74, API 142, hooks 412) e validador verdes.
+Arquivos alterados:
+- `e2e/apoio/api.ts`, `e2e/apoio/teste.ts` (novos)
+- `e2e/testes/pagina-inicial.spec.ts`, `projetos.spec.ts`, `navegacao.spec.ts`, `secoes-estaticas.spec.ts`, `stacks.spec.ts`
+Pendências:
+1. (George / nova tarefa, fora do escopo) Abrir o site direto numa âncora com a página ainda sem carregar (ex.: `/#servicos`) não rola até a seção, no dev e no build de produção; deve vir da T-007. O e2e `navegacao.spec.ts:131` não pega porque o `beforeEach` abre `/` antes.
+2. Continuam valendo as pendências da Rodada 1 (data inválida em `CartaoDeProjeto`, CORS e `VITE_API_URL` na T-013).
+Decisão pendente: nenhuma
+Conceitos para estudo: fixture automática do Playwright (`test.extend` com `auto: true`); ordem das rotas no `page.route`; requisição pendente como partida a frio; mudança de layout durante rolagem suave; rolagem até a âncora em SPA; servidor espião.
+
 ## Estudo
 
 ## DevOps
@@ -100,3 +113,4 @@ Conceitos para estudo: `page.route` e `route.fulfill`/`route.abort`; requisiçã
 - 2026-10-15 — qa: PASSOU — e2e dos cards de projetos (161 passando, 7 pulados); suíte inteira verde
 - 2026-10-15 — orquestrador: aguardando-decisao — verificação do encerramento: e2e "carrega sem erros no console" (`pagina-inicial.spec.ts:59`) instável — sem API simulada, o front chama `localhost:3000` e o navegador registra `net::ERR_CONNECTION_REFUSED` (falhou em várias de 20 repetições); sem merge
 - 2026-10-15 — orquestrador: em-qa — George escolheu A; rodadas = 1; qa chamado para simular a API nos e2e que abrem a página inteira
+- 2026-10-15 — qa: PASSOU (rodada 2) — API simulada em todos os e2e; 0 falhas em 1.680 execuções
