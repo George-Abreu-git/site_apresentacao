@@ -21,6 +21,7 @@ Substitui o LinkedIn e o e-mail provisórios (`PREENCHER`) e revisa os textos su
 - [ ] Teste unitário que falha se o conteúdo tiver `PREENCHER` ou `exemplo.com` (evita publicar provisório)
 - [ ] e2e que dependam dos textos ou links alterados atualizados (qa)
 - [ ] Nome completo "George Abreu de Siqueira" em `pessoa.nome` (alteração já feita pelo George no `pt-BR.ts`, sem commit) e testes que procuram o nome antigo (`Cabecalho.test.tsx`, `Rodape.test.tsx`) ajustados
+- [ ] `<title>` de `apps/web/index.html` igual ao nome do arquivo de conteúdo (hoje `conteudo.test.tsx` acusa a diferença) — achado do qa na T-016
 
 ## Contexto relevante
 
