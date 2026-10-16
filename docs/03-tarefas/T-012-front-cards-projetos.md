@@ -1,7 +1,7 @@
 ---
 id: T-012
 titulo: Front: cards de projetos consumindo a API
-status: em-qa
+status: aguardando-decisao
 modo: agente-faz
 tags: [front-end, api]
 rodadas: 0
@@ -97,3 +97,4 @@ Conceitos para estudo: `page.route` e `route.fulfill`/`route.abort`; requisiçã
 - 2026-10-15 — dev: CONCLUIDO — cards de projetos consumindo a API; 1 e2e do qa a ajustar (RF-09 x textos por estado)
 - 2026-10-15 — code-reviewer: APROVADO — critérios do dev atendidos; avisos de CORS e VITE_API_URL para a T-013
 - 2026-10-15 — qa: PASSOU — e2e dos cards de projetos (161 passando, 7 pulados); suíte inteira verde
+- 2026-10-15 — orquestrador: aguardando-decisao — verificação do encerramento: e2e "carrega sem erros no console" (`pagina-inicial.spec.ts:59`) instável — sem API simulada, o front chama `localhost:3000` e o navegador registra `net::ERR_CONNECTION_REFUSED` (falhou em várias de 20 repetições); sem merge
