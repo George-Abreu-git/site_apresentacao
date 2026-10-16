@@ -95,6 +95,29 @@ Conceitos para estudo: `it.fails` e falso positivo; error boundary; erros não t
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Testes de rota da API (func. 6, 7 e 14) e de ponta a ponta/regressão (func. 1 a 5 e 8 a 13) com pelo menos 5 cenários por funcionalidade, aproveitando o trabalho parcial da execução interrompida depois de revisá-lo (nome lido de `ptBR.pessoa.nome` em vez de fixo; lint corrigido; teste do BUG-Q1 passou a falhar pelo motivo certo). Novos arquivos e2e: `tema.spec.ts`, `acessibilidade.spec.ts`, `seguranca.spec.ts` (sem cookies/armazenamento, sem requisições a terceiros, `noopener noreferrer`, nenhum token no JS, HTML e `javascript:` da API sem executar). 5 bugs novos marcados com `test.fail`/`it.fails` comentados, cada um conferido sem a marcação. E2E estável com `--repeat-each=3` (750 passaram, 36 pulados); rotas da API 92 + 2 falhas esperadas em 3 rodadas; lint, tsc da API e validador verdes. Nenhum código de produção alterado.
+Bugs encontrados:
+- **BUG-Q1 (baixa)** — func. 1, RF-01: no celular, tocar na marca com a lista do menu aberta vai ao Início mas a lista continua aberta (`aria-expanded="true"`). Teste: `navegacao.spec.ts`.
+- **BUG-Q2 (média)** — func. 1, RF-01 (achado da T-012): abrir `/#servicos` ou `/#contato` numa visita nova deixa a página no topo. Teste: `navegacao.spec.ts`.
+- **BUG-Q3 (baixa)** — func. 1 e 11, RNF-01: em 568x320, a lista do menu passa da tela (link "Contato" ~17% visível) e não rola (lista `absolute` dentro do cabeçalho `sticky`). Teste: `navegacao.spec.ts`.
+- **BUG-Q4 (média)** — func. 5 e 11, RNF-01: palavra longa sem espaço no título ou endereço longo na descrição de um projeto fazem a página rolar para o lado em 360px (item de grade `1fr` cresce; também com texto a 200%). Testes: `projetos.spec.ts`.
+- **BUG-Q5 (baixa, segurança)** — func. 14: respostas da API trazem `X-Powered-By: Express` e não trazem `X-Content-Type-Options: nosniff`. Testes: `health.e2e-spec.ts`. Corrigir com `helmet` seria dependência nova (decisão do George); alternativa é ajuste manual no Express.
+Cenários: e2e — func. 1 ~23, 2 13, 3 6, 4 12, 5 ~28, 8 5, 9 7, 10 8, 11 25+, 12 7 (+ seções), 13 6; rota — func. 6 20+, 7 30+, 14 11.
+Arquivos alterados:
+- `apps/api/test/github.e2e-spec.ts`, `health.e2e-spec.ts`, `projetos.e2e-spec.ts`
+- `e2e/testes/navegacao.spec.ts`, `pagina-inicial.spec.ts`, `projetos.spec.ts`, `secoes-estaticas.spec.ts`
+- `e2e/testes/acessibilidade.spec.ts`, `seguranca.spec.ts`, `tema.spec.ts` (novos)
+Pendências:
+1. (orquestrador) Uma tarefa por bug, BUG-Q1 a BUG-Q5; no BUG-Q5, `helmet` × ajuste manual é decisão do George.
+2. (T-015) Com a troca de nome, atualizar também o `<title>` de `apps/web/index.html`; hoje `conteudo.test.tsx`, `Cabecalho.test.tsx` e `Rodape.test.tsx` falham só pela alteração não commitada no `pt-BR.ts`.
+3. Observações sem teste de bug (comportamento não definido): (a) celular deitado 740x360, atalhos do Início 7px cortados; (b) links do Sobre com 21px de altura (WCAG 2.5.8 cumprida pelo espaçamento); (c) o front confia nos endereços da API (`data:` seria renderizado; hoje sem risco); (d) `e2e/testes/projetos.spec.ts:238` tem erro de tipo não acusado porque nenhum tsc confere a pasta `e2e/`.
+4. BUG-1 a BUG-4 do dev não reproduzidos no navegador (não repetidos).
+Decisão pendente: nenhuma
+Conceitos para estudo: `test.fail` condicional; rolagem até a âncora numa SPA; `minmax(auto, 1fr)` × `minmax(0, 1fr)` e `overflow-wrap` em grade; `absolute` dentro de `sticky`; WCAG 1.4.4, 1.4.10, 2.4.11, 2.5.8; `emulateMedia`; `X-Powered-By`, `nosniff` e `helmet`; bloqueio de `javascript:` no React 19.
+
 ## Estudo
 
 ## DevOps
@@ -106,3 +129,4 @@ Conceitos para estudo: `it.fails` e falso positivo; error boundary; erros não t
 - 2026-10-15 — dev: CONCLUIDO — unitários com 5+ cenários nas 14 funcionalidades; 4 bugs marcados com it.fails
 - 2026-10-15 — code-reviewer: APROVADO — só testes alterados; it.fails conferidos com os 4 bugs
 - 2026-10-16 — orquestrador: em-qa — qa (rodada 1) interrompido no corte de 05:45 sem handoff; trabalho parcial guardado em stash, branch atualizada com a main (T-017) e qa retomado a pedido do George
+- 2026-10-16 — qa: PASSOU — rotas e e2e com 5+ cenários por funcionalidade; 5 bugs novos (BUG-Q1 a Q5) marcados como conhecidos
