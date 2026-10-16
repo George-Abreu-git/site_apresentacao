@@ -15,6 +15,15 @@ export interface ItemDeSecao {
   titulo: string;
 }
 
+/**
+ * Id do título (<h2>) de uma seção (ex.: "projetos-titulo"). Fica aqui, num lugar só,
+ * porque a Secao usa para nomear o <section> e outros componentes usam para nomear
+ * listas com o título da seção (aria-labelledby).
+ */
+export function idDoTituloDaSecao(id: string): string {
+  return `${id}-titulo`;
+}
+
 export const SECOES: readonly ItemDeSecao[] = IDS_DAS_SECOES.map((id) => ({
   id,
   titulo: conteudo.secoes[id],

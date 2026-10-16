@@ -3,9 +3,11 @@
 // acessibilidade básica. A navegação pelo menu (T-007) fica em navegacao.spec.ts e as
 // seções com conteúdo (T-008) em secoes-estaticas.spec.ts.
 // Cada teste roda duas vezes, uma por projeto do playwright.config.ts (celular e desktop).
-import { expect, test, type Locator } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
+import { PROJETOS_DE_EXEMPLO, simularApi } from '../apoio/api';
 import { contraste } from '../apoio/cores';
+import { expect, test } from '../apoio/teste';
 
 /** Razão de contraste entre a cor do texto do elemento e o fundo da página (1 a 21). */
 async function contrasteComOFundo(elemento: Locator): Promise<number> {
@@ -63,8 +65,16 @@ test.describe('página inicial', () => {
     });
     page.on('pageerror', (erro) => erros.push(erro.message));
 
+    // A API responde com projetos (no lugar da API sem resposta, padrão de e2e/apoio/teste.ts):
+    // a página fica completa, com os cards (T-012) também passando pela checagem. A API de
+    // verdade não sobe com os testes; chamá-la deixaria um erro de conexão no console.
+    await simularApi(page, PROJETOS_DE_EXEMPLO);
     await page.reload();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    // Só confere depois de a seção Projetos terminar de carregar: um erro que aparecesse com
+    // a resposta da API (por exemplo, um aviso do React ao montar os cards) não escapa.
+    const projetos = page.getByRole('region', { name: ptBR.secoes.projetos, exact: true });
+    await expect(projetos.getByRole('article')).toHaveCount(PROJETOS_DE_EXEMPLO.length);
 
     expect(erros).toEqual([]);
   });

@@ -48,4 +48,17 @@ describe('App (layout base da página única)', () => {
       expect(document.getElementById(alvo)?.tagName).toBe('SECTION');
     }
   });
+
+  it('não espera a API: com ela ainda sem responder, o conteúdo estático já está na tela (RNF-03)', () => {
+    // O fetch padrão dos testes nunca responde (configurar-testes.ts): é a partida a frio da API.
+    render(<App />);
+
+    expect(screen.getByRole('region', { name: conteudo.secoes.projetos })).toHaveTextContent(
+      conteudo.projetos.carregando,
+    );
+    expect(screen.getByRole('region', { name: conteudo.secoes.sobre })).toHaveTextContent(
+      conteudo.sobre.paragrafos[0],
+    );
+    expect(screen.getByRole('region', { name: conteudo.secoes.contato })).toHaveTextContent(conteudo.contato.texto);
+  });
 });

@@ -1,0 +1,33 @@
+.aviso {
+  max-width: 65ch;
+  margin: 1rem 0 0;
+  color: var(--cor-texto-suave);
+}
+
+/* Sem aviso (cards na tela), o parágrafo vazio não ocupa espaço. Não usamos display: none
+   porque o leitor de tela deixaria de acompanhar a região viva. */
+.aviso:empty {
+  margin: 0;
+}
+
+/* Mobile-first (RNF-01): um card por linha no celular, dois a partir de 36rem e três a partir de 60rem. */
+.lista {
+  display: grid;
+  gap: 1.5rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 36rem) {
+  .lista {
+    /* `minmax(0, 1fr)`: colunas iguais que podem encolher, sem um texto longo forçar a largura. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 60rem) {
+  .lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

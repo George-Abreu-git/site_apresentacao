@@ -3,10 +3,11 @@
 // arquivo: quando o George incluir uma tecnologia lá, estes testes passam a exigir que ela
 // apareça na página, sem nenhuma mudança aqui nem no código da tela.
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { contraste } from '../apoio/cores';
 import { medirEstouroHorizontal } from '../apoio/pagina';
+import { expect, test } from '../apoio/teste';
 
 const { secoes, stacks } = ptBR;
 

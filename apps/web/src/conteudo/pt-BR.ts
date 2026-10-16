@@ -14,6 +14,7 @@ export const ptBR: Conteudo = {
   },
   geral: {
     abreEmNovaAba: '(abre em nova aba)',
+    localidade: 'pt-BR',
   },
   navegacao: {
     rotulo: 'Navegação principal',
@@ -49,6 +50,17 @@ export const ptBR: Conteudo = {
       { titulo: 'Testes', tecnologias: ['Vitest', 'Testing Library', 'Supertest', 'Playwright'] },
       { titulo: 'Ferramentas', tecnologias: ['Git', 'GitHub', 'npm', 'ESLint'] },
     ],
+  },
+  projetos: {
+    carregando: 'Carregando projetos… Na primeira visita do dia isso pode levar até um minuto.',
+    erro: 'Não foi possível carregar os projetos agora. Tente novamente mais tarde.',
+    vazio: 'Nenhum projeto publicado por enquanto.',
+    rotuloStacks: 'Tecnologias',
+    linkRepositorio: 'Repositório',
+    linkDemo: 'Ver demo',
+    linguagem: 'Linguagem',
+    estrelas: 'Estrelas',
+    ultimaAtualizacao: 'Atualizado em',
   },
   servicos: {
     oQueOfereco: {
