@@ -1,7 +1,7 @@
 ---
 id: T-017
 titulo: Pacote shared resolvido sem build (tipos apontando para o código-fonte)
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end, back-end]
 rodadas: 0
@@ -46,3 +46,4 @@ O `packages/shared/package.json` só exporta `./dist/index.d.ts` e `./dist/index
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
