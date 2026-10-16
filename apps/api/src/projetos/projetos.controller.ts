@@ -9,8 +9,9 @@ export class ProjetosController {
   // O Nest descobre pelo tipo do parâmetro que deve entregar o ProjetosService (injeção de dependência).
   constructor(private readonly projetosService: ProjetosService) {}
 
+  // Método assíncrono: o Nest espera a Promise terminar e só então responde com o JSON.
   @Get()
-  listar(): Projeto[] {
+  listar(): Promise<Projeto[]> {
     return this.projetosService.listar();
   }
 }

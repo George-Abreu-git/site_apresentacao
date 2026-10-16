@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Projeto } from '@site-apresentacao/shared';
+import type { ProjetoCurado } from './projeto-curado.js';
 import { ArquivoDeProjetosInvalidoError, validarProjetosCurados } from './validar-projetos-curados.js';
 
 /**
@@ -20,7 +20,7 @@ export const CAMINHO_DO_ARQUIVO_CURADO = fileURLToPath(
  * @throws ArquivoDeProjetosInvalidoError se o arquivo não existe, não é JSON
  *   ou está fora do formato. A mensagem sempre traz o caminho do arquivo.
  */
-export function lerProjetosCurados(caminho: string = CAMINHO_DO_ARQUIVO_CURADO): Projeto[] {
+export function lerProjetosCurados(caminho: string = CAMINHO_DO_ARQUIVO_CURADO): ProjetoCurado[] {
   const prefixo = `Arquivo curado de projetos inválido (${caminho})`;
 
   let texto: string;

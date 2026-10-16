@@ -1,4 +1,4 @@
-import type { Projeto } from '@site-apresentacao/shared';
+import type { ProjetoCurado } from './projeto-curado.js';
 
 /**
  * Erro lançado quando o arquivo curado de projetos não segue o formato documentado
@@ -18,15 +18,15 @@ const CAMPOS_CONHECIDOS = new Set<string>([
 ]);
 
 /**
- * Confere se os dados lidos do arquivo curado têm o formato do tipo `Projeto`.
+ * Confere se os dados lidos do arquivo curado têm o formato do tipo `ProjetoCurado`.
  *
  * O TypeScript só checa tipos no código; um JSON lido em tempo de execução pode
  * ter qualquer coisa. Por isso os dados entram como `unknown` e só saem como
- * `Projeto[]` depois de conferidos campo a campo.
+ * `ProjetoCurado[]` depois de conferidos campo a campo.
  *
  * @throws ArquivoDeProjetosInvalidoError com a lista de todos os problemas encontrados.
  */
-export function validarProjetosCurados(dados: unknown): Projeto[] {
+export function validarProjetosCurados(dados: unknown): ProjetoCurado[] {
   if (!Array.isArray(dados)) {
     throw new ArquivoDeProjetosInvalidoError(
       'o conteúdo deve ser uma lista (array) de projetos, ex.: [{ "titulo": ... }]',
@@ -38,7 +38,7 @@ export function validarProjetosCurados(dados: unknown): Projeto[] {
     throw new ArquivoDeProjetosInvalidoError(problemas.join('\n'));
   }
 
-  return dados as Projeto[];
+  return dados as ProjetoCurado[];
 }
 
 /** Devolve a lista de problemas de um item (vazia quando o item é válido). */

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { GithubModule } from '../github/github.module.js';
 import { lerProjetosCurados } from './ler-projetos-curados.js';
 import { ProjetosController } from './projetos.controller.js';
 import { PROJETOS_CURADOS } from './projetos-curados.token.js';
@@ -6,6 +7,8 @@ import { ProjetosService } from './projetos.service.js';
 
 // Módulo do domínio "projetos" (monolito modular, ADR-0001).
 @Module({
+  // Importar o GithubModule dá acesso ao que ele exporta (o GithubService).
+  imports: [GithubModule],
   controllers: [ProjetosController],
   providers: [
     ProjetosService,

@@ -86,6 +86,11 @@ describe('validarProjetosCurados', () => {
     );
   });
 
+  it('recusa o campo "github": os dados vivos vêm da API do GitHub, não do arquivo', () => {
+    const comGithub = { ...projetoMinimo, github: { disponivel: true, estrelas: 1000 } };
+    expect(mensagemDeErro([comGithub])).toMatch(/campo "github" não faz parte do formato/);
+  });
+
   it('identifica o projeto pelo título e junta todos os problemas numa só mensagem', () => {
     const mensagem = mensagemDeErro([
       projetoMinimo,
