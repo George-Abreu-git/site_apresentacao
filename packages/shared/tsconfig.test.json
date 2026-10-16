@@ -1,0 +1,13 @@
+// Usada só para CHECAR os tipos dos testes do pacote (pasta test/), no `npm run build`.
+// Fica separada do tsconfig.json porque os testes rodam no Node (precisam dos tipos de
+// `node:fs`, `node:path`...) e não podem ir para a dist/ junto com o pacote.
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["test"]
+}

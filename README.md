@@ -27,26 +27,24 @@ npm install
 # 2. Baixar o navegador usado pelo Playwright (só na primeira vez; os testes usam só o Chromium)
 npx playwright install chromium
 
-# 3. Compilar tudo uma vez (gera o dist/ do packages/shared, usado pela API e pelo front)
-npm run build
-
-# 4. Configurar a API: copie o modelo e preencha (o .env nunca vai para o git)
+# 3. Configurar a API: copie o modelo e preencha (o .env nunca vai para o git)
 cp .env.example apps/api/.env
 
-# 5. Subir a API e o front juntos (Ctrl+C encerra os dois)
+# 4. Subir a API e o front juntos (Ctrl+C encerra os dois)
 npm run dev
 ```
 
-Sobre o passo 3: a API e o front importam `@site-apresentacao/shared` a partir da pasta compilada `packages/shared/dist/`, que não vai para o git.
-Num clone novo, antes do primeiro `npm run build`, o editor marca erro nesse import e `npm run build -w apps/api` (ou `-w apps/web`) sozinho falha.
-Depois de mudar algo em `packages/shared`, rode `npm run build -w packages/shared` de novo.
+Não é preciso compilar nada antes: a API e o front leem os tipos de `@site-apresentacao/shared` direto do código-fonte, `packages/shared/src/` (campo `types` do `packages/shared/package.json`, T-017).
+Por isso, num clone novo, o editor, o `npm run dev` e o `npm test` já funcionam, e uma mudança em `packages/shared` vale na hora, sem rebuild.
+Isso só é possível porque o pacote exporta apenas tipos e todo import dele é `import type` (um teste em `packages/shared/test/` confere que nada em `src/` exporta valor).
+O `npm run build` serve só para checar os tipos e gerar a versão de produção (veja a tabela abaixo).
 
 ## Comandos
 
 | Comando | O que faz |
 |---|---|
 | `npm run dev` | Sobe a API e o front em modo de desenvolvimento |
-| `npm run build` | Gera o build de cada workspace (`packages/shared` primeiro) |
+| `npm run build` | Checa os tipos (`tsc`) e gera a versão de produção de cada workspace; não é necessário para o `npm run dev` nem para o `npm test` |
 | `npm test` | Roda os testes unitários e de rotas de todos os workspaces |
 | `npm run test:e2e` | Roda os testes de aceitação do Playwright (`e2e/`) |
 | `npm run lint` | Roda o ESLint em cada workspace e depois em `e2e/`, `scripts/` e `eslint.config.mjs` |

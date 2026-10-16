@@ -13,7 +13,7 @@ O repositório tem **cinco peças**. Três são *workspaces* (projetos com `pack
 
 | Pasta | O que é | Onde roda | Quem transforma o TypeScript | Porta |
 |---|---|---|---|---|
-| `packages/shared` | Tipos compartilhados (`Projeto`) | Em lugar nenhum: só existe na hora de compilar | `tsc` → `dist/*.d.ts` | — |
+| `packages/shared` | Tipos compartilhados (`Projeto`) | Em lugar nenhum: só existe na hora de compilar | ninguém: API e front leem `src/` direto (T-017); o `tsc` só confere e gera `dist/` | — |
 | `apps/web` | Front-end (Vite + React) | No **navegador** | Vite (o `tsc` só confere) | 5173 |
 | `apps/api` | API (NestJS) | No **Node**, num servidor | `nest build` (usa o `tsc`) → `dist/*.js` | 3000 |
 | `e2e/` | Testes no navegador (Playwright) | No Node, controlando um Chromium | Playwright | — |
@@ -31,7 +31,7 @@ npm run dev        scripts/dev.mjs abre 2 processos em paralelo
 npm run build      um workspace por vez, na ordem do "workspaces" da raiz
                    shared (tsc) → api (tsc --noEmit && nest build) → web (tsc -b && vite build)
 
-npm test           vitest run em cada workspace (shared não tem testes)
+npm test           vitest run em cada workspace (o shared tem testes desde a T-017)
 npm run test:e2e   Playwright sobe o front sozinho e abre o Chromium em 2 tamanhos de tela
 npm run lint       eslint . em cada workspace + e2e/, scripts/ e a própria config
 ```
@@ -84,9 +84,9 @@ Seguindo o tipo `Projeto` do começo ao fim:
 
 ```
 packages/shared/src/projeto.ts   export interface Projeto { titulo; descricao; stacks; ... }
-        │  npm run build (tsc)
+        │  reexportado por src/index.ts
         ▼
-packages/shared/dist/index.d.ts  o "package.json" do shared aponta "types" para cá
+packages/shared/src/index.ts     o "package.json" do shared aponta "types" para cá (T-017; antes era dist/index.d.ts)
         │  npm install criou o link node_modules/@site-apresentacao/shared → packages/shared
         ▼
 apps/api e apps/web              import type { Projeto } from '@site-apresentacao/shared';
@@ -98,7 +98,7 @@ Se alguém renomear `titulo` em `projeto.ts`, o build da API e o do front quebra
 
 - **Exercício**: rode `npm run dev` e abra `http://localhost:3000/api/health` e `http://localhost:5173`. Depois rode `npm run dev -w apps/api` sozinho e veja a diferença. Por que um `npm run dev --workspaces` não daria certo?
 - **Exercício**: num arquivo da API, apague o `.js` de um import e rode `npm run build -w apps/api`. Leia a mensagem de erro e explique com as suas palavras por que o `nodenext` reclama.
-- **Pergunta**: por que o `build` da raiz precisa rodar `packages/*` **antes** de `apps/*`? O que acontece num clone novo se você rodar `npm run build -w apps/api` direto? (O README responde.)
+- **Pergunta**: por que o `build` da raiz precisa rodar `packages/*` **antes** de `apps/*`? O que acontece num clone novo se você rodar `npm run build -w apps/api` direto? (Até a T-017, falhava com `Cannot find module`; hoje funciona, porque os tipos vêm de `src/`. Veja [[docs/04-estudos/tarefas/T-017]].)
 - **Pesquisa**: o que é *top-level await* e por que ele só funciona em ESM?
 
 ## Links
