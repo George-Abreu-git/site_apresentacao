@@ -73,6 +73,21 @@ Conceitos para estudo: `fetch` e `AbortSignal.timeout`; cache com validade e rel
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os 5 critérios de aceite têm testes de rota (Supertest) passando, com a API inteira montada e só o `fetch` global simulado: dados vivos (URL `api.github.com/repos/<dono>/<nome>`, GitLab nunca consultado, ordem mantida), cache por TTL configurável (padrão 3600 s e 60 s; `0`, `-5`, `1.5`, `10s`, `abc` impedem a subida), plano B com `{ disponivel: false }` e status 200 em 10 tipos de falha (sem afetar os outros repositórios, com aviso no log, sem ir ao cache), e token só no `Authorization`, nunca no log, na URL ou na resposta. Os 2 testes de rota que falhavam foram ajustados ao campo `github` e não chamam mais o GitHub real. Suíte inteira verde: API 142, web 47, hooks 412, Playwright 115 (7 pulados); lint, build, tsc e validador sem erros. Sem interface: acessibilidade e responsividade não se aplicam.
+Arquivos alterados:
+- `apps/api/test/github.e2e-spec.ts` (novo)
+- `apps/api/test/apoio/github-simulado.ts` (novo)
+- `apps/api/test/projetos.e2e-spec.ts`
+Pendências:
+1. (devops) `GITHUB_CACHE_TTL_SEGUNDOS` no `.env.example`; na T-013, cadastrar no Render.
+2. *opcional* — a espera real de 5 s do tempo limite é simulada com `TimeoutError`.
+3. *opcional* — cache stampede e falhas fora do cache (já registrado na revisão).
+Decisão pendente: nenhuma
+Conceitos para estudo: teste de rota com só a fronteira externa simulada (`vi.spyOn(globalThis, 'fetch')`); `Response` com corpo lido uma vez; `vi.stubEnv`/`vi.unstubAllEnvs`; `vi.useFakeTimers({ toFake: ['Date'] })` + `vi.setSystemTime`; `LoggerService` próprio para checar vazamento de segredo; `overrideProvider().useFactory()`; `it.each`.
+
 ## Estudo
 
 ## DevOps
@@ -83,3 +98,4 @@ Conceitos para estudo: `fetch` e `AbortSignal.timeout`; cache com validade e rel
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — módulo github com cache e fallback; 2 testes de rota do qa a ajustar (campo github)
 - 2026-10-15 — code-reviewer: APROVADO — 5 critérios atendidos; 2 testes de rota a ajustar pelo qa
+- 2026-10-15 — qa: PASSOU — testes de rota do módulo github; suíte inteira verde
