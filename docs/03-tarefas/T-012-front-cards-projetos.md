@@ -1,7 +1,7 @@
 ---
 id: T-012
 titulo: Front: cards de projetos consumindo a API
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end, api]
 rodadas: 0
@@ -56,6 +56,20 @@ Commit: `feat(web): adiciona cards de projetos consumindo GET /api/projetos`
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff do dev atende RF-05, RNF-03, a falha amigável e a URL por `VITE_API_URL`, com unitários de sucesso, carregamento, erro, lista vazia e cancelamento. Testes (web 74, API 142, hooks 412), lint e build do web verdes. O dev mexeu só em `apps/web/**` (remoção de `compartilhamento.test.ts` correta), sem segredos e sem mudança no lock. Nada bloqueante.
+Arquivos alterados: nenhum
+Pendências:
+1. (qa) Ajustar o e2e de RF-09 em `e2e/testes/secoes-estaticas.spec.ts` (deixar de fora `ptBR.projetos` e `ptBR.geral.localidade`) e criar os e2e de sucesso, carregamento e falha com `page.route`.
+2. (orquestrador / George) A API não tem CORS (`apps/api/src/criar-app.ts`): localmente o front real (5173) não consegue chamar a API real (3000). Registrar na T-013 que `CORS_ORIGIN` deve aceitar também a origem de desenvolvimento.
+3. (devops) Cadastrar `VITE_API_URL` no Cloudflare Pages (T-013).
+4. *opcional* — `CartaoDeProjeto.tsx:76`: data inválida lança `RangeError` e derruba a página (sem Error Boundary).
+5. *opcional* — `Projetos.tsx:44`: `key={projeto.titulo}` pode repetir.
+Decisão pendente: nenhuma
+Conceitos para estudo: CORS entre origens de desenvolvimento e `enableCors` no NestJS; variáveis `VITE_` públicas; Error Boundary; `key` estável; `AbortController` na limpeza do `useEffect`.
+
 ## QA
 
 ## Estudo
@@ -67,3 +81,4 @@ Commit: `feat(web): adiciona cards de projetos consumindo GET /api/projetos`
 - 2026-10-10 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — cards de projetos consumindo a API; 1 e2e do qa a ajustar (RF-09 x textos por estado)
+- 2026-10-15 — code-reviewer: APROVADO — critérios do dev atendidos; avisos de CORS e VITE_API_URL para a T-013

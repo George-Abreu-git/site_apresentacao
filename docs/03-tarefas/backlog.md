@@ -15,7 +15,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-009-secao-stacks|T-009]] | Seção Stacks a partir de arquivo de conteúdo | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-010-api-modulo-projetos|T-010]] | API: módulo projetos lendo o arquivo curado | concluida | agente-faz | back-end, api |
 | [[docs/03-tarefas/T-011-api-modulo-github|T-011]] | API: módulo github com cache e fallback | concluida | agente-faz | back-end, api |
-| [[docs/03-tarefas/T-012-front-cards-projetos|T-012]] | Front: cards de projetos consumindo a API | em-revisao | agente-faz | front-end, api |
+| [[docs/03-tarefas/T-012-front-cards-projetos|T-012]] | Front: cards de projetos consumindo a API | em-qa | agente-faz | front-end, api |
 | [[docs/03-tarefas/T-013-deploy-v1|T-013]] | Deploy da v1: Cloudflare Pages, Render, CORS e SEO básico | backlog | agente-faz | release |
 | [[docs/03-tarefas/T-014-documentador-paralelo|T-014]] | Documentação de estudo em paralelo (diário por tarefa em worktree) e consolidação sob demanda | concluida | agente-faz | orquestracao |
 | [[docs/03-tarefas/T-015-conteudo-real-do-site|T-015]] | Conteúdo real do site — LinkedIn, e-mail e textos revisados | backlog | eu-faco | front-end, docs |
