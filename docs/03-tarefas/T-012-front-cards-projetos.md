@@ -72,6 +72,20 @@ Conceitos para estudo: CORS entre origens de desenvolvimento e `enableCors` no N
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os 5 critérios de aceite foram validados com e2e novos em `e2e/testes/projetos.spec.ts` (46 testes, celular e desktop), com a API simulada por `page.route`: cards completos e parciais na ordem da API, carregamento com as outras seções já na tela (inclusive 90 s simulados de partida a frio), cinco tipos de falha com mensagem amigável e sem erro de JavaScript, lista vazia, 1/2/3 colunas sem rolagem horizontal, teclado, contraste e região viva. A troca de URL por `VITE_API_URL` foi conferida num servidor Vite separado (teste temporário, apagado). O teste de textos de RF-09 foi ajustado para deixar de fora `projetos` e `geral.localidade`. Suítes: e2e 161 passaram e 7 pulados; unitários web 74, API 142, hooks 412; lint e validador verdes.
+Arquivos alterados:
+- `e2e/testes/projetos.spec.ts` (novo)
+- `e2e/testes/secoes-estaticas.spec.ts`
+Pendências:
+1. (George / dev, opcional) Data inválida em `github.ultimaAtualizacao` lança "Invalid time value" em `CartaoDeProjeto.tsx` e apaga a página inteira (confirmado no navegador). Só acontece fora do contrato; a API (T-011) só confere se `pushed_at` é texto. Proteção possível: tratar a data no front, validar `pushed_at` na API ou Error Boundary.
+2. (T-013) Respostas simuladas pelo Playwright não passam pela checagem de CORS; a falta de CORS na API real precisa de verificação própria na T-013.
+3. (devops / T-013) Cadastrar `VITE_API_URL` no Cloudflare Pages.
+Decisão pendente: nenhuma
+Conceitos para estudo: `page.route` e `route.fulfill`/`route.abort`; requisição pendurada com Promise; `page.clock`; `page.on('pageerror')`; seletor `:scope > li`; região viva persistente; respostas simuladas e CORS.
+
 ## Estudo
 
 ## DevOps
@@ -82,3 +96,4 @@ Conceitos para estudo: CORS entre origens de desenvolvimento e `enableCors` no N
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
 - 2026-10-15 — dev: CONCLUIDO — cards de projetos consumindo a API; 1 e2e do qa a ajustar (RF-09 x textos por estado)
 - 2026-10-15 — code-reviewer: APROVADO — critérios do dev atendidos; avisos de CORS e VITE_API_URL para a T-013
+- 2026-10-15 — qa: PASSOU — e2e dos cards de projetos (161 passando, 7 pulados); suíte inteira verde
