@@ -2,13 +2,17 @@
 // Sobe a API inteira em memória e faz requisições HTTP de verdade com o Supertest.
 // Os cenários de arquivo inválido montam o mesmo AppModule com o Test do Nest,
 // trocando só o provider PROJETOS_CURADOS para ler um arquivo temporário.
+//
+// Desde a T-011 a rota consulta o GitHub: aqui o `fetch` global é sempre simulado
+// (nenhum teste vai à internet). Os cenários do GitHub estão em github.e2e-spec.ts.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { Projeto } from '@site-apresentacao/shared';
 import request from 'supertest';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { criarApp, PREFIXO_DAS_ROTAS } from '../src/criar-app.js';
 import {
@@ -17,6 +21,27 @@ import {
 } from '../src/projetos/ler-projetos-curados.js';
 import { PROJETOS_CURADOS } from '../src/projetos/projetos-curados.token.js';
 import { validarProjetosCurados } from '../src/projetos/validar-projetos-curados.js';
+import { repositorioNoGithub, respostaJson, semGithub, simularGithub } from './apoio/github-simulado.js';
+
+/** O que a rota acrescenta a projetos com repositório no GitHub, com o GitHub simulado respondendo. */
+const DADOS_VIVOS_SIMULADOS = {
+  disponivel: true,
+  linguagem: 'TypeScript',
+  estrelas: 7,
+  ultimaAtualizacao: '2026-10-01T12:00:00Z',
+} as const;
+
+beforeEach(() => {
+  // Ambiente previsível: sem token real nem validade de cache vindos da máquina.
+  vi.stubEnv('GITHUB_TOKEN', '');
+  vi.stubEnv('GITHUB_CACHE_TTL_SEGUNDOS', '');
+  simularGithub(() => respostaJson(repositorioNoGithub()));
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 /** Monta a API completa (com o prefixo /api), mas lendo o arquivo curado do caminho indicado. */
 async function criarAppComArquivo(caminho: string): Promise<INestApplication> {
@@ -34,6 +59,9 @@ describe('GET /api/projetos (arquivo curado do repositório)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    // A configuração do GitHub é lida ao montar a API, antes do beforeEach do arquivo.
+    vi.stubEnv('GITHUB_TOKEN', '');
+    vi.stubEnv('GITHUB_CACHE_TTL_SEGUNDOS', '');
     app = await criarApp({ logger: false });
     await app.init();
   });
@@ -45,15 +73,21 @@ describe('GET /api/projetos (arquivo curado do repositório)', () => {
   it('responde 200 em JSON com todos os projetos do arquivo, na ordem do arquivo', async () => {
     // Compara com o JSON cru do arquivo (e não com o leitor da API), para pegar
     // qualquer perda, troca de ordem ou campo acrescentado no caminho até a resposta.
-    const arquivo: unknown = JSON.parse(readFileSync(CAMINHO_DO_ARQUIVO_CURADO, 'utf8'));
+    // O único campo acrescentado é o "github", nos projetos com repositório no GitHub (T-011).
+    const arquivo = JSON.parse(readFileSync(CAMINHO_DO_ARQUIVO_CURADO, 'utf8')) as Projeto[];
+    const esperado = arquivo.map((projeto) =>
+      projeto.repositorio?.startsWith('https://github.com/')
+        ? { ...projeto, github: DADOS_VIVOS_SIMULADOS }
+        : projeto,
+    );
 
     const resposta = await request(app.getHttpServer()).get('/api/projetos');
 
     expect(resposta.status).toBe(200);
     expect(resposta.headers['content-type']).toMatch(/application\/json/);
-    expect(resposta.body).toEqual(arquivo);
+    expect(resposta.body).toEqual(esperado);
     expect(resposta.body.map((p: { titulo: string }) => p.titulo)).toEqual(
-      (arquivo as { titulo: string }[]).map((p) => p.titulo),
+      arquivo.map((p) => p.titulo),
     );
   });
 
@@ -61,8 +95,17 @@ describe('GET /api/projetos (arquivo curado do repositório)', () => {
     const resposta = await request(app.getHttpServer()).get('/api/projetos');
 
     expect(resposta.body.length).toBeGreaterThanOrEqual(2);
-    // A mesma validação do arquivo curado aplicada à resposta: só campos do tipo Projeto.
-    expect(() => validarProjetosCurados(resposta.body)).not.toThrow();
+    // Tirando o "github" (preenchido pela API), cada projeto segue o formato do arquivo curado.
+    const curados = (resposta.body as Projeto[]).map(semGithub);
+    expect(() => validarProjetosCurados(curados)).not.toThrow();
+    // E o "github", quando presente, é um dos dois formatos de DadosVivosDoGithub.
+    for (const { github } of resposta.body as Projeto[]) {
+      if (github === undefined) continue;
+      expect([
+        ['disponivel', 'estrelas', 'linguagem', 'ultimaAtualizacao'],
+        ['disponivel'],
+      ]).toContainEqual(Object.keys(github).sort());
+    }
   });
 
   it('projeto sem repositório aparece só com os dados curados (sem o campo "repositorio")', async () => {
