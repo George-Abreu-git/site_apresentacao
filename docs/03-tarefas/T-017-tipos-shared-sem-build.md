@@ -79,6 +79,18 @@ Conceitos para estudo: controle negativo em testes; checar tipos × transpilar; 
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-017.md` (`consolidado: false`, 8 conceitos com o porquê, caminhos reais e 2 exercícios) explicando o "Cannot find module" (`types` apontando para a `dist` gerada e fora do git) e a correção (`types` em `src/index.ts`, possível porque o shared só exporta tipos). Correções pontuais em notas desatualizadas: `monorepo-com-npm-workspaces.md` (subitem "Mudou na T-017") e `mapa-do-monorepo.md` (tabela, comentário do `npm test`, diagrama do `Projeto` e pergunta de "Para aprofundar").
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-017.md` (novo)
+- `docs/04-estudos/monorepo-com-npm-workspaces.md`
+- `docs/04-estudos/mapa-do-monorepo.md`
+Pendências:
+1. Em `mapa-do-monorepo.md` consta que `npm run build -w apps/api` funciona num clone novo — deduzido dos critérios provados pelo qa, não rodado literalmente.
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ### Rodada 1
@@ -100,3 +112,4 @@ Commit: `docs(readme): explica que os tipos do shared vêm do código-fonte, sem
 - 2026-10-16 — devops: CONCLUIDO — README atualizado; segue para o qa
 - 2026-10-16 — qa: PASSOU — critérios provados numa cópia limpa sem a dist
 - 2026-10-16 — orquestrador: concluida — verificação verde no estado commitado (shared 5, API 142, web 74, hooks 412, e2e 161 + 7 pulados, validador); o `pt-BR.ts` alterado pelo George fora do fluxo ficou num stash durante a verificação e foi devolvido; diário de estudo disparado após a integração
+- 2026-10-16 — documentador: CONCLUIDO — diário integrado
