@@ -1,7 +1,7 @@
 ---
 id: T-017
 titulo: Pacote shared resolvido sem build (tipos apontando para o código-fonte)
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end, back-end]
 rodadas: 0
@@ -70,9 +70,20 @@ Conceitos para estudo: condição `types` em `exports`; apagamento de tipos; arq
 
 ## DevOps
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: README reescrito (critério 6, pendência 1 da Revisão): saiu o passo de build obrigatório do "Como rodar"; parágrafo novo explica que os tipos do shared vêm de `packages/shared/src` pelo campo `types` (T-017), funcionam sem build e valem na hora, e que isso depende de o pacote só exportar tipos (protegido por teste); a linha do `npm run build` na tabela agora diz que ele só checa os tipos e gera a versão de produção. CI (`ci.yml`, passos 6 e 7), `AGENTS.md`, `CLAUDE.md`, `docs/02-arquitetura/**`, `.claude/**` e `scripts/**` conferidos: nenhuma outra menção incorreta. Validador verde.
+Arquivos alterados:
+- `README.md`
+Pendências: nenhuma (o `pt-BR.ts` alterado fora do fluxo segue sem commit)
+Decisão pendente: nenhuma
+Commit: `docs(readme): explica que os tipos do shared vêm do código-fonte, sem build`
+
 ## Log
 
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-16 — dev: CONCLUIDO — tipos do shared pelo código-fonte; 5 cenários; alteração de nome no pt-BR.ts fora do fluxo deixada sem commit
 - 2026-10-16 — code-reviewer: APROVADO — tipos do shared pelo fonte; README desatualizado → devops (critério 6)
+- 2026-10-16 — devops: CONCLUIDO — README atualizado; segue para o qa
