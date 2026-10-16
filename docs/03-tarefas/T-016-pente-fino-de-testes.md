@@ -1,7 +1,7 @@
 ---
 id: T-016
 titulo: Pente-fino de testes unitários, de regressão e de ponta a ponta
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [qa, front-end, back-end, api]
 rodadas: 0
@@ -35,12 +35,12 @@ Funcionalidades (requisitos já implementados):
 
 ## Critérios de aceite
 
-- [ ] Unitários (dev): para cada funcionalidade com código testável em unidade, pelo menos 5 cenários (caminho feliz, bordas e erros), novos ou já existentes, listados por funcionalidade no handoff
-- [ ] Rota da API (qa): pelo menos 5 cenários para cada funcionalidade de API (6, 7 e 14)
-- [ ] Ponta a ponta e regressão (qa): pelo menos 5 cenários por funcionalidade de interface (1 a 5 e 8 a 13), incluindo regressão do que as tarefas anteriores entregaram
-- [ ] Nenhum código de produção alterado; teste que expõe um bug fica marcado como bug conhecido (`it.fails`/`it.todo` no Vitest, `test.fixme`/`test.fail` no Playwright), com comentário descrevendo o bug, para a suíte continuar verde
-- [ ] Cada bug ou erro encontrado listado no handoff com funcionalidade, passos para reproduzir, esperado × obtido e severidade; o orquestrador cria uma tarefa por bug
-- [ ] Suíte inteira verde (`npm test`, `npm run test:e2e`) e validador verde
+- [x] Unitários (dev): para cada funcionalidade com código testável em unidade, pelo menos 5 cenários (caminho feliz, bordas e erros), novos ou já existentes, listados por funcionalidade no handoff
+- [x] Rota da API (qa): pelo menos 5 cenários para cada funcionalidade de API (6, 7 e 14)
+- [x] Ponta a ponta e regressão (qa): pelo menos 5 cenários por funcionalidade de interface (1 a 5 e 8 a 13), incluindo regressão do que as tarefas anteriores entregaram
+- [x] Nenhum código de produção alterado; teste que expõe um bug fica marcado como bug conhecido (`it.fails`/`it.todo` no Vitest, `test.fixme`/`test.fail` no Playwright), com comentário descrevendo o bug, para a suíte continuar verde
+- [x] Cada bug ou erro encontrado listado no handoff com funcionalidade, passos para reproduzir, esperado × obtido e severidade; o orquestrador cria uma tarefa por bug
+- [x] Suíte inteira verde (`npm test`, `npm run test:e2e`) e validador verde
 
 ## Contexto relevante
 
@@ -130,3 +130,4 @@ Conceitos para estudo: `test.fail` condicional; rolagem até a âncora numa SPA;
 - 2026-10-15 — code-reviewer: APROVADO — só testes alterados; it.fails conferidos com os 4 bugs
 - 2026-10-16 — orquestrador: em-qa — qa (rodada 1) interrompido no corte de 05:45 sem handoff; trabalho parcial guardado em stash, branch atualizada com a main (T-017) e qa retomado a pedido do George
 - 2026-10-16 — qa: PASSOU — rotas e e2e com 5+ cenários por funcionalidade; 5 bugs novos (BUG-Q1 a Q5) marcados como conhecidos
+- 2026-10-16 — orquestrador: concluida — verificação verde no estado commitado (shared 5; API 227 + 4 falhas esperadas; web 145 + 3; hooks 412; e2e 250 + 12 pulados; lint; validador), com o `pt-BR.ts` do George guardado em stash durante a verificação e devolvido; 9 bugs + 1 erro viram tarefas; diário de estudo disparado após a integração
