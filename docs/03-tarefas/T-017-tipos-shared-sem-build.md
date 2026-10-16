@@ -1,7 +1,7 @@
 ---
 id: T-017
 titulo: Pacote shared resolvido sem build (tipos apontando para o código-fonte)
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end, back-end]
 rodadas: 0
@@ -16,12 +16,12 @@ O `packages/shared/package.json` só exporta `./dist/index.d.ts` e `./dist/index
 
 ## Critérios de aceite
 
-- [ ] `packages/shared/package.json` resolve os tipos pelo código-fonte (`src/index.ts`), sem depender de `dist/`
-- [ ] Sem `packages/shared/dist/`: `tsc --noEmit` da API, `tsc -b` do front, `npm run dev` (API sobe) e `npm test` funcionam
-- [ ] O build da raiz (`npm run build`) continua verde e a API compilada (`node apps/api/dist/main.js`) sobe
-- [ ] Teste que protege a regra: o pacote shared só exporta tipos (nenhum `export` de valor em `src/`), condição para os tipos apontarem para o fonte
-- [ ] 5 cenários de teste para a mudança (padrão do George), cobrindo resolução com e sem `dist`, import de tipo na API e no front e a regra acima
-- [ ] Comentários do CI (`.github/workflows/`) e da documentação que citam a `dist` do shared continuam corretos (ajuste é do devops, se necessário)
+- [x] `packages/shared/package.json` resolve os tipos pelo código-fonte (`src/index.ts`), sem depender de `dist/`
+- [x] Sem `packages/shared/dist/`: `tsc --noEmit` da API, `tsc -b` do front, `npm run dev` (API sobe) e `npm test` funcionam
+- [x] O build da raiz (`npm run build`) continua verde e a API compilada (`node apps/api/dist/main.js`) sobe
+- [x] Teste que protege a regra: o pacote shared só exporta tipos (nenhum `export` de valor em `src/`), condição para os tipos apontarem para o fonte
+- [x] 5 cenários de teste para a mudança (padrão do George), cobrindo resolução com e sem `dist`, import de tipo na API e no front e a regra acima
+- [x] Comentários do CI (`.github/workflows/`) e da documentação que citam a `dist` do shared continuam corretos (ajuste é do devops, se necessário)
 
 ## Contexto relevante
 
@@ -66,6 +66,17 @@ Conceitos para estudo: condição `types` em `exports`; apagamento de tipos; arq
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os 6 critérios foram verificados numa cópia limpa dos arquivos rastreados (HEAD, sem `packages/shared/dist`, feita com `git ls-files` + `git show` no scratchpad) com `npm ci`. Sem a `dist`, `tsc --noEmit` da API, `tsc -b` do front e `npm test` (shared 5, API 142, web 74) verdes; `npm run dev` sobe a API (200 em `/api/health` e `/api/projetos`). `npm run build` verde e `node apps/api/dist/main.js` responde; o JS compilado não referencia o shared. Controles negativos: `types` antigo → 4 de 5 falham; export de valor → o teste 5 falha. Mudança no `src` vale mesmo com `dist` velha. e2e completo na cópia: 161 passaram, 7 pulados. Checkout: web 72/74 só por causa do `pt-BR.ts` fora do fluxo.
+Arquivos alterados: nenhum (só arquivos temporários no scratchpad)
+Pendências:
+1. (fora do fluxo) `apps/web/src/conteudo/pt-BR.ts` sem commit quebra `Cabecalho.test.tsx` e `Rodape.test.tsx` — o George decide entre commitar o nome novo com os testes ajustados ou descartar.
+2. *opcional* (devops) No CI o build roda antes dos testes, então a `dist` sempre existe; um `tsc --noEmit` antes do build provaria o "clone sem dist" no próprio CI.
+Decisão pendente: nenhuma
+Conceitos para estudo: controle negativo em testes; checar tipos × transpilar; apagamento de `import type`; prefixo global de rotas; provar um clone limpo sem mexer no checkout.
+
 ## Estudo
 
 ## DevOps
@@ -87,3 +98,5 @@ Commit: `docs(readme): explica que os tipos do shared vêm do código-fonte, sem
 - 2026-10-16 — dev: CONCLUIDO — tipos do shared pelo código-fonte; 5 cenários; alteração de nome no pt-BR.ts fora do fluxo deixada sem commit
 - 2026-10-16 — code-reviewer: APROVADO — tipos do shared pelo fonte; README desatualizado → devops (critério 6)
 - 2026-10-16 — devops: CONCLUIDO — README atualizado; segue para o qa
+- 2026-10-16 — qa: PASSOU — critérios provados numa cópia limpa sem a dist
+- 2026-10-16 — orquestrador: concluida — verificação verde no estado commitado (shared 5, API 142, web 74, hooks 412, e2e 161 + 7 pulados, validador); o `pt-BR.ts` alterado pelo George fora do fluxo ficou num stash durante a verificação e foi devolvido; diário de estudo disparado após a integração
