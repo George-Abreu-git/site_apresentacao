@@ -34,6 +34,8 @@ export interface Conteudo {
   geral: {
     /** Avisa o leitor de tela que o link abre em outra aba (o texto fica escondido na tela). */
     abreEmNovaAba: string;
+    /** Código do idioma (ex.: "pt-BR"), usado pelo `Intl` para formatar datas e números. */
+    localidade: string;
   };
   navegacao: {
     /** Nome da navegação principal, anunciado pelo leitor de tela. */
@@ -57,6 +59,23 @@ export interface Conteudo {
   stacks: {
     /** Para mostrar uma tecnologia nova, basta incluí-la aqui (RF-04): a tela não muda. */
     categorias: CategoriaDeStack[];
+  };
+  /** Textos fixos da seção Projetos; os projetos em si vêm da API (RF-05, RF-06). */
+  projetos: {
+    /** Aparece enquanto a API responde (RNF-03): a partida a frio pode levar cerca de um minuto. */
+    carregando: string;
+    /** Aparece quando a API falha: a página continua de pé, só a lista não vem. */
+    erro: string;
+    /** Aparece quando a API responde com a lista vazia. */
+    vazio: string;
+    /** Nome da lista de tecnologias de cada card, anunciado pelo leitor de tela. */
+    rotuloStacks: string;
+    linkRepositorio: string;
+    linkDemo: string;
+    /** Rótulos dos dados vivos do GitHub. */
+    linguagem: string;
+    estrelas: string;
+    ultimaAtualizacao: string;
   };
   servicos: {
     oQueOfereco: BlocoDeLista;
