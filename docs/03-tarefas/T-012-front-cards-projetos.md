@@ -1,8 +1,8 @@
 ---
 id: T-012
 titulo: Front: cards de projetos consumindo a API
-status: backlog
-modo: eu-faco
+status: em-andamento
+modo: agente-faz
 tags: [front-end, api]
 rodadas: 0
 criada: 2026-10-10
@@ -12,7 +12,7 @@ criada: 2026-10-10
 
 ## Descrição
 
-A seção Projetos busca `GET /api/projetos` e mostra os cards. Modo `eu-faco`: integração front ↔ API é o centro do aprendizado.
+A seção Projetos busca `GET /api/projetos` e mostra os cards. Modo `agente-faz` (decisão do George em 2026-10-15; originalmente `eu-faco`, pois integração front ↔ API é o centro do aprendizado — o aprendizado fica no diário de estudo).
 
 ## Critérios de aceite
 
@@ -32,6 +32,7 @@ A seção Projetos busca `GET /api/projetos` e mostra os cards. Modo `eu-faco`: 
 ## Decisões
 
 - 2026-10-10 — George: backlog inicial aprovado; modo definido pelo plano de aprendizado (exemplos `agente-faz` em T-007 e T-010; integração e seções em `eu-faco`).
+- 2026-10-15 — George: todas as tarefas restantes do backlog seguem em modo `agente-faz` (o dev implementa).
 
 ## Dev
 
@@ -46,3 +47,4 @@ A seção Projetos busca `GET /api/projetos` e mostra os cards. Modo `eu-faco`: 
 ## Log
 
 - 2026-10-10 — tarefa criada
+- 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz por decisão do George; dev chamado
