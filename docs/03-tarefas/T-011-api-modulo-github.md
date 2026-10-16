@@ -1,7 +1,7 @@
 ---
 id: T-011
 titulo: API: módulo github com cache e fallback
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -16,11 +16,11 @@ Integra a API do GitHub para completar os projetos com dados vivos. Modo `agente
 
 ## Critérios de aceite
 
-- [ ] RF-06 (parte 2): projetos com repositório recebem linguagem principal, estrelas e última atualização do GitHub
-- [ ] Cache dos dados do GitHub por tempo configurável (variável de ambiente)
-- [ ] GitHub indisponível ou limite atingido → resposta com dados curados e indicação de que os dados vivos estão ausentes (sem erro)
-- [ ] RNF-05: token só via variável de ambiente; nunca logado nem retornado
-- [ ] Testes com o GitHub simulado (mock): sucesso, falha e cache
+- [x] RF-06 (parte 2): projetos com repositório recebem linguagem principal, estrelas e última atualização do GitHub
+- [x] Cache dos dados do GitHub por tempo configurável (variável de ambiente)
+- [x] GitHub indisponível ou limite atingido → resposta com dados curados e indicação de que os dados vivos estão ausentes (sem erro)
+- [x] RNF-05: token só via variável de ambiente; nunca logado nem retornado
+- [x] Testes com o GitHub simulado (mock): sucesso, falha e cache
 
 ## Contexto relevante
 
@@ -99,3 +99,4 @@ Conceitos para estudo: teste de rota com só a fronteira externa simulada (`vi.s
 - 2026-10-15 — dev: CONCLUIDO — módulo github com cache e fallback; 2 testes de rota do qa a ajustar (campo github)
 - 2026-10-15 — code-reviewer: APROVADO — 5 critérios atendidos; 2 testes de rota a ajustar pelo qa
 - 2026-10-15 — qa: PASSOU — testes de rota do módulo github; suíte inteira verde
+- 2026-10-15 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
