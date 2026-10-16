@@ -1,7 +1,7 @@
 ---
 id: T-016
 titulo: Pente-fino de testes unitários, de regressão e de ponta a ponta
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [qa, front-end, back-end, api]
 rodadas: 0
@@ -54,6 +54,28 @@ Funcionalidades (requisitos já implementados):
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Pente-fino dos testes unitários do front e da API, com pelo menos 5 cenários por funcionalidade (1 a 14), entre novos e existentes. Nenhum código de produção alterado. Quatro bugs encontrados e marcados com `it.fails` comentado (cada um conferido: falha pelo motivo descrito). `npm test` verde (API 191 + 2 falhas esperadas; web 145 + 3; hooks 412); lint, tipos e validador verdes.
+Bugs encontrados:
+- **BUG-1 (média)** — func. 5, RF-05: projeto fora do formato na resposta da API (ex.: sem `stacks`) apaga a página inteira (sem `<h1>`): `CartaoDeProjeto` lança erro e não há error boundary; `apps/web/src/api/projetos.ts` só confere que a resposta é lista. Teste: `App.test.tsx`.
+- **BUG-2 (baixa)** — func. 5 e 7: `pushed_at` que não é data passa pela API e, no front, `Intl.DateTimeFormat.format` lança `RangeError` (página em branco). Testes: `CartaoDeProjeto.test.tsx`, `github-cliente.spec.ts`.
+- **BUG-3 (baixa)** — func. 5 e 6: projetos com o mesmo título geram chave duplicada no React (`key={projeto.titulo}`; a validação não recusa títulos repetidos). Teste: `Projetos.test.tsx`.
+- **BUG-4 (baixa)** — func. 6: `projetos.json` salvo em UTF-8 com BOM impede a API de subir ("não é um JSON válido"). Teste: `ler-projetos-curados.spec.ts`.
+Cenários por funcionalidade (resumo): Navegação/menu (Menu 12, Cabecalho 5, secoes 3, App); Início (Inicio 6, Atalho 4); Sobre 6; Stacks 8; Cards (CartaoDeProjeto 14, Projetos 12, api/projetos 10, endereco-da-api 6, App +2); API projetos (validar 21, ler 9, service 8, controller 3, app.module); GitHub (repositorio +9, cliente +9, configuracao +4, service +4, cache 5, módulo 2); Serviços 8; Contato 6; RF-09 7; Responsividade 7 (novo `responsividade.test.ts`); Acessibilidade 8 (novo `acessibilidade.test.tsx`); Tema 12; Saúde/ambiente (health 4, `criar-app.spec.ts` 5 novo, variáveis 5).
+Arquivos alterados:
+- novos: `apps/web/src/apoio-de-testes/capturar-erros-de-renderizacao.ts`, `apps/web/src/acessibilidade.test.tsx`, `apps/web/src/responsividade.test.ts`, `apps/web/src/componentes/Atalho/Atalho.test.tsx`, `apps/api/src/criar-app.spec.ts`
+- alterados: testes em `apps/web/src/**` e `apps/api/src/**` (só `*.test.ts(x)`/`*.spec.ts`)
+Pendências:
+1. Uma tarefa por bug (BUG-1 a BUG-4). BUG-1 e BUG-2 podem ser corrigidos juntos; no BUG-3, onde corrigir (chave no front ou recusar títulos repetidos) é escolha do George.
+2. Para o George decidir (sem teste de bug, comportamento não definido): (a) validador aceita `"stacks": []` e o card mostra lista vazia; (b) cache vazio + requisições simultâneas consultam o GitHub duas vezes.
+3. Já no backlog: CORS (T-013) e "PREENCHER" (T-015).
+4. e2e não rodado (parte do qa).
+Decisão pendente: nenhuma
+Conceitos para estudo: `it.fails`; error boundary; erros não tratados no Vitest/jsdom; `key` e chaves duplicadas; `?raw` e `import.meta.glob` do Vite; contraste WCAG; mobile-first com `min-width` em rem; BOM em UTF-8; `encodeURIComponent`; `NestFactory` com `abortOnError`.
+Commit: `test: pente-fino dos testes unitários do front e da API`
+
 ## Revisão
 
 ## QA
@@ -66,3 +88,4 @@ Funcionalidades (requisitos já implementados):
 
 - 2026-10-15 — tarefa criada
 - 2026-10-15 — orquestrador: em-andamento — início no modo agente-faz; dev chamado para os unitários
+- 2026-10-15 — dev: CONCLUIDO — unitários com 5+ cenários nas 14 funcionalidades; 4 bugs marcados com it.fails
