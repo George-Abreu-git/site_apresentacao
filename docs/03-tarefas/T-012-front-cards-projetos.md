@@ -1,7 +1,7 @@
 ---
 id: T-012
 titulo: Front: cards de projetos consumindo a API
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end, api]
 rodadas: 1
@@ -16,11 +16,11 @@ A seção Projetos busca `GET /api/projetos` e mostra os cards. Modo `agente-faz
 
 ## Critérios de aceite
 
-- [ ] RF-05: cards com título, descrição, stacks, links e dados vivos quando presentes
-- [ ] RNF-03: estado de carregamento enquanto a API responde (inclusive partida a frio de ~1 min); o resto da página não espera
-- [ ] Falha da API → mensagem amigável, sem quebrar a página
-- [ ] URL da API configurável por variável de ambiente do Vite
-- [ ] Testes unitários com a API simulada e e2e com sucesso, carregamento e falha
+- [x] RF-05: cards com título, descrição, stacks, links e dados vivos quando presentes
+- [x] RNF-03: estado de carregamento enquanto a API responde (inclusive partida a frio de ~1 min); o resto da página não espera
+- [x] Falha da API → mensagem amigável, sem quebrar a página
+- [x] URL da API configurável por variável de ambiente do Vite
+- [x] Testes unitários com a API simulada e e2e com sucesso, carregamento e falha
 
 ## Contexto relevante
 
@@ -114,3 +114,4 @@ Conceitos para estudo: fixture automática do Playwright (`test.extend` com `aut
 - 2026-10-15 — orquestrador: aguardando-decisao — verificação do encerramento: e2e "carrega sem erros no console" (`pagina-inicial.spec.ts:59`) instável — sem API simulada, o front chama `localhost:3000` e o navegador registra `net::ERR_CONNECTION_REFUSED` (falhou em várias de 20 repetições); sem merge
 - 2026-10-15 — orquestrador: em-qa — George escolheu A; rodadas = 1; qa chamado para simular a API nos e2e que abrem a página inteira
 - 2026-10-15 — qa: PASSOU (rodada 2) — API simulada em todos os e2e; 0 falhas em 1.680 execuções
+- 2026-10-15 — orquestrador: concluida — verificação verde (teste do console 20/20 com repetição); diário de estudo disparado após a integração
