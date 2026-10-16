@@ -305,7 +305,10 @@ test.describe('textos do arquivo de conteúdo (RF-09)', () => {
 
   test('cada texto do arquivo de conteúdo aparece na página', async ({ page }) => {
     await page.goto('/');
-    const textos = textosDoConteudo({ ...ptBR, links: undefined });
+    // Ficam de fora: os textos de Projetos, que dependem da resposta da API (carregando, erro,
+    // vazio, rótulos dos cards) e são conferidos estado a estado em projetos.spec.ts; e a
+    // `localidade`, que não é texto da tela (é o idioma usado para formatar datas e números).
+    const textos = textosDoConteudo({ ...ptBR, links: undefined, projetos: undefined, geral: { ...ptBR.geral, localidade: undefined } });
     // textContent inclui o texto oculto para leitor de tela; os aria-label entram à parte.
     const textoDaPagina = await page.evaluate(() =>
       [document.body.textContent ?? '', ...[...document.querySelectorAll('[aria-label]')].map((el) => el.getAttribute('aria-label') ?? '')].join('\n'),
