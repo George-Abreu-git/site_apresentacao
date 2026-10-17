@@ -1,7 +1,7 @@
 ---
 id: T-021
 titulo: Arquivo curado salvo em UTF-8 com BOM é lido normalmente
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -18,11 +18,11 @@ Severidade: baixa.
 
 ## Critérios de aceite
 
-- [ ] `projetos.json` com BOM é lido normalmente e a API sobe
-- [ ] Arquivo sem BOM continua funcionando igual
-- [ ] O `it.fails` do BUG-4 em `ler-projetos-curados.spec.ts` vira teste normal e passa
-- [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] `projetos.json` com BOM é lido normalmente e a API sobe
+- [x] Arquivo sem BOM continua funcionando igual
+- [x] O `it.fails` do BUG-4 em `ler-projetos-curados.spec.ts` vira teste normal e passa
+- [x] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -64,6 +64,17 @@ Conceitos para estudo: BOM em UTF-8; `readFileSync` não remove o BOM; `trim()` 
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: 5 cenários de rota em `apps/api/test/projetos.e2e-spec.ts` (bytes `EF BB BF` gravados no disco): com BOM sobe e responde igual ao arquivo sem BOM (inclusive o campo `github`); acentos, aspas e emoji intactos, sem U+FEFF no corpo; o `projetos.json` real regravado com BOM responde igual ao original; só BOM, BOM + espaços, BOM + JSON inválido e dois BOMs não sobem e o erro traz o caminho; BOM + título repetido continua recusado pela validação da T-020. Com o código do `main`, os cenários 1, 2, 3 e 5 falham; com uma correção ampla demais (`trimStart()`), o 4 falha. No `t029-linux` com o `pt-BR.ts` do HEAD: API 283 + 2 esperadas, web 189 + 1 esperada, lint e tsc verdes, e2e 352 passaram e 12 pulados; validador verde. Sem e2e novo: não há mudança de interface e o cenário 3 cobre o arquivo real.
+Arquivos alterados:
+- apps/api/test/projetos.e2e-spec.ts
+Pendências:
+1. *opcional* — o unitário "só o BOM e espaços" poderia conferir o caminho (o cenário de rota 4 já confere).
+Decisão pendente: nenhuma
+Conceitos para estudo: BOM como bytes EF BB BF e como U+FEFF; teste de rota com arquivo temporário e `overrideProvider`; provar que o teste pega o bug; testes contra correção ampla demais; comparar respostas em vez de fixar o valor esperado.
+
 ## Estudo
 
 ## DevOps
@@ -74,3 +85,5 @@ Conceitos para estudo: BOM em UTF-8; `readFileSync` não remove o BOM; `trim()` 
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — BOM inicial removido antes do JSON.parse
 - 2026-10-17 — code-reviewer: APROVADO — BOM inicial removido sem afetar o conteúdo
+- 2026-10-17 — qa: PASSOU — rota cobre o arquivo com BOM; suíte e2e verde no container Linux
+- 2026-10-17 — orquestrador: concluida — verificação verde (unitários, lint, validador, e2e 352 + 12 pulados); merge em main
