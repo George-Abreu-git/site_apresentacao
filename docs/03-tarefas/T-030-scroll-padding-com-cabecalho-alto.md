@@ -1,7 +1,7 @@
 ---
 id: T-030
 titulo: Âncora não esconde o título atrás do cabeçalho alto
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -35,6 +35,22 @@ Severidade: média.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Causa: `scroll-padding-top` fixo em 4rem, mas o cabeçalho cresce ao quebrar em várias linhas, e o CSS não lê a altura de um elemento. Correção: novo hook `useAlturaDoCabecalho` (usado no `Cabecalho`) mede a altura com borda (arredonda para cima) e grava `--altura-real-do-cabecalho` no `<html>`; um `ResizeObserver` (`box: 'border-box'`) atualiza; ao desmontar para de observar e remove a variável; sem `ResizeObserver` fica a primeira medida. Em `useLayoutEffect`: como o `Cabecalho` é filho do `App`, roda antes do `useAncoraInicial`, então a âncora inicial já rola com a altura certa. `tema.css` declara o padrão `--altura-real-do-cabecalho: var(--altura-cabecalho)` (sem JS continua 4rem); `index.css` usa `scroll-padding-top: var(--altura-real-do-cabecalho)`. Mudança visível: no tamanho normal a reserva passa de 64px para 65px (conta a borda). Vale para menu, âncora inicial, Tab e Shift+Tab (ajuda indireta: WCAG 2.4.11). 5 cenários unitários em `useAlturaDoCabecalho.test.tsx`. Container `t029-linux` (DejaVu, `CI=true`, `--workers=2`, `pt-BR.ts` do HEAD): e2e 322 passaram, 12 pulados, 2 falhas = o `test.fail` de `texto-ampliado.spec.ts:277` que agora passa; unitários shared 5, API 227 + 4, web 184 + 2; lint e build ok. Windows: o mesmo. Diagnóstico fora do repositório (`scratchpad/t029/diag030/`): 34/34 com a correção; 16 falham no HEAD.
+Arquivos alterados:
+- `apps/web/src/componentes/Cabecalho/useAlturaDoCabecalho.ts`, `useAlturaDoCabecalho.test.tsx` (novos)
+- `apps/web/src/componentes/Cabecalho/Cabecalho.tsx`, `Cabecalho.test.tsx` (regex do `scroll-padding-top`)
+- `apps/web/src/index.css`, `apps/web/src/tema.css`
+Pendências:
+1. qa: tirar o `test.fail()` e a conferência da condição do bug em `texto-ampliado.spec.ts:277` (e o comentário "BUG CONHECIDO"); e2e sugeridos: rolagem suave a 200% em 360 e 768px; `/#contato` a 200%; Shift+Tab a 200% com nome longo; mudar a largura com a página aberta.
+2. Os 3 unitários que falham no Windows vêm do `pt-BR.ts` do George (T-015).
+3. "Voltar do navegador" (`navegacao.spec.ts:346`) segue com a T-031. T-024 não muda (o 2º `test.fail` de `texto-ampliado.spec.ts` continua falhando como esperado).
+Decisão pendente: nenhuma
+Conceitos para estudo: `scroll-padding-top` com cabeçalho `sticky`; `ResizeObserver` (`content-box` × `border-box`); variáveis CSS escritas pelo JS e precedência inline × `:root`; valor padrão de variável CSS; ordem dos `useLayoutEffect`; dublês no jsdom; WCAG 2.4.11.
+Commit: `fix(web): âncora respeita a altura real do cabeçalho (scroll-padding-top medido)`
+
 ## Revisão
 
 ## QA
@@ -47,3 +63,4 @@ Severidade: média.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
+- 2026-10-17 — dev: CONCLUIDO — altura real do cabeçalho medida com ResizeObserver
