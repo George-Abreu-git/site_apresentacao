@@ -18,6 +18,9 @@ sem o campo `github` (tipo `ProjetoCurado`, em `src/projetos/projeto-curado.ts`)
 | `demo` | não | endereço `http(s)://` | Versão publicada do projeto |
 | `imagem` | não | texto não vazio | Caminho da imagem de capa (ex.: `/imagens/projetos/site.png`) |
 
+Salve o arquivo em **UTF-8**, com ou sem BOM (a marca invisível que alguns editores do Windows gravam
+no início do arquivo): a API ignora um BOM no início e lê o restante normalmente.
+
 A ordem dos itens no arquivo é a ordem no site. Campos fora desta tabela são recusados (pega erros de digitação, ex.: `"titlo"`).
 O campo `github` também é recusado: ele é preenchido pela API, nunca pelo arquivo.
 

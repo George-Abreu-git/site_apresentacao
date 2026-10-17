@@ -74,16 +74,76 @@ describe('lerProjetosCurados', () => {
     expect(lerProjetosCurados(arquivo)).toEqual(projetos);
   });
 
-  // BUG CONHECIDO (T-016): um arquivo salvo em "UTF-8 com BOM" (marca invisível U+FEFF no início, que
-  // alguns editores do Windows gravam) é recusado: readFileSync mantém o BOM e o JSON.parse não o aceita.
-  // Passos: salvar projetos.json com BOM e subir a API. Esperado: o arquivo é lido normalmente.
-  // Obtido: ArquivoDeProjetosInvalidoError "não é um JSON válido" e a API não sobe.
-  it.fails('lê um arquivo salvo em UTF-8 com BOM', () => {
-    const projetos = [{ titulo: 'Primeiro', descricao: 'A', stacks: ['React'] }];
-    const bom = String.fromCharCode(0xfeff);
-    writeFileSync(arquivo, `${bom}${JSON.stringify(projetos)}`, 'utf8');
+  // BUG-4 da T-016, corrigido na T-021: um arquivo salvo em "UTF-8 com BOM" (marca invisível U+FEFF
+  // no início, que alguns editores do Windows gravam) era recusado, porque readFileSync mantém o BOM
+  // e o JSON.parse não o aceita.
+  describe('arquivo salvo em UTF-8 com BOM (T-021)', () => {
+    const BOM = String.fromCharCode(0xfeff);
 
-    expect(lerProjetosCurados(arquivo)).toEqual(projetos);
+    it('lê um arquivo salvo em UTF-8 com BOM', () => {
+      const projetos = [{ titulo: 'Primeiro', descricao: 'A', stacks: ['React'] }];
+      writeFileSync(arquivo, `${BOM}${JSON.stringify(projetos)}`, 'utf8');
+
+      expect(lerProjetosCurados(arquivo)).toEqual(projetos);
+    });
+
+    it('lê o mesmo resultado com e sem BOM', () => {
+      const projetos = [
+        { titulo: 'Primeiro', descricao: 'A', stacks: ['React'] },
+        { titulo: 'Segundo', descricao: 'B', stacks: ['NestJS'], repositorio: 'https://github.com/x/y' },
+      ];
+      const texto = JSON.stringify(projetos, null, 2);
+      writeFileSync(arquivo, texto, 'utf8');
+      const semBom = lerProjetosCurados(arquivo);
+      writeFileSync(arquivo, `${BOM}${texto}`, 'utf8');
+      const comBom = lerProjetosCurados(arquivo);
+
+      expect(comBom).toEqual(semBom);
+      expect(comBom).toEqual(projetos);
+    });
+
+    it('preserva acentos e aspas tipográficas depois do BOM', () => {
+      const projetos = [{ titulo: 'Aplicação de seleção', descricao: 'Ação, coração e “aspas”', stacks: ['C#'] }];
+      writeFileSync(arquivo, `${BOM}${JSON.stringify(projetos)}`, 'utf8');
+
+      expect(lerProjetosCurados(arquivo)).toEqual(projetos);
+    });
+
+    it('preserva um U+FEFF que está dentro de um texto do projeto', () => {
+      const projetos = [{ titulo: `Com${BOM}marca`, descricao: `${BOM}começa com a marca`, stacks: ['React'] }];
+      writeFileSync(arquivo, `${BOM}${JSON.stringify(projetos)}`, 'utf8');
+
+      const [lido] = lerProjetosCurados(arquivo);
+      expect(lido.titulo).toBe(`Com${BOM}marca`);
+      expect(lido.descricao).toBe(`${BOM}começa com a marca`);
+    });
+
+    it('dá erro claro, com o caminho, quando o arquivo tem só o BOM', () => {
+      writeFileSync(arquivo, BOM, 'utf8');
+
+      expect(() => lerProjetosCurados(arquivo)).toThrow(ArquivoDeProjetosInvalidoError);
+      expect(() => lerProjetosCurados(arquivo)).toThrow(/não é um JSON válido/);
+      expect(() => lerProjetosCurados(arquivo)).toThrow(arquivo);
+    });
+
+    it('dá erro claro quando o arquivo tem só o BOM e espaços', () => {
+      writeFileSync(arquivo, `${BOM}  \n\t `, 'utf8');
+
+      expect(() => lerProjetosCurados(arquivo)).toThrow(/não é um JSON válido/);
+    });
+
+    it('dá erro claro, com o caminho, quando o BOM vem seguido de JSON inválido', () => {
+      writeFileSync(arquivo, `${BOM}[{ "titulo": "sem fechar" `, 'utf8');
+
+      expect(() => lerProjetosCurados(arquivo)).toThrow(/não é um JSON válido/);
+      expect(() => lerProjetosCurados(arquivo)).toThrow(arquivo);
+    });
+
+    it('remove só um BOM: dois BOMs seguidos no início continuam sendo JSON inválido', () => {
+      writeFileSync(arquivo, `${BOM}${BOM}[]`, 'utf8');
+
+      expect(() => lerProjetosCurados(arquivo)).toThrow(/não é um JSON válido/);
+    });
   });
 });
 
