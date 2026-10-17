@@ -1,7 +1,7 @@
 ---
 id: T-019
 titulo: Data inválida do GitHub não derruba o card de projeto
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end, back-end, api]
 rodadas: 0
@@ -36,6 +36,22 @@ Severidade: baixa.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: API (`github-cliente.ts`): `pushed_at` precisa ser data e hora ISO 8601 com fuso, senão "formato inesperado" → `disponivel: false`; `ehDataEHoraIso` combina regex (barra "1") e `Date.parse` (barra "2026-13-01T25:00:00Z"). Card (`CartaoDeProjeto.tsx`): a data foi para o subcomponente `UltimaAtualizacao` e a função `formatarData`, que devolve `null` para data inválida — o par "Atualizado em" some, e linguagem, estrelas e links continuam; datas válidas sem mudança visual. Os dois `it.fails` do BUG-2 viraram testes normais. Os testes da T-018 em `App.test.tsx` e `Projetos.test.tsx` ficaram vermelhos com a correção (provando a dependência) e passaram a provocar o erro com `vi.mock` do `CartaoDeProjeto` (card simulado em `apoio-de-testes/cartao-que-lanca-erro.tsx`, lança só para um título combinado). Cenários: API (texto qualquer; `it.each` com vazio, número, só data, mês e hora inexistentes; aceita fração de segundo e fuso); card (não derruba nem gera erro; omite a data em 3 casos mantendo o resto). API 234 + 3 esperadas, shared 5, lint, `tsc -b --force` e `tsc --noEmit` verdes; web só com as 3 falhas de nome (`pt-BR.ts` do George, T-015).
+Arquivos alterados:
+- `apps/api/src/github/github-cliente.ts`, `github-cliente.spec.ts`
+- `apps/web/src/componentes/CartaoDeProjeto/CartaoDeProjeto.tsx`, `CartaoDeProjeto.test.tsx`
+- `apps/web/src/App.test.tsx`, `apps/web/src/componentes/Projetos/Projetos.test.tsx`
+- `apps/web/src/apoio-de-testes/cartao-que-lanca-erro.tsx` (novo)
+Pendências:
+1. As 3 falhas do web vêm do `pt-BR.ts` do George (T-015 adiada).
+2. qa: teste de rota em `apps/api/test/github.e2e-spec.ts` mostrando que `pushed_at` inválido vira `github: { disponivel: false }` em `/api/projetos`.
+Decisão pendente: nenhuma
+Conceitos para estudo: validação de dados externos; ISO 8601 e `Date.parse`; regex; type guard; `Intl.DateTimeFormat` e `RangeError`; programação defensiva; `vi.mock` com `importOriginal` e hoisting; dublê para provocar erro sem depender de bug; error boundary.
+Commit: `fix(github): recusa data inválida do GitHub e protege o card de projeto`
+
 ## Revisão
 
 ## QA
@@ -48,3 +64,4 @@ Severidade: baixa.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
+- 2026-10-17 — dev: CONCLUIDO — API recusa data inválida; card omite a data
