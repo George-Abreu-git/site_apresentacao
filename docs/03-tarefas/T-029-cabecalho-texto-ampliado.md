@@ -90,6 +90,20 @@ Pendências:
 Decisão pendente: nenhuma
 Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects()`; `test.fail`; rolagem suave × movimento reduzido nos testes; `scroll-padding-top` com cabeçalho de altura variável; `absolute` dentro de `sticky`; WCAG 1.4.4 e 1.4.10.
 
+### Rodada 2
+
+Resultado: PASSOU
+Resumo: Os 2 `test.fail` de `texto-ampliado.spec.ts` deixaram de depender da fonte e do nome: trocam a marca por `NOME_LONGO` (cabeçalho com ~345px nas duas fontes) e conferem a condição do bug antes do `test.fail()` — se ela não valer, o teste falha de verdade (contraprova com o nome curto: falham na conferência). Causa medida: com Segoe UI o "George Siqueira" a 200% cabe em 1 linha (cabeçalho 201px) e os bugs não apareciam; com DejaVu quebra em 2 linhas (249px). Cenário 1 passou a usar `NOME_CURTO` (com o nome do George e a DejaVu o cabeçalho quebra no tamanho normal); cenários 2 a 5 revisados, independentes da fonte. Resultados: Windows (`pt-BR.ts` do George) 48/48 com `--repeat-each=3`; container DejaVu (HEAD e do George) suíte inteira 283 passaram, 1 instável fora da tarefa, 12 pulados; arquivo com `--repeat-each=3` 48/48. Lint e validador verdes.
+Arquivos alterados:
+- `e2e/testes/texto-ampliado.spec.ts`
+Pendências:
+1. orquestrador: prova no Windows com o `pt-BR.ts` do HEAD (o hook do qa bloqueia `git stash push`).
+2. *baixa* — `navegacao.spec.ts:350` (Voltar do navegador, celular) instável na suíte inteira do container (falha na 1ª tentativa e passa na 2ª em 4 de 6 rodadas; 20/20 sozinho); provável causa: rolagem suave em `esperarSecaoNaTela`.
+3. *baixa*, para o George (T-015): com "George Abreu de Siqueira" e a DejaVu, em 360px no tamanho normal o botão Menu desce e o cabeçalho fica com 101px (nada passa da tela; mudança visual).
+4. Confirmar o CI verde na `main` após o push.
+Decisão pendente: nenhuma
+Conceitos para estudo: pré-condição antes do `test.fail()`; testes que dependem da fonte do sistema; forçar a condição do bug; contraprova; teste instável e retries; distribuição de arquivos entre workers.
+
 ## Estudo
 
 ## DevOps
@@ -102,3 +116,4 @@ Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects()`; `t
 - 2026-10-16 — code-reviewer: APROVADO — duas causas corrigidas em CSS; e2e Linux com o qa
 - 2026-10-16 — qa: PASSOU — e2e verde no Linux com a DejaVu Sans; 2 bugs novos com test.fail
 - 2026-10-16 — orquestrador: em-qa — verificação local vermelha: os 2 `test.fail` de `texto-ampliado.spec.ts` (243 e 261) passam no Windows com o nome do HEAD; rodadas = 1; volta ao qa
+- 2026-10-16 — qa: PASSOU (rodada 2) — test.fail determinísticos; verdes no Windows e no Linux com a DejaVu
