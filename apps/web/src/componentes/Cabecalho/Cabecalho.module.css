@@ -15,11 +15,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /*
+   * Quando a marca e o menu não cabem lado a lado (tela estreita com o texto ampliado, WCAG 1.4.10),
+   * o menu desce para a linha de baixo em vez de passar da borda da tela (T-029).
+   */
+  flex-wrap: wrap;
   gap: 1rem;
   min-height: var(--altura-cabecalho);
   max-width: var(--largura-conteudo);
   margin: 0 auto;
-  padding: 0 var(--espaco-lateral);
+  /* O respiro vertical só aparece quando as linhas quebram: sem quebra, cabe dentro da altura mínima. */
+  padding: 0.5rem var(--espaco-lateral);
 }
 
 .marca {

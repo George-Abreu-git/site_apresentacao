@@ -83,6 +83,12 @@
   text-decoration: none;
   border: 1px solid var(--cor-borda);
   border-radius: 0.5rem;
+  /*
+   * Com o texto a 200% num celular, "Repositório" sozinha é mais larga que o card. `anywhere` deixa a
+   * palavra quebrar e, diferente do `break-word` do body, conta essa quebra na largura mínima do botão,
+   * que então pode encolher até caber (T-029).
+   */
+  overflow-wrap: anywhere;
 }
 
 .link:hover {

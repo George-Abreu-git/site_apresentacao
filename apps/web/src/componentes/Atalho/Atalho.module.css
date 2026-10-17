@@ -9,6 +9,8 @@
   text-decoration: none;
   border: 2px solid var(--cor-destaque);
   border-radius: 0.5rem;
+  /* Uma palavra maior que a tela (texto ampliado) quebra dentro do botão em vez de passar da borda (T-029). */
+  overflow-wrap: anywhere;
 }
 
 /* Texto escuro sobre o destaque claro: contraste de ~10:1 (ver tema.css). */

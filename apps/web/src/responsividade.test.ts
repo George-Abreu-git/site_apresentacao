@@ -173,4 +173,59 @@ describe('responsividade (RNF-01)', () => {
       expect(semComentarios(cartao)).not.toMatch(/overflow(-x)?:\s*(hidden|clip)|text-overflow|white-space:\s*nowrap/);
     });
   });
+
+  // T-029: em 360px com o texto a 200%, a marca + o botão Menu não cabem lado a lado, e a palavra
+  // "Repositório" sozinha é mais larga que o card. Só aparece com fontes largas (DejaVu Sans, a
+  // padrão do runner Linux do CI), por isso as regras são conferidas aqui, sem depender da fonte.
+  describe('cabeçalho e links-botão com texto ampliado (T-029)', () => {
+    const cabecalho = semComentarios(arquivosCss['./componentes/Cabecalho/Cabecalho.module.css']);
+    const menu = semComentarios(arquivosCss['./componentes/Menu/Menu.module.css']);
+
+    it('cabeçalho: a marca e o menu descem para linhas separadas quando não cabem lado a lado', () => {
+      // Vale desde o celular (fora das media queries), onde a falta de espaço acontece.
+      expect(corpoDaRegra(cabecalho, '.conteudo')).toMatch(/flex-wrap:\s*wrap/);
+    });
+
+    it('cabeçalho: mantém a altura normal e dá respiro em cima e embaixo quando quebra em linhas', () => {
+      const conteudo = corpoDaRegra(cabecalho, '.conteudo');
+
+      expect(conteudo).toMatch(/min-height:\s*var\(--altura-cabecalho\)/);
+      // Com `border-box`, o padding vertical cabe dentro da altura mínima (4rem): sem quebra, nada muda.
+      expect(conteudo).toMatch(/padding:\s*0\.5rem var\(--espaco-lateral\)/);
+    });
+
+    it('cabeçalho e menu: nada é cortado ou escondido para caber', () => {
+      for (const css of [cabecalho, menu]) {
+        expect(css).not.toMatch(/overflow(-x)?:\s*(hidden|clip)|text-overflow|white-space:\s*nowrap/);
+      }
+    });
+
+    it('todo link com cara de botão (inline-flex) deixa uma palavra maior que o espaço quebrar dentro dele', () => {
+      // `break-word` (do body) quebra a palavra só depois de medir o tamanho mínimo do elemento com ela
+      // inteira; `anywhere` entra nessa medida, então o botão pode encolher até a largura da tela.
+      const botoes = Object.entries(arquivosCss).flatMap(([arquivo, css]) =>
+        regrasDaBase(css)
+          .filter(({ corpo }) => /display:\s*inline-flex/.test(corpo))
+          .map((regra) => ({ arquivo, ...regra })),
+      );
+
+      expect(botoes.map(({ arquivo }) => arquivo)).toEqual(
+        expect.arrayContaining(['./componentes/CartaoDeProjeto/CartaoDeProjeto.module.css']),
+      );
+      for (const { arquivo, seletor, corpo } of botoes) {
+        expect(corpo, `${arquivo} ${seletor}`).toMatch(/overflow-wrap:\s*anywhere/);
+      }
+    });
+
+    it('a quebra em qualquer ponto fica só nos links-botão: o resto da página continua com break-word', () => {
+      // Com `anywhere` na página toda, a marca do cabeçalho encolheria e quebraria no meio do nome
+      // em vez de o menu descer para a linha de baixo.
+      const globais = semComentarios(arquivosCss['./index.css']);
+
+      expect(globais).toMatch(/overflow-wrap:\s*break-word/);
+      expect(globais).not.toMatch(/overflow-wrap:\s*anywhere/);
+      expect(cabecalho).not.toMatch(/overflow-wrap:\s*anywhere/);
+      expect(menu).not.toMatch(/overflow-wrap:\s*anywhere/);
+    });
+  });
 });

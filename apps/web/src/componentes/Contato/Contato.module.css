@@ -23,6 +23,8 @@
   text-decoration: none;
   border: 1px solid var(--cor-borda);
   border-radius: 0.5rem;
+  /* Uma palavra maior que a tela (texto ampliado) quebra dentro do botão em vez de passar da borda (T-029). */
+  overflow-wrap: anywhere;
 }
 
 .canal:hover {
