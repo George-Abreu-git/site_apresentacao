@@ -1,7 +1,7 @@
 ---
 id: T-021
 titulo: Arquivo curado salvo em UTF-8 com BOM é lido normalmente
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -51,6 +51,17 @@ Conceitos para estudo: BOM (U+FEFF) e UTF-8; `readFileSync` com 'utf8' não remo
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: `removerBomInicial` tira um único U+FEFF do início antes do `JSON.parse`, dentro do `try` (erros de JSON seguem com o caminho do arquivo); sem `trim()`, preservando U+FEFF e espaços no conteúdo. O `it.fails` do BUG-4 virou `it` com a mesma asserção; 8 cenários (normal, igualdade com e sem BOM, só BOM, BOM + espaços, dois BOMs, erros). Área do dev; sem segredos. API 275 + 2 esperadas (de outros bugs); web com só as 3 falhas do `pt-BR.ts` do George; lint e validador verdes.
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — o teste "só o BOM e espaços" poderia também conferir o caminho na mensagem, como os vizinhos.
+2. qa: teste de rota com `projetos.json` com BOM, confirmando que a API sobe.
+Decisão pendente: nenhuma
+Conceitos para estudo: BOM em UTF-8; `readFileSync` não remove o BOM; `trim()` e U+FEFF; remover só no início (`startsWith` + `slice`); `it.fails` que vira teste normal.
+
 ## QA
 
 ## Estudo
@@ -62,3 +73,4 @@ Conceitos para estudo: BOM (U+FEFF) e UTF-8; `readFileSync` com 'utf8' não remo
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — BOM inicial removido antes do JSON.parse
+- 2026-10-17 — code-reviewer: APROVADO — BOM inicial removido sem afetar o conteúdo
