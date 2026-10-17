@@ -1,7 +1,7 @@
 ---
 id: T-025
 titulo: Texto longo nos cards de projeto não causa rolagem lateral
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -37,6 +37,22 @@ Severidade: média.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Duas causas, ambas corrigidas só com CSS. (1) BUG-Q4: `.lista` de `Projetos.module.css` não definia colunas no celular e a coluna implícita (`auto`) crescia até caber a maior palavra → `grid-template-columns: minmax(0, 1fr)` já no celular. (2) CI vermelho: media queries em `rem` usam a fonte inicial do navegador, não o `font-size: 200%` injetado, então em 720px a 200% a lista continua com 2 colunas estreitas (~198px úteis) e o par "Atualizado em" + "01/10/2026" (~300px, flex sem quebra) passava da borda com as fontes do Linux → `.dado` de `CartaoDeProjeto.module.css` com `flex-wrap: wrap` e `gap: 0 0.375rem`. Por prevenção (mesma causa e regra já existente no projeto), `.blocos` de `Servicos.module.css` e `.categorias` de `Stacks.module.css` receberam a mesma coluna `minmax(0, 1fr)`. 5 cenários (TDD; os 3 primeiros falhavam antes): toda grade declara `minmax(0, 1fr)` fora das media queries; lista de projetos com 1/2/3 colunas; toda fileira flex do card com `flex-wrap`; card sem `overflow: hidden`/`clip`/`text-overflow`/`nowrap`; título e descrição longos inteiros. Comprovado em container `mcr.microsoft.com/playwright:v1.64.0-noble` com `CI=true`: os e2e de 200% (`acessibilidade.spec.ts:117`) passam; os `test.fail` do BUG-Q4 (`projetos.spec.ts:410`) passam a passar ("Expected to fail, but passed" — únicas falhas). Unitários no Linux com o `pt-BR.ts` do HEAD: web 151 + 3 esperadas, API 227; local: hooks 412, lint, build e validador verdes.
+Arquivos alterados:
+- `apps/web/src/componentes/Projetos/Projetos.module.css`, `CartaoDeProjeto/CartaoDeProjeto.module.css`, `Servicos/Servicos.module.css`, `Stacks/Stacks.module.css`
+- `apps/web/src/responsividade.test.ts`, `apps/web/src/componentes/CartaoDeProjeto/CartaoDeProjeto.test.tsx`
+Pendências:
+1. qa: converter os `test.fail()` do BUG-Q4 em `e2e/testes/projetos.spec.ts:410` em testes normais.
+2. qa (opcional): corrigir o comentário de `e2e/testes/acessibilidade.spec.ts` (~linha 113): 720px a 200% é layout de 2 colunas, não o equivalente a 360px; pode cobrir 360px a 200% com textos longos.
+3. Os 3 unitários locais que falham vêm só da troca de nome não commitada do George (T-015).
+4. Serviços e Stacks corrigidos por prevenção; se o George quiser só o card, reverter esses dois arquivos e restringir o teste "toda grade…".
+Decisão pendente: nenhuma
+Conceitos para estudo: coluna implícita do Grid (`auto`) × `minmax(0, 1fr)`; `min-width: auto` de itens de grid/flex; `flex-wrap` em pares rótulo/valor; media queries em `rem` × `font-size` do `html`; WCAG 1.4.4/1.4.10; métricas de fonte Windows × Linux; reproduzir o CI num container do Playwright.
+Commit: `fix(web): impede rolagem lateral com texto longo ou ampliado nos cards`
+
 ## Revisão
 
 ## QA
@@ -49,3 +65,4 @@ Severidade: média.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — prioridade por decisão do George (CI vermelho); dev chamado
+- 2026-10-16 — dev: CONCLUIDO — duas causas corrigidas em CSS; e2e de 200% verde no Linux
