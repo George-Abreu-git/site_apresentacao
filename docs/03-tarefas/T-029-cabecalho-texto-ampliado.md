@@ -106,6 +106,15 @@ Conceitos para estudo: pré-condição antes do `test.fail()`; testes que depend
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-029.md` (`consolidado: false`) explicando as duas causas do estouro (cabeçalho com `flex-wrap` e padding vertical; links-botão com `overflow-wrap: anywhere`), por que só o CI falhava (DejaVu Sans como `sans-serif` no Linux), a reprodução num container, os testes (5 unitários, 5 e2e, `test.fail` com pré-condição) e os bugs novos (`scroll-padding-top` fixo; lista `absolute` dentro do cabeçalho `sticky`), com 2 exercícios. Conceitos reaproveitam nomes da T-007, T-016 e T-025; quatro novos. Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-029.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -118,3 +127,4 @@ Conceitos para estudo: pré-condição antes do `test.fail()`; testes que depend
 - 2026-10-16 — orquestrador: em-qa — verificação local vermelha: os 2 `test.fail` de `texto-ampliado.spec.ts` (243 e 261) passam no Windows com o nome do HEAD; rodadas = 1; volta ao qa
 - 2026-10-16 — qa: PASSOU (rodada 2) — test.fail determinísticos; verdes no Windows e no Linux com a DejaVu
 - 2026-10-16 — orquestrador: concluida — verificação verde no Windows com o `pt-BR.ts` do HEAD (shared 5; API 227 + 4; web 156 + 3; hooks 412; e2e CI=1 283 + 12 pulados, 1 instável fora da tarefa em `navegacao.spec.ts:187`; `texto-ampliado` 48/48 com --repeat-each=3; lint; validador); Linux com a DejaVu comprovado pelo dev e pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
+- 2026-10-16 — documentador: CONCLUIDO — diário integrado
