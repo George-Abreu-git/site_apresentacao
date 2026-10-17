@@ -70,6 +70,21 @@ Conceitos para estudo: coluna implícita × `minmax(0, 1fr)`; `min-width: auto`;
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os `test.fail` do BUG-Q4 viraram testes normais (bloco "Projetos: texto longo (T-025)", conferindo texto inteiro, dentro da caixa e quebrado em mais de uma linha). Comentário do teste de 200% corrigido (media queries em rem não acompanham o `font-size` do html; 720px a 200% segue com 2 colunas) e 360px a 200% com textos longos coberto. 5 cenários para os cards de projetos e 5 para as grades de Serviços e Stacks no celular; apoio novo em `e2e/apoio/pagina.ts` (`PALAVRA_LONGA`, `ENDERECO_LONGO`, `trocarTexto`, `medirTexto`, `larguras`). Container Linux do CI (`mcr.microsoft.com/playwright:v1.64.0-noble`, `CI=true`, `pt-BR.ts` do HEAD): e2e 268 passaram, 12 pulados, 0 falhas, sem retries, inclusive "720px com o texto ampliado a 200%"; unitários verdes no Linux. Prova negativa: com o CSS da `main`, os testes novos de 360px e o de 720px a 200% falham. Local: e2e, lint e validador verdes; unitários do web falham só nos 3 testes de nome (`pt-BR.ts` do George, T-015).
+Arquivos alterados:
+- `e2e/apoio/pagina.ts`
+- `e2e/testes/projetos.spec.ts`, `acessibilidade.spec.ts`, `secoes-estaticas.spec.ts`, `stacks.spec.ts`
+Pendências:
+1. Bug novo (média): em 360px, nome de tecnologia longo e sem espaço nas etiquetas (`.stack` do card e `.tecnologia` de Stacks) faz a página rolar para o lado (379px e 404px); causa: `min-width: auto` do item flex (o `overflow-wrap: break-word` não reduz a largura mínima). → vira tarefa.
+2. Informativo (baixa): em 320px a 200%, botão do menu e links do card passam da tela (abaixo dos 360px do RNF-01, fora do requisito).
+3. Acompanhar o CI da `main` depois do push.
+4. Os 3 unitários do web que falham localmente vêm do `pt-BR.ts` do George (T-015).
+Decisão pendente: nenhuma
+Conceitos para estudo: media queries em rem × `font-size` do html; coluna implícita × `minmax(0, 1fr)`; `min-width: auto` de itens flex; `scrollWidth`/`clientWidth` e `getBoundingClientRect`; prova negativa; reproduzir o CI num container.
+
 ## Estudo
 
 ## DevOps
@@ -80,3 +95,4 @@ Conceitos para estudo: coluna implícita × `minmax(0, 1fr)`; `min-width: auto`;
 - 2026-10-16 — orquestrador: em-andamento — prioridade por decisão do George (CI vermelho); dev chamado
 - 2026-10-16 — dev: CONCLUIDO — duas causas corrigidas em CSS; e2e de 200% verde no Linux
 - 2026-10-16 — code-reviewer: APROVADO — causas corrigidas só com CSS; e2e Linux com o qa
+- 2026-10-16 — qa: PASSOU — BUG-Q4 convertido; suíte e2e verde no container Linux do CI
