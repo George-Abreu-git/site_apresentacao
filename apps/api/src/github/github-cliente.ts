@@ -98,7 +98,7 @@ function traduzirResposta(corpo: unknown): DadosDoGithub {
 
   const { language, stargazers_count, pushed_at } = corpo as Record<string, unknown>;
   const linguagemValida = language === null || typeof language === 'string';
-  if (!linguagemValida || typeof stargazers_count !== 'number' || typeof pushed_at !== 'string') {
+  if (!linguagemValida || typeof stargazers_count !== 'number' || !ehDataEHoraIso(pushed_at)) {
     throw new GithubIndisponivelError('resposta do GitHub em formato inesperado');
   }
 
@@ -109,4 +109,20 @@ function traduzirResposta(corpo: unknown): DadosDoGithub {
     // alterações que não são código (ex.: descrição do repositório, estrelas).
     ultimaAtualizacao: pushed_at,
   };
+}
+
+/**
+ * Data e hora no formato ISO 8601 com fuso (ex.: "2026-10-01T12:00:00Z"), o que o GitHub
+ * envia e o tipo `DadosDoGithub` promete ao front.
+ */
+const DATA_E_HORA_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+
+/**
+ * Confere se o valor é uma data e hora ISO 8601 de verdade (T-019).
+ *
+ * São duas conferências porque cada uma sozinha deixa passar lixo: o `Date.parse` aceita
+ * textos como "1" (vira 01/01/2001), e a expressão regular aceita "2026-13-01T25:00:00Z".
+ */
+function ehDataEHoraIso(valor: unknown): valor is string {
+  return typeof valor === 'string' && DATA_E_HORA_ISO.test(valor) && !Number.isNaN(Date.parse(valor));
 }

@@ -1,9 +1,18 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { capturarErrosDeRenderizacao } from './apoio-de-testes/capturar-erros-de-renderizacao';
+import { TITULO_DO_CARTAO_QUE_LANCA_ERRO } from './apoio-de-testes/cartao-que-lanca-erro';
 import App from './App';
 import { conteudo } from './conteudo';
 import { IDS_DAS_SECOES } from './secoes';
+
+// O card verdadeiro não tem erro conhecido ao desenhar. Para provar que um erro desses fica contido
+// na seção Projetos, o card é trocado por um que lança erro só para um título combinado; os outros
+// projetos aparecem com o card verdadeiro. (O vi.mock é içado para o topo do arquivo pelo Vitest.)
+vi.mock('./componentes/CartaoDeProjeto/CartaoDeProjeto', async (importarOriginal) => {
+  const { comCartaoQueLancaErro } = await import('./apoio-de-testes/cartao-que-lanca-erro');
+  return comCartaoQueLancaErro(await importarOriginal());
+});
 
 describe('App (layout base da página única)', () => {
   it('mostra o nome do George como único título principal', () => {
@@ -93,17 +102,15 @@ describe('App (layout base da página única)', () => {
   });
 
   it('um erro ao desenhar um card fica contido na seção Projetos; o resto da página continua (RF-05)', async () => {
-    // Data que passa na conferência de formato (é um texto), mas faz o Intl lançar RangeError ao
-    // formatar (BUG-2, corrigido no card pela T-019). Aqui o que importa é a contenção do erro.
-    const projetoComDataInvalida = {
-      titulo: 'Data inválida',
+    // O projeto está no formato certo; quem lança o erro é o card simulado (vi.mock no topo do arquivo).
+    const projetoQueQuebraOCard = {
+      titulo: TITULO_DO_CARTAO_QUE_LANCA_ERRO,
       descricao: 'O card lança erro ao desenhar',
       stacks: ['React'],
-      github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1, ultimaAtualizacao: 'não é uma data' },
     };
     vi.stubGlobal(
       'fetch',
-      vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify([projetoComDataInvalida]), { status: 200 })),
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify([projetoQueQuebraOCard]), { status: 200 })),
     );
     const captura = capturarErrosDeRenderizacao();
 

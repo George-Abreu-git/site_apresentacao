@@ -510,3 +510,91 @@ describe('pente-fino da T-016: tempo limite, endereços do repositório e segura
     }
   });
 });
+
+// T-019 (BUG-2 da T-016): a API repassava qualquer texto de `pushed_at` em `ultimaAtualizacao`, e o
+// card do front lançava RangeError ao formatar a data. Agora `pushed_at` precisa ser data e hora
+// ISO 8601 com fuso; fora disso, a resposta do GitHub é "formato inesperado" e cai no plano B.
+describe('GET /api/projetos com "pushed_at" que não é data e hora válida (T-019)', () => {
+  it.each<[string, unknown]>([
+    ['texto qualquer', 'não é uma data'],
+    ['texto vazio', ''],
+    ['número em texto (o Date.parse aceitaria)', '1'],
+    ['número em vez de texto', 20261001],
+    ['só a data, sem hora', '2026-10-01'],
+    ['data e hora sem fuso', '2026-10-01T12:00:00'],
+    ['mês que não existe', '2026-13-01T12:00:00Z'],
+    ['hora que não existe', '2026-10-01T25:00:00Z'],
+    ['nulo', null],
+  ])('%s: responde 200 com os dados curados e "github": { "disponivel": false }', async (_caso, pushedAt) => {
+    simularGithub(() => respostaJson(repositorioNoGithub({ pushed_at: pushedAt as string })));
+    const app = await criarApi([SEM_REPOSITORIO, SITE]);
+
+    const resposta = await pedirProjetos(app);
+
+    expect(resposta.status).toBe(200);
+    // Só "disponivel": false: nenhum campo leva o valor inválido ao front.
+    expect(resposta.body).toEqual([SEM_REPOSITORIO, { ...SITE, github: { disponivel: false } }]);
+  });
+
+  it('a data inválida de um repositório não afeta os outros', async () => {
+    simularGithub((endereco) =>
+      endereco.endsWith('/outro-projeto')
+        ? respostaJson(repositorioNoGithub({ language: 'Python', pushed_at: 'não é uma data' }))
+        : respostaJson(repositorioNoGithub()),
+    );
+    const app = await criarApi([OUTRO_NO_GITHUB, NO_GITLAB, SITE]);
+
+    const resposta = await pedirProjetos(app);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toEqual([
+      { ...OUTRO_NO_GITHUB, github: { disponivel: false } },
+      NO_GITLAB,
+      { ...SITE, github: DADOS_DO_SITE },
+    ]);
+  });
+
+  it('a resposta com data inválida não fica no cache: quando a data volta a ser válida, a requisição seguinte já traz os dados', async () => {
+    const fetchSimulado = simularGithub(() => respostaJson(repositorioNoGithub({ pushed_at: 'não é uma data' })));
+    const app = await criarApi([SITE]);
+
+    const primeira = await pedirProjetos(app);
+    fetchSimulado.mockImplementation(async () => respostaJson(repositorioNoGithub()));
+    const segunda = await pedirProjetos(app);
+
+    expect(primeira.body[0].github).toEqual({ disponivel: false });
+    expect(segunda.body[0].github).toEqual(DADOS_DO_SITE);
+    expect(fetchSimulado).toHaveBeenCalledTimes(2);
+  });
+
+  it('a data inválida registra um aviso no log com o repositório e o motivo, sem o token', async () => {
+    vi.stubEnv('GITHUB_TOKEN', TOKEN);
+    simularGithub(() => respostaJson(repositorioNoGithub({ pushed_at: 'não é uma data' })));
+    const log = new LogEmMemoria();
+    const app = await criarApi([SITE], log);
+
+    const resposta = await pedirProjetos(app);
+
+    const avisos = log.linhas.filter((linha) => linha.startsWith('[warn]'));
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toContain('George-Abreu-git/site_apresentacao');
+    expect(avisos[0]).toContain('formato inesperado');
+    expect(log.texto).not.toContain(TOKEN);
+    expect(resposta.text).not.toContain(TOKEN);
+  });
+
+  it.each([
+    ['em UTC (Z)', '2026-10-01T12:00:00Z'],
+    ['com fração de segundo', '2026-10-01T12:00:00.123Z'],
+    ['com fuso negativo', '2026-10-01T09:00:00-03:00'],
+    ['com fração e fuso positivo', '2026-10-01T15:00:00.5+03:00'],
+  ])('data e hora válida %s: chega ao front como veio do GitHub', async (_caso, pushedAt) => {
+    simularGithub(() => respostaJson(repositorioNoGithub({ pushed_at: pushedAt })));
+    const app = await criarApi([SITE]);
+
+    const resposta = await pedirProjetos(app);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body[0].github).toEqual({ ...DADOS_DO_SITE, ultimaAtualizacao: pushedAt });
+  });
+});

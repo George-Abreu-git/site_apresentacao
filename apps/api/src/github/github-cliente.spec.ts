@@ -187,16 +187,38 @@ describe('GithubCliente', () => {
     expect(fetchSimulado.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
   });
 
-  // BUG CONHECIDO (T-016): `pushed_at` só é conferido como texto, não como data. Um texto qualquer
-  // passa e chega ao front, onde o CartaoDeProjeto lança RangeError ao formatar a data (ver
-  // CartaoDeProjeto.test.tsx). Esperado: data inválida vira GithubIndisponivelError ("formato inesperado").
-  // Obtido: a busca dá certo com `ultimaAtualizacao: "não é uma data"`.
-  it.fails('pushed_at que não é uma data vira GithubIndisponivelError', async () => {
+  // T-019 (BUG-2 da T-016): antes, `pushed_at` só era conferido como texto. Um texto qualquer passava
+  // e chegava ao front, onde o CartaoDeProjeto lançava RangeError ao formatar a data.
+  it('pushed_at que não é uma data vira GithubIndisponivelError', async () => {
     fetchSimulado.mockResolvedValue(respostaJson({ ...respostaDoGithub, pushed_at: 'não é uma data' }));
 
     const erro = await erroDaBusca(new GithubCliente(configuracao));
 
     expect(erro.message).toMatch(/formato inesperado/);
+  });
+
+  it.each([
+    ['texto vazio', ''],
+    // O `Date.parse` do Node aceita "1" (vira 01/01/2001): por isso o formato ISO 8601 é exigido.
+    ['número solto', '1'],
+    ['só a data, sem hora', '2026-10-01'],
+    ['mês que não existe', '2026-13-01T12:00:00Z'],
+    ['hora que não existe', '2026-10-01T25:00:00Z'],
+  ])('pushed_at fora do formato de data e hora ISO 8601 (%s) vira GithubIndisponivelError', async (_descricao, pushedAt) => {
+    fetchSimulado.mockResolvedValue(respostaJson({ ...respostaDoGithub, pushed_at: pushedAt }));
+
+    const erro = await erroDaBusca(new GithubCliente(configuracao));
+
+    expect(erro.message).toMatch(/formato inesperado/);
+  });
+
+  it('aceita pushed_at com fração de segundo e fuso horário (variações válidas do ISO 8601)', async () => {
+    fetchSimulado.mockResolvedValue(respostaJson({ ...respostaDoGithub, pushed_at: '2026-10-01T09:00:00.123-03:00' }));
+
+    const dados = await new GithubCliente(configuracao).buscarRepositorio(repositorio);
+
+    // O texto é repassado como veio: quem formata para a tela é o front.
+    expect(dados.ultimaAtualizacao).toBe('2026-10-01T09:00:00.123-03:00');
   });
 
   it('as mensagens de erro nunca trazem o token', async () => {
