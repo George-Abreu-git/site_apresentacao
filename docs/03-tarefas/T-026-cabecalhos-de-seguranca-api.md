@@ -12,7 +12,7 @@ criada: 2026-10-16
 
 ## Descrição
 
-BUG-Q5 da T-016 (segurança), funcionalidade 14. As respostas da API trazem `X-Powered-By: Express` e não trazem `X-Content-Type-Options: nosniff`. Corrigir com o pacote `helmet` é dependência nova (decisão do George, nova ADR se for o caso); a alternativa é ajustar o Express à mão. A forma é apresentada ao George na execução.
+BUG-Q5 da T-016 (segurança), funcionalidade 14. As respostas da API trazem `X-Powered-By: Express` e não trazem `X-Content-Type-Options: nosniff`. Correção com o pacote `helmet`, decidida pelo George ([[docs/02-arquitetura/ADR-0003-cabecalhos-de-seguranca-helmet|ADR-0003]]).
 
 Severidade: baixa.
 
@@ -32,6 +32,7 @@ Severidade: baixa.
 ## Decisões
 
 - 2026-10-16 — George: bugs e erros do pente-fino viram tarefas, em modo `agente-faz` (pedido de 2026-10-15).
+- 2026-10-17 — George: usar o pacote `helmet` (dependência nova) — ver [[docs/02-arquitetura/ADR-0003-cabecalhos-de-seguranca-helmet|ADR-0003]].
 
 ## Dev
 
