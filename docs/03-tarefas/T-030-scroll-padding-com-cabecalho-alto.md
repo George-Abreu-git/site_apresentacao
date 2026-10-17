@@ -67,6 +67,19 @@ Conceitos para estudo: ordem dos `useLayoutEffect`; ResizeObserver com `border-b
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: `test.fail` de `texto-ampliado.spec.ts` ("seguir um link do menu deixa o título da seção abaixo do cabeçalho") convertido em teste normal, no novo bloco "Âncora e foco abaixo do cabeçalho, qualquer que seja a altura dele (T-030)"; o `test.fail` da T-024 intocado. 5 cenários e2e com a expectativa calculada da altura medida do cabeçalho (borda da seção entre -1 e +1,5px da base do cabeçalho): rolagem suave pelo menu a 200% com nome longo em 360 e 768px; abrir `/#contato` a 200% (texto ampliado e nome longo aplicados antes de o React montar); Tab até o fim e Shift+Tab a 200% sem foco atrás do cabeçalho; mudar a largura 360 → 1440 → 360px; regressão no tamanho normal de 360 a 1440px. Comentário desatualizado corrigido em `navegacao.spec.ts:107`. Sem a correção (container, `--retries=0`), 12 dos 14 testes falham. Container `t029-linux` (DejaVu, `CI=true`, `--workers=2`, `pt-BR.ts` do HEAD): e2e 336 passaram, 12 pulados, sem instáveis; unitários shared 5, API 227 + 4, web 184 + 2. Windows: arquivos com `--repeat-each=3` 318 passaram; suíte 336 + 12 pulados; lint e validador OK. Cobre WCAG 2.4.11 e 1.4.4.
+Arquivos alterados:
+- `e2e/testes/texto-ampliado.spec.ts`
+- `e2e/testes/navegacao.spec.ts` (só comentário)
+Pendências:
+1. "Voltar do navegador" (`navegacao.spec.ts:347`) falhou 1 vez em 3 no container com `--retries=0` — instabilidade conhecida (T-031).
+2. Os 3 unitários do web que falham no Windows vêm do `pt-BR.ts` do George (T-015).
+Decisão pendente: nenhuma
+Conceitos para estudo: esperar a rolagem suave terminar antes de medir; `addInitScript` com `MutationObserver`; `::after` para simular texto mais longo; provar o teste sem a correção; WCAG 2.4.11 com Shift+Tab.
+
 ## Estudo
 
 ## DevOps
@@ -77,3 +90,4 @@ Conceitos para estudo: ordem dos `useLayoutEffect`; ResizeObserver com `border-b
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — altura real do cabeçalho medida com ResizeObserver
 - 2026-10-17 — code-reviewer: APROVADO — altura real medida; conversão do test.fail com o qa
+- 2026-10-17 — qa: PASSOU — test.fail convertido; 5 cenários e2e; verde no Linux e no Windows
