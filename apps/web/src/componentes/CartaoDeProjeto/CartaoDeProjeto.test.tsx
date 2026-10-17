@@ -139,6 +139,19 @@ describe('CartaoDeProjeto (RF-05)', () => {
     expect(valorDoDado(textos.estrelas)).toBe('1.234.567');
   });
 
+  it('título e descrição longos aparecem inteiros, sem cortes (a quebra de linha fica a cargo do CSS)', () => {
+    const projeto: Projeto = {
+      ...PROJETO_SO_CURADO,
+      titulo: 'ConfiguracaoDoGithubComCacheEFallbackParaAPI',
+      descricao: 'Detalhes em https://github.com/George-Abreu-git/site_apresentacao/tree/main/apps/api.',
+    };
+
+    render(<CartaoDeProjeto projeto={projeto} />);
+
+    expect(screen.getByRole('heading', { level: 3 }).textContent).toBe(projeto.titulo);
+    expect(screen.getByText(projeto.descricao, { exact: true }).tagName).toBe('P');
+  });
+
   it('os links do card são externos seguros (rel="noopener noreferrer") e avisam da nova aba', () => {
     render(<CartaoDeProjeto projeto={PROJETO_COMPLETO} />);
 

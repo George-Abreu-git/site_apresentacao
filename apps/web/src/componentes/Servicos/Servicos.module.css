@@ -1,6 +1,8 @@
 /* Mobile-first (RNF-01): uma coluna no celular; três colunas a partir de 48rem. */
 .blocos {
   display: grid;
+  /* Uma coluna que pode encolher já no celular: sem ela, a coluna implícita (`auto`) cresce com a maior palavra (T-025). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 2rem;
   margin-top: 1.5rem;
 }

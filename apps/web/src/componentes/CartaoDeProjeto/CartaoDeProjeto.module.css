@@ -44,10 +44,14 @@
   font-size: 0.875rem;
 }
 
-/* Cada par rótulo/valor fica na mesma linha: "Estrelas 12". */
+/*
+  Cada par rótulo/valor fica na mesma linha: "Estrelas 12". Se o card for estreito (ex.: texto
+  ampliado a 200%), `flex-wrap` deixa o valor descer para baixo do rótulo em vez de passar da borda (T-025).
+*/
 .dado {
   display: flex;
-  gap: 0.375rem;
+  flex-wrap: wrap;
+  gap: 0 0.375rem;
 }
 
 .dado dt {

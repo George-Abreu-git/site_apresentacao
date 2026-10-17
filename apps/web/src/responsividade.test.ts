@@ -35,6 +35,39 @@ function blocoDeMedia(css: string, largura: string): string {
   return '';
 }
 
+/** O CSS sem os blocos `@media`: só as regras que valem desde o celular (a base do mobile-first). */
+function semMediaQueries(css: string): string {
+  const texto = semComentarios(css);
+  let base = '';
+  let posicao = 0;
+  for (let inicio = texto.indexOf('@media'); inicio !== -1; inicio = texto.indexOf('@media', posicao)) {
+    base += texto.slice(posicao, inicio);
+    // Pula o bloco inteiro da media query, contando as chaves aninhadas (as regras dentro dela).
+    let profundidade = 0;
+    let fim = texto.indexOf('{', inicio);
+    for (; fim < texto.length; fim++) {
+      if (texto[fim] === '{') profundidade++;
+      if (texto[fim] === '}') profundidade--;
+      if (profundidade === 0) break;
+    }
+    posicao = fim + 1;
+  }
+  return base + texto.slice(posicao);
+}
+
+/** As regras de um CSS (seletor e corpo entre chaves), fora das media queries. */
+function regrasDaBase(css: string): { seletor: string; corpo: string }[] {
+  return [...semMediaQueries(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, seletor, corpo]) => ({
+    seletor: seletor.trim(),
+    corpo,
+  }));
+}
+
+/** O corpo da regra de um seletor exato (ex.: `.dado`), fora das media queries. */
+function corpoDaRegra(css: string, seletor: string): string {
+  return regrasDaBase(css).find((regra) => regra.seletor === seletor)?.corpo ?? '';
+}
+
 describe('responsividade (RNF-01)', () => {
   it('o index.html pede ao celular a largura real da tela (meta viewport)', () => {
     expect(paginaHtml).toMatch(/<meta name="viewport" content="width=device-width, initial-scale=1(\.0)?"/);
@@ -90,5 +123,54 @@ describe('responsividade (RNF-01)', () => {
     // Dentro dela (tablet/desktop): botão escondido e lista visível.
     expect(desktop).toMatch(/\.botao\s*\{[^}]*display:\s*none/);
     expect(desktop).toMatch(/\.lista,\s*\.aberta\s*\{[^}]*display:\s*flex/);
+  });
+
+  // T-025 (BUG-Q4 da T-016): sem colunas declaradas, a grade cria uma coluna implícita (`auto`), que
+  // cresce até caber a maior palavra do conteúdo. Por isso a coluna que encolhe precisa valer já no celular.
+  describe('texto longo ou ampliado não alarga a tela (T-025)', () => {
+    const cartao = arquivosCss['./componentes/CartaoDeProjeto/CartaoDeProjeto.module.css'];
+
+    it('toda grade já declara colunas que podem encolher no celular, fora das media queries', () => {
+      const grades = Object.entries(arquivosCss).flatMap(([arquivo, css]) =>
+        regrasDaBase(css)
+          .filter(({ corpo }) => /display:\s*grid/.test(corpo))
+          .map((regra) => ({ arquivo, ...regra })),
+      );
+
+      expect(grades.length).toBeGreaterThan(0);
+      for (const { arquivo, seletor, corpo } of grades) {
+        expect(corpo, `${arquivo} ${seletor}`).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+      }
+    });
+
+    it('lista de projetos: uma coluna no celular, duas a partir de 36rem e três a partir de 60rem', () => {
+      const projetos = semComentarios(arquivosCss['./componentes/Projetos/Projetos.module.css']);
+
+      expect(corpoDaRegra(projetos, '.lista')).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\);/);
+      expect(blocoDeMedia(projetos, '36rem')).toMatch(/grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+      expect(blocoDeMedia(projetos, '60rem')).toMatch(/grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+    });
+
+    it('card de projeto: rótulo e valor dos dados vivos podem ir para linhas separadas (flex-wrap)', () => {
+      expect(corpoDaRegra(cartao, '.dado')).toMatch(/flex-wrap:\s*wrap/);
+    });
+
+    it('card de projeto: toda fileira flex quebra a linha quando falta espaço', () => {
+      // Fileira = flex em linha (sem flex-direction: column). `inline-flex` (o link) tem um só texto dentro.
+      const fileiras = regrasDaBase(cartao).filter(
+        ({ corpo }) => /display:\s*flex/.test(corpo) && !/flex-direction:\s*column/.test(corpo),
+      );
+
+      expect(fileiras.length).toBeGreaterThan(0);
+      for (const { seletor, corpo } of fileiras) {
+        expect(corpo, seletor).toMatch(/flex-wrap:\s*wrap/);
+      }
+    });
+
+    it('card de projeto: o texto quebra em vez de ser cortado ou escondido', () => {
+      // Esconder o que sobra (overflow: hidden, reticências, nowrap) também tira a rolagem lateral,
+      // mas some com parte do conteúdo — o que a ampliação de texto (WCAG 1.4.4) não permite.
+      expect(semComentarios(cartao)).not.toMatch(/overflow(-x)?:\s*(hidden|clip)|text-overflow|white-space:\s*nowrap/);
+    });
   });
 });
