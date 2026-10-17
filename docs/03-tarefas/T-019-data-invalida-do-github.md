@@ -21,6 +21,7 @@ Severidade: baixa.
 - [ ] A API trata `pushed_at` que não é data válida como formato inesperado (`disponivel: false`)
 - [ ] O card não quebra com data inválida (mostra o card sem a data)
 - [ ] Os `it.fails` do BUG-2 (`github-cliente.spec.ts` e `CartaoDeProjeto.test.tsx`) viram testes normais e passam
+- [ ] Os testes da T-018 que usam a data inválida para provocar erro de renderização (`App.test.tsx`, "um erro ao desenhar um card fica contido…"; `Projetos.test.tsx`, "quando um card lança erro ao desenhar…") passam a provocar o erro de outra forma (ex.: `vi.mock` do `CartaoDeProjeto`), sem perder o que provam — aviso do code-reviewer da T-018
 - [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
 - [ ] Suíte inteira e validador verdes
 

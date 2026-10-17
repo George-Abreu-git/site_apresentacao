@@ -1,7 +1,7 @@
 ---
 id: T-018
 titulo: Projeto fora do formato na resposta da API não derruba a página
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end, api]
 rodadas: 0
@@ -53,6 +53,17 @@ Commit: `fix(web): impede que projeto fora do formato derrube a página`
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: Resolve o BUG-1 com defesa em profundidade: `ehProjeto` confere cada item (links só http(s)) e o `LimiteDeErro` contém erros de renderização na seção Projetos. `it.fails` do BUG-1 convertido e mais rigoroso; 14 cenários de comportamento. O front aceita tudo que a API aceita (regex da API mais rígida), então não recusa resposta válida. Web 166 + 2 esperadas + 3 falhas do nome (`pt-BR.ts` do George, T-015); lint, tsc e validador verdes. Código só em `apps/web/**`; sem segredos.
+Arquivos alterados: nenhum
+Pendências:
+1. *(para a T-019)* `App.test.tsx` ("um erro ao desenhar um card fica contido…") e `Projetos.test.tsx` ("quando um card lança erro ao desenhar…") usam o BUG-2 para provocar o erro; quando a T-019 corrigir o card, trocar a forma de provocar (ex.: `vi.mock` do `CartaoDeProjeto`). → anotado na T-019.
+2. *(opcional)* Unificar as validações do front e da API em `packages/shared` exigiria código em tempo de execução no pacote (decisão do George, tarefa futura).
+Decisão pendente: nenhuma
+Conceitos para estudo: error boundary; type guard sobre `unknown`; defesa em profundidade; allowlist de esquemas em `href`; acoplamento de teste a bug conhecido.
+
 ## QA
 
 ## Estudo
@@ -64,3 +75,4 @@ Commit: `fix(web): impede que projeto fora do formato derrube a página`
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-16 — dev: CONCLUIDO — validação da resposta + error boundary na seção Projetos
+- 2026-10-16 — code-reviewer: APROVADO — validação + error boundary; aviso para a T-019 anotado
