@@ -80,6 +80,15 @@ Conceitos para estudo: `page.addInitScript` para injetar falha; mutação manual
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-018.md` (`consolidado: false`) sobre as duas proteções da tarefa (`ehProjeto` conferindo cada projeto da resposta; `LimiteDeErro` contendo erros de desenho na seção Projetos), com 11 conceitos (nomes reaproveitados de diários anteriores; novos: `esquemas-permitidos-em-href` e `injetar-falha-no-navegador-com-addinitscript`) e 2 exercícios (allowlist × blocklist em `href`; tirar uma camada de proteção por vez). Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-018.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -90,3 +99,4 @@ Conceitos para estudo: `page.addInitScript` para injetar falha; mutação manual
 - 2026-10-16 — code-reviewer: APROVADO — validação + error boundary; aviso para a T-019 anotado
 - 2026-10-16 — qa: PASSOU — 5 cenários e2e; suíte verde no container Linux
 - 2026-10-16 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 169 + 2; hooks 412; e2e CI=1 294 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
+- 2026-10-16 — documentador: CONCLUIDO — diário integrado
