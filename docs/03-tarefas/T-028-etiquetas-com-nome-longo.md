@@ -79,6 +79,15 @@ Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects`; test
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-028.md` (`consolidado: false`) explicando o bug (etiqueta como item flex com `min-width: auto`; `break-word` do `body` não reduz a largura mínima) e a correção (`overflow-wrap: anywhere` em `.stack` e `.tecnologia`, como na T-029), os 5 cenários unitários e 5 e2e, a prova no container do CI, o teste de mutação e o efeito visível a 200% com a DejaVu. Conceitos com os mesmos nomes dos diários da T-025 e da T-029. Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-028.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -89,3 +98,4 @@ Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects`; test
 - 2026-10-17 — code-reviewer: APROVADO — anywhere nas etiquetas; e2e e prova Linux com o qa
 - 2026-10-17 — qa: PASSOU — 5 cenários e2e; mutação reprovada; suíte verde no Linux e no Windows
 - 2026-10-17 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 179 + 2; hooks 412; e2e CI=1 324 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
+- 2026-10-17 — documentador: CONCLUIDO — diário integrado
