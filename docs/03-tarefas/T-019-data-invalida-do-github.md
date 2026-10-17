@@ -1,7 +1,7 @@
 ---
 id: T-019
 titulo: Data inválida do GitHub não derruba o card de projeto
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end, back-end, api]
 rodadas: 0
@@ -47,3 +47,4 @@ Severidade: baixa.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
