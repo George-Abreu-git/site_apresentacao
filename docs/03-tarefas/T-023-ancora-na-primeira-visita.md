@@ -1,7 +1,7 @@
 ---
 id: T-023
 titulo: Abrir o site direto numa âncora rola até a seção
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -35,6 +35,22 @@ Severidade: média.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Causa: o navegador procura o elemento da âncora quando o HTML termina de chegar, e nessa hora o `index.html` só tem a `<div id="root">` vazia; ele não procura de novo depois que o React monta as seções. Correção: novo hook `useAncoraInicial` (`apps/web/src/useAncoraInicial.ts`, chamado no `App.tsx`) que, na primeira montagem, lê `location.hash` e chama `scrollIntoView({ behavior: 'instant', block: 'start' })` no elemento, se existir — em `useLayoutEffect` (sem piscar o topo) e respeitando o `scroll-padding-top`; id procurado como veio e decodificado (acentos), `%` solto não lança erro. 5 cenários unitários em `useAncoraInicial.test.tsx` (rola uma vez sem animação; sem âncora não rola; âncora inexistente não rola nem dá erro; redesenho não rola de novo; acento, `%` solto e `#` sozinho); 1 e 4 falham sem o hook. Container `t029-linux` (pt-BR.ts do HEAD): web 174, API 227, shared 5; lint e build ok; e2e 290 passaram, 12 pulados, sem instáveis; únicas falhas são os 4 `test.fail` do BUG-Q2, que agora passam. Windows: o mesmo. Diagnósticos fora do repositório (dev e preview): as 6 seções na primeira visita, movimento reduzido, sem âncora no topo, API respondendo depois da rolagem (o Chromium mantém a posição).
+Arquivos alterados:
+- `apps/web/src/useAncoraInicial.ts`, `useAncoraInicial.test.tsx` (novos)
+- `apps/web/src/App.tsx`
+Pendências:
+1. qa: tirar o `test.fail()` dos 2 testes do BUG-Q2 (`e2e/testes/navegacao.spec.ts:433`) e fazer o teste "abrir a página já numa âncora" (linha 136) não depender do `goto('/')` do `beforeEach`. Opcional: e2e para as 6 seções, build de produção e API respondendo depois (diagnósticos em `scratchpad/t029/t023/`).
+2. Os 3 unitários do web que falham no Windows vêm do `pt-BR.ts` do George (T-015).
+3. Observação: com a API respondendo depois da rolagem, quem mantém a seção no lugar é o navegador (`overflow-anchor`); o Safari pode não fazer isso (sem tarefa).
+T-030: não piora nem ajuda (mesmo `scroll-padding-top`). T-031: não piora (rolagem inicial instantânea).
+Decisão pendente: nenhuma
+Conceitos para estudo: fragmento e quando o navegador rola até ele; ciclo de vida de uma SPA; `useLayoutEffect` × `useEffect`; `scrollIntoView` com `instant`; `overflow-anchor`; `decodeURIComponent` e `URIError`; espiões no Vitest e limites do jsdom; `history.replaceState` em testes.
+Commit: `fix(web): rola até a âncora do endereço ao abrir o site`
+
 ## Revisão
 
 ## QA
@@ -47,3 +63,4 @@ Severidade: média.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
+- 2026-10-16 — dev: CONCLUIDO — hook useAncoraInicial; BUG-Q2 corrigido em dev e preview
