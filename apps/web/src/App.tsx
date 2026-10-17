@@ -6,6 +6,7 @@ import Rodape from './componentes/Rodape/Rodape';
 import Servicos from './componentes/Servicos/Servicos';
 import Sobre from './componentes/Sobre/Sobre';
 import Stacks from './componentes/Stacks/Stacks';
+import { useAncoraInicial } from './useAncoraInicial';
 
 /**
  * Página única: cabeçalho com menu, as seis seções e o rodapé (RF-01, RNF-02).
@@ -13,6 +14,9 @@ import Stacks from './componentes/Stacks/Stacks';
  * Só Projetos depende da API; as outras seções não esperam por ela (RNF-03).
  */
 function App() {
+  // Um link compartilhado como /#contato abre já na seção (T-023).
+  useAncoraInicial();
+
   return (
     <>
       <Cabecalho />
