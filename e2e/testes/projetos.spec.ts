@@ -7,6 +7,7 @@
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop).
 import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
+import type { Projeto } from '../../packages/shared/src/projeto';
 import { PROJETOS_DE_EXEMPLO as PROJETOS, ROTA_DA_API, responder, simularApi } from '../apoio/api';
 import { contraste } from '../apoio/cores';
 import { ENDERECO_LONGO, esperarFocoVisivel, larguras, medirEstouroHorizontal, medirTexto, PALAVRA_LONGA } from '../apoio/pagina';
@@ -88,6 +89,20 @@ async function tabAte(page: Page, alvo: Locator, limite = 60) {
     if (await alvo.evaluate((el) => el === document.activeElement)) return;
   }
   throw new Error(`o Tab não chegou ao elemento em ${limite} passos`);
+}
+
+/** Erros que a página deixou escapar: exceções não tratadas, erros no console e diálogos (alert). */
+function observarErros(page: Page) {
+  const erros = { naoTratados: [] as string[], console: [] as string[], dialogos: [] as string[] };
+  page.on('pageerror', (erro) => erros.naoTratados.push(erro.message));
+  page.on('console', (mensagem) => {
+    if (mensagem.type() === 'error') erros.console.push(mensagem.text());
+  });
+  page.on('dialog', async (dialogo) => {
+    erros.dialogos.push(dialogo.message());
+    await dialogo.dismiss();
+  });
+  return erros;
 }
 
 test.describe('Projetos (RF-05): cards montados com a resposta da API', () => {
@@ -270,20 +285,6 @@ test.describe('Projetos: falha da API', () => {
 // segura um erro ao desenhar os cards dentro da seção. Nos dois casos, só a seção Projetos mostra
 // a mensagem amigável; o resto da página continua de pé e nenhum erro escapa para o console.
 test.describe('Projetos: projeto fora do formato na resposta (T-018)', () => {
-  /** Erros que a página deixou escapar: exceções não tratadas, erros no console e diálogos (alert). */
-  function observarErros(page: Page) {
-    const erros = { naoTratados: [] as string[], console: [] as string[], dialogos: [] as string[] };
-    page.on('pageerror', (erro) => erros.naoTratados.push(erro.message));
-    page.on('console', (mensagem) => {
-      if (mensagem.type() === 'error') erros.console.push(mensagem.text());
-    });
-    page.on('dialog', async (dialogo) => {
-      erros.dialogos.push(dialogo.message());
-      await dialogo.dismiss();
-    });
-    return erros;
-  }
-
   /** Só a seção Projetos mostra a mensagem amigável, sem nenhum card; o resto da página está de pé. */
   async function esperarErroSoEmProjetos(page: Page) {
     await expect(aviso(page)).toHaveText(textos.erro);
@@ -364,6 +365,112 @@ test.describe('Projetos: projeto fora do formato na resposta (T-018)', () => {
     await page.getByRole('navigation').getByRole('link', { name: secoes.contato, exact: true }).click();
     await expect(page).toHaveURL(/#contato$/);
     await expect(page.getByRole('link', { name: contato.linkEmail, exact: true })).toBeInViewport();
+  });
+});
+
+// T-019 (BUG-2 da T-016): uma data de atualização inválida em `ultimaAtualizacao` fazia o Intl lançar
+// RangeError ao formatar, e a página inteira sumia. A API passou a recusar a data inválida (vira
+// "disponivel": false), e o card se protege mesmo assim: se uma data inválida chegar, ele aparece
+// sem o par "Atualizado em", com os outros dados vivos e os links. A API simulada aqui manda a data
+// inválida de propósito, como uma API antiga ou com defeito mandaria.
+test.describe('Projetos: data de atualização inválida (T-019)', () => {
+  const DATA_INVALIDA = 'não é uma data';
+
+  /** O primeiro projeto de exemplo (completo, com links) com outra data de atualização. */
+  function comData(ultimaAtualizacao: string, titulo = 'Data inválida') {
+    return { ...PROJETOS[0], titulo, github: { ...PROJETOS[0].github!, ultimaAtualizacao } } as Projeto;
+  }
+
+  test('o card aparece sem "Atualizado em", com linguagem, estrelas e links; os outros cards não mudam', async ({ page }) => {
+    const projeto = comData(DATA_INVALIDA);
+    await simularApi(page, [...PROJETOS, projeto]);
+    await page.goto('/#projetos');
+
+    await expect(itensDaLista(page)).toHaveCount(PROJETOS.length + 1);
+    const card = cartao(page, projeto.titulo);
+    await expect(card.getByText(projeto.descricao, { exact: true })).toBeVisible();
+    await expect(card.getByRole('list', { name: textos.rotuloStacks }).getByRole('listitem')).toHaveText(projeto.stacks);
+    await expect(card.locator('dt')).toHaveText([textos.linguagem, textos.estrelas]);
+    await expect(card.locator('dd')).toHaveText(['TypeScript', '1.234']);
+    await expect(card.getByText(textos.ultimaAtualizacao)).toHaveCount(0);
+    await expect(card.locator('time')).toHaveCount(0);
+    await expect(card).not.toContainText(DATA_INVALIDA);
+    for (const [texto, endereco] of [
+      [textos.linkRepositorio, projeto.repositorio!],
+      [textos.linkDemo, projeto.demo!],
+    ]) {
+      await expect(link(card, texto)).toBeVisible();
+      await expect(link(card, texto)).toHaveAttribute('href', endereco);
+    }
+
+    // O card com data válida continua com a data formatada.
+    await expect(cartao(page, PROJETOS[0].titulo).locator('dd')).toHaveText(['TypeScript', '1.234', '01/10/2026']);
+  });
+
+  for (const [caso, data] of [
+    ['texto vazio', ''],
+    ['data e hora que não existem', '2026-13-45T99:00:00Z'],
+    ['número solto', '20261001'],
+  ]) {
+    test(`${caso}: o card omite só a data, sem erro na página`, async ({ page }) => {
+      const erros = observarErros(page);
+      const projeto = comData(data);
+      await simularApi(page, [projeto]);
+      await page.goto('/#projetos');
+
+      const card = cartao(page, projeto.titulo);
+      await expect(card).toBeVisible();
+      await expect(card.locator('dt')).toHaveText([textos.linguagem, textos.estrelas]);
+      await expect(card.locator('time')).toHaveCount(0);
+      await expect(link(card, textos.linkRepositorio)).toBeVisible();
+      expect(erros).toEqual({ naoTratados: [], console: [], dialogos: [] });
+    });
+  }
+
+  test('data inválida num repositório sem linguagem: sobra só "Estrelas", sem par vazio', async ({ page }) => {
+    const projeto = { ...comData(DATA_INVALIDA), github: { disponivel: true, linguagem: null, estrelas: 0, ultimaAtualizacao: DATA_INVALIDA } } as Projeto;
+    await simularApi(page, [projeto]);
+    await page.goto('/#projetos');
+
+    const card = cartao(page, projeto.titulo);
+    await expect(card.locator('dt')).toHaveText([textos.estrelas]);
+    await expect(card.locator('dd')).toHaveText(['0']);
+    // Cada rótulo tem o seu valor: nenhum <dt> ou <dd> sobra sozinho.
+    await expect(card.locator('dl > div')).toHaveCount(1);
+  });
+
+  test('a página fica de pé: sem erro no console, sem mensagem de erro em Projetos, todas as seções e o menu funcionando', async ({ page, isMobile }) => {
+    const erros = observarErros(page);
+    await simularApi(page, [...PROJETOS, comData(DATA_INVALIDA)]);
+    await page.goto('/#projetos');
+
+    await expect(itensDaLista(page)).toHaveCount(PROJETOS.length + 1);
+    await expect(aviso(page)).toHaveText('');
+    await expect(page.getByText(textos.erro, { exact: true })).toHaveCount(0);
+    await esperarConteudoEstatico(page);
+    await expect(page.getByRole('main').getByRole('region')).toHaveCount(Object.keys(secoes).length);
+
+    if (isMobile) await page.getByRole('button', { name: ptBR.navegacao.botaoMenu }).click();
+    await page.getByRole('navigation').getByRole('link', { name: secoes.contato, exact: true }).click();
+    await expect(page).toHaveURL(/#contato$/);
+    await expect(page.getByRole('link', { name: contato.linkEmail, exact: true })).toBeInViewport();
+    expect(erros).toEqual({ naoTratados: [], console: [], dialogos: [] });
+  });
+
+  test('360px e teclado: o card sem data fica dentro da tela e o Tab chega aos links dele com foco visível', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    const projeto = comData(DATA_INVALIDA);
+    await simularApi(page, [projeto]);
+    await page.goto('/');
+    const card = cartao(page, projeto.titulo);
+    await expect(card).toBeAttached();
+
+    expect((await medirEstouroHorizontal(page)).estourados, 'elementos que passam da borda da tela').toEqual([]);
+    const repositorio = link(card, textos.linkRepositorio);
+    await tabAte(page, repositorio);
+    await esperarFocoVisivel(repositorio);
+    await page.keyboard.press('Tab');
+    await esperarFocoVisivel(link(card, textos.linkDemo));
   });
 });
 
