@@ -33,7 +33,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-027-checagem-de-tipos-do-e2e|T-027]] | Checagem de tipos dos testes de ponta a ponta (pasta e2e/) | backlog | agente-faz | infra |
 | [[docs/03-tarefas/T-028-etiquetas-com-nome-longo|T-028]] | Etiquetas de tecnologia com nome longo não causam rolagem lateral | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-029-cabecalho-texto-ampliado|T-029]] | Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px | concluida | agente-faz | front-end |
-| [[docs/03-tarefas/T-030-scroll-padding-com-cabecalho-alto|T-030]] | Âncora não esconde o título atrás do cabeçalho alto | em-revisao | agente-faz | front-end |
+| [[docs/03-tarefas/T-030-scroll-padding-com-cabecalho-alto|T-030]] | Âncora não esconde o título atrás do cabeçalho alto | em-qa | agente-faz | front-end |
 | [[docs/03-tarefas/T-031-rolagem-suave-em-testes-instaveis|T-031]] | Testes de navegação estáveis com a rolagem suave | backlog | agente-faz | qa |
 | [[docs/03-tarefas/T-032-e2e-no-build-de-producao|T-032]] | e2e também contra o build de produção (vite preview) | backlog | agente-faz | infra |
 | [[docs/03-tarefas/T-033-foco-apos-ancora-inicial|T-033]] | Tab começa na seção ao abrir o site direto numa âncora | backlog | agente-faz | front-end |

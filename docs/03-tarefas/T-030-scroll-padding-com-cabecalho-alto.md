@@ -1,7 +1,7 @@
 ---
 id: T-030
 titulo: Âncora não esconde o título atrás do cabeçalho alto
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -53,6 +53,18 @@ Commit: `fix(web): âncora respeita a altura real do cabeçalho (scroll-padding-
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: Resolve a causa: `useAlturaDoCabecalho` mede a altura real (ResizeObserver `border-box`, arredondando para cima) e grava `--altura-real-do-cabecalho` no `<html>`; o `scroll-padding-top` lê a variável e o padrão em `tema.css` cobre o caso sem JS. A ordem dos `useLayoutEffect` (filho antes do pai, conferida em `useAncoraInicial.ts:35`) garante a altura certa na âncora inicial. Sem risco de laço no observer; dependência estável; limpeza ao desmontar. 5 cenários de comportamento; lint e tsc ok; Vitest só com as 3 falhas de nome (`pt-BR.ts` do George, T-015). Área do dev; lock inalterado; sem segredos.
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — `useAlturaDoCabecalho.test.tsx:64-67`: acrescentar `vi.unstubAllGlobals()` no `afterEach`.
+2. *opcional* — `useAlturaDoCabecalho.test.tsx:106`: título "com 4rem de reserva" ambíguo.
+3. qa: converter o `test.fail` de `texto-ampliado.spec.ts:277` e cobrir Shift+Tab a 200% e os dois ambientes.
+Decisão pendente: nenhuma
+Conceitos para estudo: ordem dos `useLayoutEffect`; ResizeObserver com `border-box`; inline × `:root` para variáveis CSS; `vi.stubGlobal` × `vi.unstubAllGlobals`; `scroll-padding-top` com cabeçalho `sticky`.
+
 ## QA
 
 ## Estudo
@@ -64,3 +76,4 @@ Commit: `fix(web): âncora respeita a altura real do cabeçalho (scroll-padding-
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — altura real do cabeçalho medida com ResizeObserver
+- 2026-10-17 — code-reviewer: APROVADO — altura real medida; conversão do test.fail com o qa
