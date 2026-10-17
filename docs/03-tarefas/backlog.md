@@ -31,7 +31,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-025-texto-longo-nos-cards|T-025]] | Texto longo nos cards de projeto não causa rolagem lateral | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-026-cabecalhos-de-seguranca-api|T-026]] | Cabeçalhos de segurança nas respostas da API | backlog | agente-faz | back-end, api |
 | [[docs/03-tarefas/T-027-checagem-de-tipos-do-e2e|T-027]] | Checagem de tipos dos testes de ponta a ponta (pasta e2e/) | backlog | agente-faz | infra |
-| [[docs/03-tarefas/T-028-etiquetas-com-nome-longo|T-028]] | Etiquetas de tecnologia com nome longo não causam rolagem lateral | em-revisao | agente-faz | front-end |
+| [[docs/03-tarefas/T-028-etiquetas-com-nome-longo|T-028]] | Etiquetas de tecnologia com nome longo não causam rolagem lateral | em-qa | agente-faz | front-end |
 | [[docs/03-tarefas/T-029-cabecalho-texto-ampliado|T-029]] | Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-030-scroll-padding-com-cabecalho-alto|T-030]] | Âncora não esconde o título atrás do cabeçalho alto | backlog | agente-faz | front-end |
 | [[docs/03-tarefas/T-031-rolagem-suave-em-testes-instaveis|T-031]] | Testes de navegação estáveis com a rolagem suave | backlog | agente-faz | qa |

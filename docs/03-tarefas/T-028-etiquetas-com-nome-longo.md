@@ -1,7 +1,7 @@
 ---
 id: T-028
 titulo: Etiquetas de tecnologia com nome longo não causam rolagem lateral
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -53,6 +53,17 @@ Commit: `fix(web): quebra nome longo dentro das etiquetas de tecnologia`
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: Diff mínimo e dentro do escopo: `overflow-wrap: anywhere` em `.stack` (card) e `.tecnologia` (Stacks) ataca a causa (`min-width: auto` do item flex), sem cortar nem esconder nada, no padrão da T-029. Cinco cenários unitários passam (22/22 no arquivo), incluindo um que protege etiquetas futuras (pílula = `border-radius: 999px`; hoje há só as duas, ambas corrigidas). Lint e validador verdes; as 3 falhas do web são as de nome (`pt-BR.ts` do George, T-015). Dev só em `apps/web/**`; sem segredos.
+Arquivos alterados: nenhum
+Pendências:
+1. qa: e2e da tarefa e prova no container Linux do CI (critério 4).
+2. *opcional* — avisar o George que, a 200%, "TypeScript" e "Markdown" no card quebram no meio da palavra (efeito dos critérios 2 e 3).
+Decisão pendente: nenhuma
+Conceitos para estudo: `min-width: auto` em item flex; `break-word` × `anywhere` no min-content; `flex-wrap` e largura inicial max-content; testes que leem CSS e protegem regras futuras por padrão.
+
 ## QA
 
 ## Estudo
@@ -64,3 +75,4 @@ Commit: `fix(web): quebra nome longo dentro das etiquetas de tecnologia`
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — overflow-wrap: anywhere nas etiquetas; provado no container Linux
+- 2026-10-17 — code-reviewer: APROVADO — anywhere nas etiquetas; e2e e prova Linux com o qa
