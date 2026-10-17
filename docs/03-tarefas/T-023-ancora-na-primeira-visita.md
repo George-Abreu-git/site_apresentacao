@@ -1,7 +1,7 @@
 ---
 id: T-023
 titulo: Abrir o site direto numa âncora rola até a seção
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -18,11 +18,11 @@ Severidade: média.
 
 ## Critérios de aceite
 
-- [ ] Abrir `/#<secao>` numa visita nova mostra a seção na tela, para todas as seções
-- [ ] Funciona no servidor de desenvolvimento e no build de produção (`vite preview`)
-- [ ] Os `test.fail` do BUG-Q2 em `e2e/testes/navegacao.spec.ts` viram testes normais e passam, e o teste antigo "abrir a página já numa âncora" deixa de depender do `goto('/')` do `beforeEach`
-- [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] Abrir `/#<secao>` numa visita nova mostra a seção na tela, para todas as seções
+- [x] Funciona no servidor de desenvolvimento e no build de produção (`vite preview`)
+- [x] Os `test.fail` do BUG-Q2 em `e2e/testes/navegacao.spec.ts` viram testes normais e passam, e o teste antigo "abrir a página já numa âncora" deixa de depender do `goto('/')` do `beforeEach`
+- [x] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -91,3 +91,4 @@ Conceitos para estudo: navegação para fragmento numa visita nova × mesma pág
 - 2026-10-16 — dev: CONCLUIDO — hook useAncoraInicial; BUG-Q2 corrigido em dev e preview
 - 2026-10-16 — code-reviewer: APROVADO — hook corrige a causa; conversão dos test.fail com o qa
 - 2026-10-17 — qa: PASSOU — BUG-Q2 convertido; 5 cenários e2e; suíte verde no container Linux
+- 2026-10-17 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 174 + 2; hooks 412; e2e CI=1 314 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; build de produção validado fora da suíte (e2e de preview vira tarefa do devops); CI da main acompanhado após o push; diário de estudo disparado após a integração

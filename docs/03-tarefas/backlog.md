@@ -26,7 +26,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-020-chave-duplicada-em-projetos|T-020]] | Projetos com o mesmo título não geram chave duplicada no React | backlog | agente-faz | front-end, back-end |
 | [[docs/03-tarefas/T-021-projetos-json-com-bom|T-021]] | Arquivo curado salvo em UTF-8 com BOM é lido normalmente | backlog | agente-faz | back-end, api |
 | [[docs/03-tarefas/T-022-marca-fecha-menu-celular|T-022]] | Tocar na marca no celular fecha a lista do menu | backlog | agente-faz | front-end |
-| [[docs/03-tarefas/T-023-ancora-na-primeira-visita|T-023]] | Abrir o site direto numa âncora rola até a seção | em-qa | agente-faz | front-end |
+| [[docs/03-tarefas/T-023-ancora-na-primeira-visita|T-023]] | Abrir o site direto numa âncora rola até a seção | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-024-menu-celular-deitado|T-024]] | Lista do menu cabe ou rola no celular deitado com pouca altura | backlog | agente-faz | front-end |
 | [[docs/03-tarefas/T-025-texto-longo-nos-cards|T-025]] | Texto longo nos cards de projeto não causa rolagem lateral | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-026-cabecalhos-de-seguranca-api|T-026]] | Cabeçalhos de segurança nas respostas da API | backlog | agente-faz | back-end, api |
@@ -36,4 +36,4 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-030-scroll-padding-com-cabecalho-alto|T-030]] | Âncora não esconde o título atrás do cabeçalho alto | backlog | agente-faz | front-end |
 | [[docs/03-tarefas/T-031-rolagem-suave-em-testes-instaveis|T-031]] | Testes de navegação estáveis com a rolagem suave | backlog | agente-faz | qa |
 
-> Ordem: T-004 → T-005 → **T-014** → T-006 → T-001 → T-007 → T-008 → T-009 → T-010 → T-011 → T-012 → **T-017** → **T-016** → bugs do pente-fino (média primeiro: T-025 ✔, T-029 ✔, T-018 ✔, T-023, T-028, T-030; depois T-019, T-020, T-021, T-022, T-024, T-026, T-027, T-031) → **T-015** → T-013. Requisitos e ADR de stack já concluídos ([[docs/02-arquitetura/ADR-0001-stack|ADR-0001]]); a T-001 agora depende só da T-005 (pastas criadas).
+> Ordem: T-004 → T-005 → **T-014** → T-006 → T-001 → T-007 → T-008 → T-009 → T-010 → T-011 → T-012 → **T-017** → **T-016** → bugs do pente-fino (média primeiro: T-025 ✔, T-029 ✔, T-018 ✔, T-023 ✔, T-028, T-030; depois T-019, T-020, T-021, T-022, T-024, T-026, T-027, T-031) → **T-015** → T-013. Requisitos e ADR de stack já concluídos ([[docs/02-arquitetura/ADR-0001-stack|ADR-0001]]); a T-001 agora depende só da T-005 (pastas criadas).
