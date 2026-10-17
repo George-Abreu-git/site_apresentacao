@@ -21,6 +21,12 @@
 
   /* Medidas do layout usadas em mais de um arquivo. */
   --altura-cabecalho: 4rem;
+  /*
+   * A altura que o cabeçalho tem de fato (cresce quando ele quebra em várias linhas). O JavaScript
+   * mede e escreve o valor direto no <html> (useAlturaDoCabecalho, T-030), o que vence esta regra;
+   * sem JavaScript, vale a altura numa linha.
+   */
+  --altura-real-do-cabecalho: var(--altura-cabecalho);
   --largura-conteudo: 70rem;
   --espaco-lateral: 1.25rem;
 }

@@ -8,8 +8,12 @@
 }
 
 html {
-  /* Ao seguir uma âncora (#sobre), deixa espaço para o cabeçalho preso ao topo (sticky) não cobrir o título. */
-  scroll-padding-top: var(--altura-cabecalho);
+  /*
+   * Ao seguir uma âncora (#sobre) ou mover o foco com Tab, deixa espaço para o cabeçalho preso ao
+   * topo (sticky) não cobrir o título. Usa a altura real, porque o cabeçalho cresce quando quebra
+   * em várias linhas (texto ampliado numa tela estreita; T-030).
+   */
+  scroll-padding-top: var(--altura-real-do-cabecalho);
 }
 
 /* Rolagem suave só para quem não pediu ao sistema para reduzir animações. */

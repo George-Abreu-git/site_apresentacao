@@ -41,7 +41,8 @@ describe('Cabecalho', () => {
   it('fica preso ao topo ao rolar (sticky), para o menu continuar ao alcance (RF-01)', () => {
     expect(estilosDoCabecalho).toMatch(/position:\s*sticky/);
     expect(estilosDoCabecalho).toMatch(/top:\s*0/);
-    // Ao seguir uma âncora, o título da seção não fica escondido atrás do cabeçalho.
-    expect(estilosGlobais).toMatch(/scroll-padding-top:\s*var\(--altura-cabecalho\)/);
+    // Ao seguir uma âncora, o título da seção não fica escondido atrás do cabeçalho
+    // (a altura medida vem do useAlturaDoCabecalho; T-030).
+    expect(estilosGlobais).toMatch(/scroll-padding-top:\s*var\(--altura-real-do-cabecalho\)/);
   });
 });
