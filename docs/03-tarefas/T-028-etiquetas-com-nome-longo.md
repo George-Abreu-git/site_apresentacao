@@ -66,6 +66,17 @@ Conceitos para estudo: `min-width: auto` em item flex; `break-word` × `anywhere
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Novo `e2e/testes/etiquetas.spec.ts` com 5 cenários (10 testes, celular e desktop): card em 360px no tamanho normal; seção Stacks em 360px no tamanho normal; 360px a 200% no card e em Stacks; nomes reais em 360px (normal e 200%) sem palavra que cabe partida no meio e etiqueta que cabe em uma linha; 1280px a 200% com nomes longos sem corte (`overflow` visível, sem reticências/`nowrap`, colunas de largura igual). O que depende de a palavra caber é medido com `<canvas>` na fonte da etiqueta (folga de 2px), independente da fonte. Mutação no container com `--retries=0`: CSS da `main` → 10/10 reprovam; listas com `nowrap` → 10/10 reprovam. Container `t029-linux` (DejaVu, `CI=true`, `--workers=2`, `pt-BR.ts` do HEAD): arquivo 30/30 com `--repeat-each=3`; suíte inteira 324 passaram, 12 pulados, sem instáveis. Windows: arquivo 30/30 com `--repeat-each=3`; suíte 324 + 12 pulados. ESLint e validador verdes.
+Arquivos alterados:
+- `e2e/testes/etiquetas.spec.ts` (novo)
+Pendências:
+1. *opcional, para o George*: a 200% com fontes largas, "TypeScript" e "Markdown" quebram no meio dentro do card (o cenário 4 aceita só quando o `<canvas>` confirma que não cabem).
+Decisão pendente: nenhuma
+Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects`; teste de mutação; `anywhere` com `flex-wrap`; WCAG 1.4.4 e 1.4.10.
+
 ## Estudo
 
 ## DevOps
@@ -76,3 +87,4 @@ Conceitos para estudo: `min-width: auto` em item flex; `break-word` × `anywhere
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — overflow-wrap: anywhere nas etiquetas; provado no container Linux
 - 2026-10-17 — code-reviewer: APROVADO — anywhere nas etiquetas; e2e e prova Linux com o qa
+- 2026-10-17 — qa: PASSOU — 5 cenários e2e; mutação reprovada; suíte verde no Linux e no Windows
