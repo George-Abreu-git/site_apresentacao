@@ -19,7 +19,7 @@ Severidade: baixa.
 ## Critérios de aceite
 
 - [ ] Dois projetos com o mesmo título não geram aviso de chave duplicada nem cards trocados
-- [ ] A solução escolhida pelo George (chave no front e/ou validação na API) está aplicada e testada
+- [ ] A validação do arquivo curado (`validar-projetos-curados.ts`) recusa títulos repetidos, com mensagem clara que identifica os projetos (decisão do George: corrigir na API)
 - [ ] O `it.fails` do BUG-3 em `Projetos.test.tsx` vira teste normal e passa
 - [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
 - [ ] Suíte inteira e validador verdes
@@ -32,6 +32,7 @@ Severidade: baixa.
 ## Decisões
 
 - 2026-10-16 — George: bugs e erros do pente-fino viram tarefas, em modo `agente-faz` (pedido de 2026-10-15).
+- 2026-10-17 — George: corrigir **na API** — a validação do arquivo curado recusa títulos repetidos (a API não sobe com erro claro); o front segue usando o título como `key`.
 
 ## Dev
 

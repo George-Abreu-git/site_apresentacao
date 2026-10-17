@@ -34,6 +34,7 @@ Substitui o LinkedIn e o e-mail provisórios (`PREENCHER`) e revisa os textos su
 
 - 2026-10-15 — George: tarefa criada a partir da decisão Q1 da T-008 (opção B — provisórios na T-008 e conteúdo real numa tarefa própria antes do deploy).
 - 2026-10-16 — George: o nome "George Abreu de Siqueira" (trocado por ele no `pt-BR.ts`, fora do fluxo) entra no escopo desta tarefa, com o ajuste dos testes que procuram o nome antigo.
+- 2026-10-17 — George: "deixa genérico por enquanto" — a T-015 fica adiada; o site segue com o conteúdo genérico (LinkedIn e e-mail provisórios, textos sugeridos). A alteração de nome do George no `pt-BR.ts` continua só no checkout dele, sem commit, até a T-015 ser retomada.
 
 ## Dev
 
@@ -48,3 +49,4 @@ Substitui o LinkedIn e o e-mail provisórios (`PREENCHER`) e revisa os textos su
 ## Log
 
 - 2026-10-15 — tarefa criada
+- 2026-10-17 — orquestrador: adiada por decisão do George (conteúdo genérico por enquanto)
