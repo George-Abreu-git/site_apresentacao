@@ -66,6 +66,18 @@ Conceitos para estudo: error boundary; type guard sobre `unknown`; defesa em pro
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: 5 cenários e2e em `e2e/testes/projetos.spec.ts` ("Projetos: projeto fora do formato na resposta (T-018)", celular e desktop): item sem `stacks`, `stacks` em texto, link `javascript:`, `github` fora do formato — o aviso `role="status"` mostra `ptBR.projetos.erro` uma vez, sem cards, `h2` de Projetos, conteúdo estático e 6 seções de pé, sem rolagem horizontal, sem link `javascript:`, sem `pageerror`, erro no console ou diálogo; e erro ao desenhar um card simulado com `addInitScript` (`Intl.NumberFormat.prototype.format` lança para um número marcado; independe do BUG-2), contido em Projetos, com o menu ainda funcionando. Os 6 falham contra o código da `main` (mutação manual) e passam com a correção; estáveis com `--repeat-each=5` (60/60). `seguranca.spec.ts` reescrito para o novo comportamento: endereço não http(s) da API (`javascript:`, `JAVASCRIPT:`, espaço antes, `data:`) não vira link nem roda. Container Linux (DejaVu, `pt-BR.ts` do HEAD): e2e 294 passaram, 12 pulados; shared 5, API 227 + 4, web 169 + 2, hooks 412; lint, build e validador OK.
+Arquivos alterados:
+- `e2e/testes/projetos.spec.ts`, `e2e/testes/seguranca.spec.ts`
+Pendências:
+1. *(T-027)* erro de tipo já existente em `e2e/testes/projetos.spec.ts:238`.
+2. *(informativo)* no cenário 5 o `console.error` do React ao segurar o erro aparece repetido no log `[WebServer]` (ruído).
+Decisão pendente: nenhuma
+Conceitos para estudo: `page.addInitScript` para injetar falha; mutação manual; `pageerror` × `console.error` × erro segurado por error boundary; allowlist de esquemas em `href`.
+
 ## Estudo
 
 ## DevOps
@@ -76,3 +88,4 @@ Conceitos para estudo: error boundary; type guard sobre `unknown`; defesa em pro
 - 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-16 — dev: CONCLUIDO — validação da resposta + error boundary na seção Projetos
 - 2026-10-16 — code-reviewer: APROVADO — validação + error boundary; aviso para a T-019 anotado
+- 2026-10-16 — qa: PASSOU — 5 cenários e2e; suíte verde no container Linux
