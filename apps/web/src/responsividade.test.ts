@@ -217,7 +217,7 @@ describe('responsividade (RNF-01)', () => {
       }
     });
 
-    it('a quebra em qualquer ponto fica só nos links-botão: o resto da página continua com break-word', () => {
+    it('a quebra em qualquer ponto fica só nos links-botão e nas etiquetas: o resto da página continua com break-word', () => {
       // Com `anywhere` na página toda, a marca do cabeçalho encolheria e quebraria no meio do nome
       // em vez de o menu descer para a linha de baixo.
       const globais = semComentarios(arquivosCss['./index.css']);
@@ -226,6 +226,58 @@ describe('responsividade (RNF-01)', () => {
       expect(globais).not.toMatch(/overflow-wrap:\s*anywhere/);
       expect(cabecalho).not.toMatch(/overflow-wrap:\s*anywhere/);
       expect(menu).not.toMatch(/overflow-wrap:\s*anywhere/);
+    });
+  });
+
+  // T-028 (achado do qa na T-025): em 360px, um nome de tecnologia longo e sem espaço fazia a página
+  // rolar para o lado. Cada etiqueta é um item flex, e item flex não encolhe abaixo da largura mínima
+  // do conteúdo (`min-width: auto`). Com o `break-word` do body essa largura mínima é a palavra
+  // inteira; com `anywhere` ela passa a ser uma letra, e a etiqueta pode encolher e quebrar a palavra.
+  describe('etiquetas de tecnologia com nome longo (T-028)', () => {
+    const cartao = semComentarios(arquivosCss['./componentes/CartaoDeProjeto/CartaoDeProjeto.module.css']);
+    const stacks = semComentarios(arquivosCss['./componentes/Stacks/Stacks.module.css']);
+
+    /** Etiqueta = uma "pílula": borda totalmente arredondada (`border-radius: 999px`). */
+    function etiquetas() {
+      return Object.entries(arquivosCss).flatMap(([arquivo, css]) =>
+        regrasDaBase(css)
+          .filter(({ corpo }) => /border-radius:\s*999px/.test(corpo))
+          .map((regra) => ({ arquivo, ...regra })),
+      );
+    }
+
+    it('card de projeto: a etiqueta da stack deixa uma palavra maior que o card quebrar dentro dela', () => {
+      expect(corpoDaRegra(cartao, '.stack')).toMatch(/overflow-wrap:\s*anywhere/);
+    });
+
+    it('seção Stacks: a etiqueta da tecnologia deixa uma palavra maior que a coluna quebrar dentro dela', () => {
+      expect(corpoDaRegra(stacks, '.tecnologia')).toMatch(/overflow-wrap:\s*anywhere/);
+    });
+
+    it('toda etiqueta (pílula) do site quebra palavra longa, inclusive as que surgirem depois', () => {
+      const encontradas = etiquetas();
+
+      expect(encontradas.map(({ arquivo, seletor }) => `${arquivo} ${seletor}`)).toEqual(
+        expect.arrayContaining([
+          './componentes/CartaoDeProjeto/CartaoDeProjeto.module.css .stack',
+          './componentes/Stacks/Stacks.module.css .tecnologia',
+        ]),
+      );
+      for (const { arquivo, seletor, corpo } of encontradas) {
+        expect(corpo, `${arquivo} ${seletor}`).toMatch(/overflow-wrap:\s*anywhere/);
+      }
+    });
+
+    it('as etiquetas descem para a linha de baixo antes de quebrar a palavra (listas com flex-wrap)', () => {
+      // A largura com que o item entra na fileira é a do texto inteiro: uma etiqueta curta que não cabe
+      // desce de linha inteira; só a palavra maior que a linha toda é quebrada.
+      expect(corpoDaRegra(cartao, '.stacks')).toMatch(/flex-wrap:\s*wrap/);
+      expect(corpoDaRegra(stacks, '.tecnologias')).toMatch(/flex-wrap:\s*wrap/);
+    });
+
+    it('seção Stacks: o nome quebra em vez de ser cortado ou escondido', () => {
+      // O card já é conferido no bloco da T-025; aqui, o mesmo para a seção Stacks.
+      expect(stacks).not.toMatch(/overflow(-x)?:\s*(hidden|clip)|text-overflow|white-space:\s*nowrap/);
     });
   });
 });

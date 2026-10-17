@@ -27,6 +27,8 @@
   border: 1px solid var(--cor-borda);
   border-radius: 999px;
   background: var(--cor-superficie);
+  /* Nome longo quebra dentro da etiqueta em vez de alargar a coluna (mesmo motivo do `.stack` do card, T-028). */
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 36rem) {

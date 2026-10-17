@@ -34,6 +34,12 @@
   border: 1px solid var(--cor-borda);
   border-radius: 999px;
   font-size: 0.875rem;
+  /*
+   * A etiqueta é um item flex: não encolhe abaixo da largura mínima do texto. Com o `break-word` do
+   * body, essa largura é a palavra inteira, e um nome longo passava da tela; `anywhere` entra nessa
+   * medida, e a etiqueta pode encolher e quebrar a palavra dentro dela (T-028).
+   */
+  overflow-wrap: anywhere;
 }
 
 .dados {
