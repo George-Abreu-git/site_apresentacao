@@ -2,8 +2,17 @@ import type { Projeto } from '@site-apresentacao/shared';
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { capturarErrosDeRenderizacao } from '../../apoio-de-testes/capturar-erros-de-renderizacao';
+import { TITULO_DO_CARTAO_QUE_LANCA_ERRO } from '../../apoio-de-testes/cartao-que-lanca-erro';
 import { conteudo } from '../../conteudo';
 import Projetos from './Projetos';
+
+// O card verdadeiro não tem erro conhecido ao desenhar. Para provar que a seção segura um erro
+// desses, o card é trocado por um que lança erro só para um título combinado; os outros projetos
+// aparecem com o card verdadeiro. (O vi.mock é içado para o topo do arquivo pelo Vitest.)
+vi.mock('../CartaoDeProjeto/CartaoDeProjeto', async (importarOriginal) => {
+  const { comCartaoQueLancaErro } = await import('../../apoio-de-testes/cartao-que-lanca-erro');
+  return comCartaoQueLancaErro(await importarOriginal());
+});
 
 const { secoes } = conteudo;
 const textos = conteudo.projetos;
@@ -146,16 +155,10 @@ describe('Projetos (RF-05, RNF-03)', () => {
   });
 
   it('quando um card lança erro ao desenhar, a seção troca os cards pela mensagem amigável (T-018)', async () => {
-    // A data passa na conferência de formato (é um texto), mas o Intl lança RangeError ao formatá-la
-    // (BUG-2, corrigido no card pela T-019). Serve aqui como exemplo de erro de renderização.
+    // O projeto está no formato certo; quem lança o erro é o card simulado (vi.mock no topo do arquivo).
     simularApiRespondendo([
       ...PROJETOS,
-      {
-        titulo: 'Data inválida',
-        descricao: 'O card lança erro ao desenhar',
-        stacks: ['React'],
-        github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1, ultimaAtualizacao: 'não é uma data' },
-      },
+      { titulo: TITULO_DO_CARTAO_QUE_LANCA_ERRO, descricao: 'O card lança erro ao desenhar', stacks: ['React'] },
     ]);
     const captura = capturarErrosDeRenderizacao();
 

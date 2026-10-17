@@ -57,15 +57,36 @@ function DadosVivos({ github }: { github?: DadosVivosDoGithub }) {
         <dt>{textos.estrelas}</dt>
         <dd>{formatoDeNumero.format(github.estrelas)}</dd>
       </div>
-      <div className={estilos.dado}>
-        <dt>{textos.ultimaAtualizacao}</dt>
-        <dd>
-          {/* <time dateTime> guarda a data original para máquinas (buscadores, leitores); a tela mostra a formatada. */}
-          <time dateTime={github.ultimaAtualizacao}>{formatoDeData.format(new Date(github.ultimaAtualizacao))}</time>
-        </dd>
-      </div>
+      <UltimaAtualizacao data={github.ultimaAtualizacao} />
     </dl>
   );
+}
+
+/** A data do último push, formatada. Some quando a data não é válida, em vez de derrubar o card (T-019). */
+function UltimaAtualizacao({ data }: { data: string }) {
+  const dataFormatada = formatarData(data);
+  if (dataFormatada === null) return null;
+
+  return (
+    <div className={estilos.dado}>
+      <dt>{textos.ultimaAtualizacao}</dt>
+      <dd>
+        {/* <time dateTime> guarda a data original para máquinas (buscadores, leitores); a tela mostra a formatada. */}
+        <time dateTime={data}>{dataFormatada}</time>
+      </dd>
+    </div>
+  );
+}
+
+/**
+ * Formata a data no padrão do idioma do conteúdo, ou devolve `null` se ela não for válida.
+ * A API já recusa datas inválidas, mas o card se protege: com uma data inválida,
+ * `Intl.DateTimeFormat.format` lança RangeError e o card inteiro deixaria de aparecer.
+ */
+function formatarData(texto: string): string | null {
+  const data = new Date(texto);
+  // Uma data inválida vira um `Date` cujo valor numérico é NaN.
+  return Number.isNaN(data.getTime()) ? null : formatoDeData.format(data);
 }
 
 /** Links do repositório e da demo; cada um só aparece se o projeto tiver o endereço. */

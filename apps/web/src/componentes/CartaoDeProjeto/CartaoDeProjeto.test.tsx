@@ -161,22 +161,47 @@ describe('CartaoDeProjeto (RF-05)', () => {
     }
   });
 
-  // BUG CONHECIDO (T-016): `formatoDeData.format(new Date(...))` lança RangeError ("Invalid time value")
-  // quando `ultimaAtualizacao` não é uma data válida. Sem error boundary, o erro derruba a página inteira.
-  // A API só confere que `pushed_at` é um texto (github-cliente.ts), então um texto qualquer chega até aqui.
-  // Esperado: o card aparece, sem a data (ou com ela omitida). Obtido: a renderização lança erro.
-  it.fails('data de atualização inválida não derruba o card', () => {
-    const projeto: Projeto = {
-      ...PROJETO_COMPLETO,
-      github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1, ultimaAtualizacao: 'não é uma data' },
-    };
-    const captura = capturarErrosDeRenderizacao();
-
-    try {
-      render(<CartaoDeProjeto projeto={projeto} />);
-      expect(screen.getByRole('article', { name: PROJETO_COMPLETO.titulo })).toBeInTheDocument();
-    } finally {
-      captura.parar();
+  // T-019 (BUG-2 da T-016): antes, `formatoDeData.format(new Date(...))` lançava RangeError
+  // ("Invalid time value") com uma data inválida, e o erro derrubava a página inteira.
+  describe('com data de atualização inválida (T-019)', () => {
+    function projetoComData(ultimaAtualizacao: string): Projeto {
+      return {
+        ...PROJETO_COMPLETO,
+        github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1234, ultimaAtualizacao },
+      };
     }
+
+    it('não derruba o card', () => {
+      const captura = capturarErrosDeRenderizacao();
+
+      try {
+        render(<CartaoDeProjeto projeto={projetoComData('não é uma data')} />);
+
+        expect(screen.getByRole('article', { name: PROJETO_COMPLETO.titulo })).toBeInTheDocument();
+        expect(captura.erros).toEqual([]);
+      } finally {
+        captura.parar();
+      }
+    });
+
+    it.each([
+      ['um texto qualquer', 'não é uma data'],
+      ['um texto vazio', ''],
+      ['uma data que não existe', '2026-13-45T99:00:00Z'],
+    ])('omite a data quando ela é %s', (_descricao, ultimaAtualizacao) => {
+      render(<CartaoDeProjeto projeto={projetoComData(ultimaAtualizacao)} />);
+
+      expect(screen.queryByText(textos.ultimaAtualizacao)).not.toBeInTheDocument();
+      // Sem data válida não há o que dar a máquinas: nenhum <time> fica na página.
+      expect(document.querySelector('time')).not.toBeInTheDocument();
+    });
+
+    it('continua mostrando os outros dados vivos (linguagem e estrelas) e os links', () => {
+      render(<CartaoDeProjeto projeto={projetoComData('não é uma data')} />);
+
+      expect(valorDoDado(textos.linguagem)).toBe('TypeScript');
+      expect(valorDoDado(textos.estrelas)).toBe('1.234');
+      expect(screen.getAllByRole('link')).toHaveLength(2);
+    });
   });
 });
