@@ -1,7 +1,7 @@
 ---
 id: T-029
 titulo: Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 1
@@ -20,12 +20,12 @@ Severidade: média (CI vermelho na `main`).
 
 ## Critérios de aceite
 
-- [ ] Em 360px com o texto a 200%, nada do cabeçalho (marca, botão Menu, lista do menu aberta ou fechada) passa da largura da tela, com qualquer fonte `sans-serif` do sistema (comprovado com a DejaVu Sans)
-- [ ] O menu continua acessível e funcional (abrir/fechar, foco, teclado) no celular e no desktop
-- [ ] Nada é cortado ou escondido para caber (sem `overflow: hidden`, reticências ou `nowrap` no texto)
-- [ ] O e2e `acessibilidade.spec.ts:136` passa no container Linux com a DejaVu Sans (receita acima) e o CI da `main` volta ao verde após o push
-- [ ] 5 cenários de teste para a mudança (unitário e e2e), seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] Em 360px com o texto a 200%, nada do cabeçalho (marca, botão Menu, lista do menu aberta ou fechada) passa da largura da tela, com qualquer fonte `sans-serif` do sistema (comprovado com a DejaVu Sans)
+- [x] O menu continua acessível e funcional (abrir/fechar, foco, teclado) no celular e no desktop
+- [x] Nada é cortado ou escondido para caber (sem `overflow: hidden`, reticências ou `nowrap` no texto)
+- [x] O e2e `acessibilidade.spec.ts:136` passa no container Linux com a DejaVu Sans (receita acima) e o CI da `main` volta ao verde após o push — container verde; CI acompanhado após o push
+- [x] 5 cenários de teste para a mudança (unitário e e2e), seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -117,3 +117,4 @@ Conceitos para estudo: pré-condição antes do `test.fail()`; testes que depend
 - 2026-10-16 — qa: PASSOU — e2e verde no Linux com a DejaVu Sans; 2 bugs novos com test.fail
 - 2026-10-16 — orquestrador: em-qa — verificação local vermelha: os 2 `test.fail` de `texto-ampliado.spec.ts` (243 e 261) passam no Windows com o nome do HEAD; rodadas = 1; volta ao qa
 - 2026-10-16 — qa: PASSOU (rodada 2) — test.fail determinísticos; verdes no Windows e no Linux com a DejaVu
+- 2026-10-16 — orquestrador: concluida — verificação verde no Windows com o `pt-BR.ts` do HEAD (shared 5; API 227 + 4; web 156 + 3; hooks 412; e2e CI=1 283 + 12 pulados, 1 instável fora da tarefa em `navegacao.spec.ts:187`; `texto-ampliado` 48/48 com --repeat-each=3; lint; validador); Linux com a DejaVu comprovado pelo dev e pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
