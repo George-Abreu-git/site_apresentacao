@@ -1,7 +1,7 @@
 ---
 id: T-030
 titulo: Âncora não esconde o título atrás do cabeçalho alto
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -18,11 +18,11 @@ Severidade: média.
 
 ## Critérios de aceite
 
-- [ ] Ao seguir um link do menu ou uma âncora, o título da seção fica inteiro abaixo do cabeçalho, qualquer que seja a altura real dele (tamanho normal e texto a 200%, 360px a 1440px)
-- [ ] Navegação por Tab e Shift+Tab continua sem deixar o foco atrás do cabeçalho
-- [ ] O `test.fail` do bug em `texto-ampliado.spec.ts` vira teste normal e passa nos dois ambientes (Windows e container Linux com a DejaVu Sans)
-- [ ] 5 cenários de teste para a mudança, seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] Ao seguir um link do menu ou uma âncora, o título da seção fica inteiro abaixo do cabeçalho, qualquer que seja a altura real dele (tamanho normal e texto a 200%, 360px a 1440px)
+- [x] Navegação por Tab e Shift+Tab continua sem deixar o foco atrás do cabeçalho
+- [x] O `test.fail` do bug em `texto-ampliado.spec.ts` vira teste normal e passa nos dois ambientes (Windows e container Linux com a DejaVu Sans)
+- [x] 5 cenários de teste para a mudança, seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -91,3 +91,4 @@ Conceitos para estudo: esperar a rolagem suave terminar antes de medir; `addInit
 - 2026-10-17 — dev: CONCLUIDO — altura real do cabeçalho medida com ResizeObserver
 - 2026-10-17 — code-reviewer: APROVADO — altura real medida; conversão do test.fail com o qa
 - 2026-10-17 — qa: PASSOU — test.fail convertido; 5 cenários e2e; verde no Linux e no Windows
+- 2026-10-17 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 184 + 2; hooks 412; e2e CI=1 336 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
