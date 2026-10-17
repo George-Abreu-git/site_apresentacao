@@ -87,6 +87,15 @@ Conceitos para estudo: media queries em rem × `font-size` do html; coluna impl�
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-025.md` (`consolidado: false`) explicando as duas causas (coluna implícita `auto` × `minmax(0, 1fr)` e `min-width: auto`; media queries em `rem` × texto a 200% e `flex-wrap` no par rótulo/valor), os testes (unitários que leem o CSS, e2e com textos longos, prova negativa, reprodução no container do CI) e 2 exercícios no DevTools. Conceitos reaproveitam nomes de diários anteriores. Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-025.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -97,3 +106,4 @@ Conceitos para estudo: media queries em rem × `font-size` do html; coluna impl�
 - 2026-10-16 — code-reviewer: APROVADO — causas corrigidas só com CSS; e2e Linux com o qa
 - 2026-10-16 — qa: PASSOU — BUG-Q4 convertido; suíte e2e verde no container Linux do CI
 - 2026-10-16 — orquestrador: concluida — verificação verde (local: shared 5, API 227 + 4 esperadas, web 151 + 3, hooks 412, e2e com CI=1 268 + 12 pulados, lint, validador; Linux: prova do qa no container do CI); `pt-BR.ts` do George em stash durante a verificação e devolvido; CI da main acompanhado após o push; diário de estudo disparado após a integração
+- 2026-10-16 — documentador: CONCLUIDO — diário integrado
