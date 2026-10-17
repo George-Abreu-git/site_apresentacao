@@ -77,6 +77,13 @@ Conceitos para estudo: BOM como bytes EF BB BF e como U+FEFF; teste de rota com 
 
 ## Estudo
 
+Resultado: CONCLUIDO
+Resumo: Diário em `docs/04-estudos/tarefas/T-021.md` (`consolidado: false`): o BUG-4 (BOM `EF BB BF`/U+FEFF mantido pelo `readFileSync` e recusado pelo `JSON.parse`), a correção com `startsWith`/`slice` no lugar de `trim()`, o `it.fails` que virou teste normal e os testes que pegam tanto o bug quanto uma correção ampla demais (`trimStart()`). Dois exercícios; nomes de conceito da T-020 reaproveitados.
+Arquivos alterados:
+- docs/04-estudos/tarefas/T-021.md
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -87,3 +94,4 @@ Conceitos para estudo: BOM como bytes EF BB BF e como U+FEFF; teste de rota com 
 - 2026-10-17 — code-reviewer: APROVADO — BOM inicial removido sem afetar o conteúdo
 - 2026-10-17 — qa: PASSOU — rota cobre o arquivo com BOM; suíte e2e verde no container Linux
 - 2026-10-17 — orquestrador: concluida — verificação verde (unitários, lint, validador, e2e 352 + 12 pulados); merge em main
+- 2026-10-17 — documentador: CONCLUIDO — diário integrado
