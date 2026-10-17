@@ -1,7 +1,7 @@
 ---
 id: T-025
 titulo: Texto longo nos cards de projeto não causa rolagem lateral
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -55,6 +55,19 @@ Commit: `fix(web): impede rolagem lateral com texto longo ou ampliado nos cards`
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff resolve as duas causas só com CSS e sem esconder conteúdo: `minmax(0, 1fr)` na grade já no celular (BUG-Q4; o `overflow-wrap: break-word` de `index.css` passa a funcionar) e `flex-wrap` no par rótulo/valor do card (texto a 200%, CI), coerente com `.stacks`, `.dados` e `.links`. Serviços e Stacks corrigidos por prevenção, com a mesma causa e cobertos pelo teste "toda grade…". 5 cenários novos que testam a regra de layout. Dev só em `apps/web/**`; sem segredos. Lint e validador verdes; unitários web falham só nos 3 testes de nome (pt-BR.ts do George, T-015). e2e no Linux não rodados pelo revisor.
+Arquivos alterados: nenhum
+Pendências:
+1. qa: converter os `test.fail` do BUG-Q4 (`e2e/testes/projetos.spec.ts` ~410), confirmar `acessibilidade.spec.ts:117` no container Linux e acompanhar o CI da `main` após o push.
+2. *opcional* — `responsividade.test.ts` (`semMediaQueries`): guarda para `@media` sem `{` (laço infinito) e extrair a contagem de chaves duplicada com `blocoDeMedia`.
+3. *opcional* — o cenário "toda grade…" exigirá exceção explícita para uma grade futura com outro desenho no celular.
+4. *opcional* — o unitário do cartão só cobre o React; a prova real é o e2e.
+Decisão pendente: nenhuma
+Conceitos para estudo: coluna implícita × `minmax(0, 1fr)`; `min-width: auto`; `overflow-wrap` só funciona se o contêiner encolhe; `flex-wrap`; limites do jsdom; WCAG 1.4.4/1.4.10.
+
 ## QA
 
 ## Estudo
@@ -66,3 +79,4 @@ Commit: `fix(web): impede rolagem lateral com texto longo ou ampliado nos cards`
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — prioridade por decisão do George (CI vermelho); dev chamado
 - 2026-10-16 — dev: CONCLUIDO — duas causas corrigidas em CSS; e2e de 200% verde no Linux
+- 2026-10-16 — code-reviewer: APROVADO — causas corrigidas só com CSS; e2e Linux com o qa
