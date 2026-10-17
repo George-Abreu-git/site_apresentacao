@@ -1,7 +1,7 @@
 ---
 id: T-019
 titulo: Data inválida do GitHub não derruba o card de projeto
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end, back-end, api]
 rodadas: 0
@@ -18,12 +18,12 @@ Severidade: baixa.
 
 ## Critérios de aceite
 
-- [ ] A API trata `pushed_at` que não é data válida como formato inesperado (`disponivel: false`)
-- [ ] O card não quebra com data inválida (mostra o card sem a data)
-- [ ] Os `it.fails` do BUG-2 (`github-cliente.spec.ts` e `CartaoDeProjeto.test.tsx`) viram testes normais e passam
-- [ ] Os testes da T-018 que usam a data inválida para provocar erro de renderização (`App.test.tsx`, "um erro ao desenhar um card fica contido…"; `Projetos.test.tsx`, "quando um card lança erro ao desenhar…") passam a provocar o erro de outra forma (ex.: `vi.mock` do `CartaoDeProjeto`), sem perder o que provam — aviso do code-reviewer da T-018
-- [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] A API trata `pushed_at` que não é data válida como formato inesperado (`disponivel: false`)
+- [x] O card não quebra com data inválida (mostra o card sem a data)
+- [x] Os `it.fails` do BUG-2 (`github-cliente.spec.ts` e `CartaoDeProjeto.test.tsx`) viram testes normais e passam
+- [x] Os testes da T-018 que usam a data inválida para provocar erro de renderização (`App.test.tsx`, "um erro ao desenhar um card fica contido…"; `Projetos.test.tsx`, "quando um card lança erro ao desenhar…") passam a provocar o erro de outra forma (ex.: `vi.mock` do `CartaoDeProjeto`), sem perder o que provam — aviso do code-reviewer da T-018
+- [x] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -68,6 +68,19 @@ Conceitos para estudo: validação na fronteira da API; type guard; regex com â
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Critérios atendidos. Bloco T-019 em `apps/api/test/github.e2e-spec.ts` (16 testes de rota: 9 datas inválidas viram `github: { disponivel: false }`, outros repositórios não são afetados, a falha não fica no cache, aviso no log sem token, 4 datas válidas passam inalteradas) e 5 cenários e2e em `e2e/testes/projetos.spec.ts` (14 execuções, celular e desktop: card sem "Atualizado em", variações de data, `<dl>` sem par órfão, página de pé sem erros no console, 360px e foco visível). Com o código do `main`, 10 testes de rota e 14/14 e2e falham. Suíte e2e no `t029-linux` (DejaVu Sans, `CI=true`): 350 passaram e 12 pulados, de 362. Unitários (shared 5, API 250 + 3 esperadas, web 189 + 1 esperada), lint, build, hooks (412) e validador verdes. API rodou 8 vezes (5 em sequência, 3 em paralelo) sem instabilidade.
+Arquivos alterados:
+- apps/api/test/github.e2e-spec.ts
+- e2e/testes/projetos.spec.ts
+Pendências:
+1. *observação, fora do escopo* — `Date.parse` do V8 aceita dias inexistentes (ex.: 2026-02-30) e os leva ao mês seguinte; não quebra o card.
+2. Localmente o web segue com as 3 falhas do `pt-BR.ts` do George (T-015 adiada); com o `pt-BR.ts` do HEAD, verde.
+Decisão pendente: nenhuma
+Conceitos para estudo: teste de rota com `fetch` simulado; provar que o teste falha sem a correção; cache que não guarda falhas; `pageerror` e `console` no Playwright; `<dl>` sem par órfão; `Date.parse` no Node e no Chrome; testes em paralelo para caçar instabilidade.
+
 ## Estudo
 
 ## DevOps
@@ -78,3 +91,5 @@ Conceitos para estudo: validação na fronteira da API; type guard; regex com â
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — API recusa data inválida; card omite a data
 - 2026-10-17 — code-reviewer: APROVADO — critérios atendidos; teste de rota com o qa
+- 2026-10-17 — qa: PASSOU — rota e e2e cobrem a data inválida; suíte e2e verde no container Linux
+- 2026-10-17 — orquestrador: concluida — verificação verde (unitários, lint, validador, e2e 350 + 12 pulados); merge em main
