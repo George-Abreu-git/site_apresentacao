@@ -1,7 +1,7 @@
 ---
 id: T-020
 titulo: Projetos com o mesmo título não geram chave duplicada no React
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end, back-end]
 rodadas: 0
@@ -55,6 +55,17 @@ Conceitos para estudo: validação em tempo de execução de dados `unknown`; no
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff atende aos 5 critérios: a API recusa títulos repetidos com mensagem que identifica os dois projetos (número e título), na mesma lista dos outros problemas; o `it.fails` do BUG-3 ficou, só com o comentário novo (opção A). 10 cenários novos (9 unitários e 1 de leitura de arquivo); o teste antigo de numeração manteve as asserções. Normalização razoável, documentada (README e JSDoc) e testada. Área do dev, sem segredos. API 260 + 3 esperadas; web 186 + 1 esperada + 3 do `pt-BR.ts` do George; lint e validador verdes.
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — avisar o George que a comparação ignora espaços nas pontas, espaços a mais no meio e maiúsculas/minúsculas (um pouco mais rígido que "título idêntico"); para mudar, uma linha em `tituloParaComparar` (`apps/api/src/projetos/validar-projetos-curados.ts:130`).
+2. *opcional* — teste de rota para título repetido, a critério do qa.
+Decisão pendente: nenhuma
+Conceitos para estudo: validação de dados `unknown`; normalização de texto para comparação; `Map` para duplicatas; fail fast; contrato entre front e API; `it.fails` como bug conhecido; teste que olha a saída em vez da implementação.
+
 ## QA
 
 ## Estudo
@@ -67,3 +78,4 @@ Conceitos para estudo: validação em tempo de execução de dados `unknown`; no
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado (parte da API; critério 3 levado ao George)
 - 2026-10-17 — George: critério 3 decidido (opção A, manter o `it.fails` do front)
 - 2026-10-17 — dev: CONCLUIDO — API recusa títulos repetidos; comentário do BUG-3 aponta para a API
+- 2026-10-17 — code-reviewer: APROVADO — critérios atendidos; normalização avisada ao George
