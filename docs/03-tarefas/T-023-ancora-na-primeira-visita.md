@@ -1,7 +1,7 @@
 ---
 id: T-023
 titulo: Abrir o site direto numa âncora rola até a seção
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -46,3 +46,4 @@ Severidade: média.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
