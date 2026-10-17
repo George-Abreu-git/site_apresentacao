@@ -21,7 +21,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-015-conteudo-real-do-site|T-015]] | Conteúdo real do site — LinkedIn, e-mail e textos revisados | backlog | eu-faco | front-end, docs |
 | [[docs/03-tarefas/T-016-pente-fino-de-testes|T-016]] | Pente-fino de testes unitários, de regressão e de ponta a ponta | concluida | agente-faz | qa, front-end, back-end, api |
 | [[docs/03-tarefas/T-017-tipos-shared-sem-build|T-017]] | Pacote shared resolvido sem build (tipos apontando para o código-fonte) | concluida | agente-faz | front-end, back-end |
-| [[docs/03-tarefas/T-018-projetos-fora-do-formato-derrubam-pagina|T-018]] | Projeto fora do formato na resposta da API não derruba a página | backlog | agente-faz | front-end, api |
+| [[docs/03-tarefas/T-018-projetos-fora-do-formato-derrubam-pagina|T-018]] | Projeto fora do formato na resposta da API não derruba a página | em-andamento | agente-faz | front-end, api |
 | [[docs/03-tarefas/T-019-data-invalida-do-github|T-019]] | Data inválida do GitHub não derruba o card de projeto | backlog | agente-faz | front-end, back-end, api |
 | [[docs/03-tarefas/T-020-chave-duplicada-em-projetos|T-020]] | Projetos com o mesmo título não geram chave duplicada no React | backlog | agente-faz | front-end, back-end |
 | [[docs/03-tarefas/T-021-projetos-json-com-bom|T-021]] | Arquivo curado salvo em UTF-8 com BOM é lido normalmente | backlog | agente-faz | back-end, api |
