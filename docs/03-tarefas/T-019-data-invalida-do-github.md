@@ -1,7 +1,7 @@
 ---
 id: T-019
 titulo: Data inválida do GitHub não derruba o card de projeto
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end, back-end, api]
 rodadas: 0
@@ -54,6 +54,18 @@ Commit: `fix(github): recusa data inválida do GitHub e protege o card de projet
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff atende os critérios sem escopo extra: API recusa `pushed_at` fora de data e hora ISO 8601 (regex com âncoras + `Date.parse`, num type guard); o card omite a data inválida em vez de quebrar; os dois `it.fails` do BUG-2 viraram testes normais; os testes da T-018 provocam o erro com `vi.mock` (`importOriginal`) e um card simulado, sem perder o que provam. API 234 + 3 esperadas; web só com as 3 falhas de nome (`pt-BR.ts` do George); lint, `tsc -b` e validador verdes. Área do dev; sem segredos.
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — numa execução em segundo plano, `npm test -w apps/api` falhou sem mostrar o teste; duas novas execuções passaram (234 + 3). Possível instabilidade: o qa observa.
+2. *opcional* — `Date.parse` do V8 pode aceitar dias inexistentes (ex.: 30/02), virando data válida no mês seguinte; não quebra o card.
+3. qa: teste de rota mostrando que `pushed_at` inválido vira `github: { disponivel: false }` em `/api/projetos`.
+Decisão pendente: nenhuma
+Conceitos para estudo: validação na fronteira da API; type guard; regex com âncoras e ISO 8601; limites do `Date.parse`; programação defensiva no front; `vi.mock` com `importOriginal` e hoisting; dublê para provocar erro.
+
 ## QA
 
 ## Estudo
@@ -65,3 +77,4 @@ Commit: `fix(github): recusa data inválida do GitHub e protege o card de projet
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-17 — dev: CONCLUIDO — API recusa data inválida; card omite a data
+- 2026-10-17 — code-reviewer: APROVADO — critérios atendidos; teste de rota com o qa
