@@ -47,6 +47,16 @@ describe('lerProjetosCurados', () => {
     expect(() => lerProjetosCurados(arquivo)).toThrow(/projeto 1 \("Sem stacks"\): campo "stacks"/);
   });
 
+  it('dá erro com o caminho e os projetos envolvidos quando há títulos repetidos', () => {
+    const repetido = { titulo: 'Primeiro', descricao: 'A', stacks: ['React'] };
+    writeFileSync(arquivo, JSON.stringify([repetido, { ...repetido, descricao: 'B' }]));
+
+    expect(() => lerProjetosCurados(arquivo)).toThrow(arquivo);
+    expect(() => lerProjetosCurados(arquivo)).toThrow(
+      /projeto 2 \("Primeiro"\): título repetido — o mesmo do projeto 1 \("Primeiro"\)/,
+    );
+  });
+
   it('dá erro claro quando o arquivo está vazio', () => {
     writeFileSync(arquivo, '');
 

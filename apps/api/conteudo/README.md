@@ -21,6 +21,10 @@ sem o campo `github` (tipo `ProjetoCurado`, em `src/projetos/projeto-curado.ts`)
 A ordem dos itens no arquivo é a ordem no site. Campos fora desta tabela são recusados (pega erros de digitação, ex.: `"titlo"`).
 O campo `github` também é recusado: ele é preenchido pela API, nunca pelo arquivo.
 
+Cada projeto precisa de um **título único**: o título identifica o projeto no site (e é a chave dos cards no front).
+Na comparação, espaços nas pontas, espaços a mais no meio e maiúsculas/minúsculas não contam:
+`"Site"`, `" site "` e `"SITE"` são o mesmo título e o arquivo é recusado.
+
 Exemplo:
 
 ```json
@@ -44,6 +48,7 @@ o caminho do arquivo e todos os problemas encontrados, por exemplo:
 ```
 ArquivoDeProjetosInvalidoError: Arquivo curado de projetos inválido (.../apps/api/conteudo/projetos.json):
 projeto 2 ("Meu projeto"): campo "stacks" é obrigatório e deve ser uma lista de textos não vazios
+projeto 3 ("meu projeto"): título repetido — o mesmo do projeto 2 ("Meu projeto"); cada projeto precisa de um título único
 ```
 
 A validação fica em `src/projetos/validar-projetos-curados.ts`; o teste

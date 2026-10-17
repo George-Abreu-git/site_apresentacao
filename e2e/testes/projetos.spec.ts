@@ -5,6 +5,8 @@
 // A simulação de cada teste substitui a padrão do `test` de e2e/apoio/teste.ts (API sem resposta).
 // Os textos esperados são lidos do arquivo de conteúdo, como nos outros testes.
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop).
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import type { Projeto } from '../../packages/shared/src/projeto';
@@ -684,4 +686,27 @@ test.describe('Projetos: texto longo (T-025)', () => {
       expect((await medirEstouroHorizontal(page)).estourados).toEqual([]);
     });
   }
+});
+
+// T-020 (BUG-3 da T-016): o título é a `key` dos cards no React, e a API recusa títulos repetidos
+// no arquivo curado (a API nem sobe; ver apps/api/test/projetos.e2e-spec.ts). Aqui a API simulada
+// responde com o conteúdo do projetos.json do repositório, como a API de verdade faria (sem o
+// "github", que é opcional): a página mostra um card por projeto, sem títulos repetidos e sem o
+// aviso de chave duplicada do React no console (o modo de desenvolvimento do Vite o mostraria).
+test.describe('Projetos: títulos únicos com o conteúdo curado de verdade (T-020)', () => {
+  test('um card por projeto do arquivo curado, sem título repetido e sem erro no console', async ({ page }) => {
+    const curados = JSON.parse(
+      readFileSync(join(__dirname, '../../apps/api/conteudo/projetos.json'), 'utf-8'),
+    ) as Projeto[];
+    const erros = observarErros(page);
+    await simularApi(page, curados);
+    await page.goto('/#projetos');
+
+    const titulos = secaoProjetos(page).getByRole('heading', { level: 3 });
+    await expect(titulos).toHaveText(curados.map((p) => p.titulo));
+    await expect(itensDaLista(page)).toHaveCount(curados.length);
+    const comoOVisitanteVe = (await titulos.allInnerTexts()).map((t) => t.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR'));
+    expect(new Set(comoOVisitanteVe).size, 'títulos repetidos na seção Projetos').toBe(curados.length);
+    expect(erros).toEqual({ naoTratados: [], console: [], dialogos: [] });
+  });
 });

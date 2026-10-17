@@ -332,3 +332,126 @@ describe('GET /api/projetos: bordas e segurança (pente-fino da T-016)', () => {
     expect(comBarra.body).toEqual(semBarra.body);
   });
 });
+
+// T-020 (BUG-3 da T-016): o título identifica o projeto no site e é a `key` dos cards no React.
+// A API recusa títulos repetidos no arquivo curado (decisão do George): com o arquivo assim,
+// ela nem sobe, e o front nunca recebe dois cards com o mesmo título.
+describe('arquivo curado com títulos repetidos (T-020)', () => {
+  let pasta: string;
+  let arquivo: string;
+
+  beforeEach(() => {
+    pasta = mkdtempSync(join(tmpdir(), 'api-projetos-titulos-'));
+    arquivo = join(pasta, 'projetos.json');
+  });
+
+  afterEach(() => {
+    rmSync(pasta, { recursive: true, force: true });
+  });
+
+  /** Tenta subir a API com o arquivo e devolve a mensagem do erro (falha se a API subir). */
+  async function erroAoSubirCom(projetos: unknown[]): Promise<string> {
+    writeFileSync(arquivo, JSON.stringify(projetos, null, 2));
+    const app = await criarAppComArquivo(arquivo).catch((erro: Error) => erro);
+    if (!(app instanceof Error)) {
+      await app.close();
+      throw new Error('a API subiu com títulos repetidos no arquivo curado');
+    }
+    return app.message;
+  }
+
+  /** Como o visitante vê o título no card: sem espaços nas pontas, espaços juntados, sem diferença de caixa. */
+  function tituloNoCard(titulo: string): string {
+    return titulo.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+  }
+
+  it.each([
+    ['idêntico', 'Portfólio pessoal'],
+    ['com espaços nas pontas e a mais no meio', '  Portfólio   pessoal '],
+    ['só com outra caixa', 'PORTFÓLIO PESSOAL'],
+  ])('título %s ao de outro projeto: a API não sobe, e o erro traz o arquivo e os dois projetos', async (_caso, repetido) => {
+    const mensagem = await erroAoSubirCom([
+      { titulo: 'Portfólio pessoal', descricao: 'o primeiro', stacks: ['React'] },
+      { titulo: 'Outro', descricao: 'no meio', stacks: ['Go'] },
+      { titulo: repetido, descricao: 'o repetido', stacks: ['Rust'] },
+    ]);
+
+    expect(mensagem).toContain('Arquivo curado de projetos inválido');
+    expect(mensagem).toContain(arquivo);
+    expect(mensagem).toContain(
+      `projeto 3 ("${repetido}"): título repetido — o mesmo do projeto 1 ("Portfólio pessoal"); cada projeto precisa de um título único`,
+    );
+    // Só o repetido é apontado: o primeiro com o título e o do meio não são erro.
+    expect(mensagem).not.toMatch(/^projeto [12]\b/m);
+  });
+
+  it('títulos parecidos, mas diferentes, sobem normalmente: GET /api/projetos responde 200 com todos, na ordem', async () => {
+    const projetos = [
+      { titulo: 'Site de apresentação', descricao: 'd', stacks: ['React'] },
+      { titulo: 'Site de apresentação 2', descricao: 'd', stacks: ['React'] },
+      { titulo: 'Site de apresentacao', descricao: 'sem acento é outro texto', stacks: ['React'] },
+      { titulo: 'Site-de-apresentação', descricao: 'hífen não é espaço', stacks: ['React'] },
+      { titulo: 'Apresentação', descricao: 'd', stacks: ['React'] },
+    ];
+    writeFileSync(arquivo, JSON.stringify(projetos));
+    const app = await criarAppComArquivo(arquivo);
+
+    try {
+      const resposta = await request(app.getHttpServer()).get('/api/projetos');
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body).toEqual(projetos);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('repetição junto com outros erros: tudo numa única mensagem, uma linha por problema', async () => {
+    const mensagem = await erroAoSubirCom([
+      { titulo: 'Agenda', descricao: 'd', stacks: ['Go'] },
+      { titulo: 'Agenda', descricao: '', stacks: ['Go'] },
+      { titulo: '', descricao: 'sem título não entra na comparação', stacks: ['Go'] },
+      { titulo: 'Loja', descricao: 'd', stacks: ['Go'], demo: 'ftp://loja' },
+    ]);
+
+    const problemas = mensagem.split('\n').slice(1);
+    expect(problemas).toHaveLength(4);
+    expect(problemas).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^projeto 2 \("Agenda"\): campo "descricao"/),
+        expect.stringMatching(/^projeto 3: campo "titulo"/),
+        expect.stringMatching(/^projeto 4 \("Loja"\): campo "demo"/),
+        'projeto 2 ("Agenda"): título repetido — o mesmo do projeto 1 ("Agenda"); cada projeto precisa de um título único',
+      ]),
+    );
+  });
+
+  it('o projetos.json do repositório sobe a API, e GET /api/projetos não traz títulos repetidos', async () => {
+    const app = await criarAppComArquivo(CAMINHO_DO_ARQUIVO_CURADO);
+
+    try {
+      const resposta = await request(app.getHttpServer()).get('/api/projetos');
+
+      expect(resposta.status).toBe(200);
+      const titulos = (resposta.body as Projeto[]).map((p) => tituloNoCard(p.titulo));
+      expect(titulos.length).toBeGreaterThanOrEqual(2);
+      expect(new Set(titulos).size, `títulos repetidos em ${CAMINHO_DO_ARQUIVO_CURADO}`).toBe(titulos.length);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('três projetos com o mesmo título: as duas repetições apontam para o primeiro, que não é apontado', async () => {
+    const mensagem = await erroAoSubirCom([
+      { titulo: 'Blog', descricao: 'outro', stacks: ['Go'] },
+      { titulo: 'Jogo da velha', descricao: 'o primeiro', stacks: ['TypeScript'] },
+      { titulo: 'Jogo da velha', descricao: 'o segundo', stacks: ['TypeScript'] },
+      { titulo: 'jogo da velha', descricao: 'o terceiro', stacks: ['TypeScript'] },
+    ]);
+
+    expect(mensagem.split('\n').slice(1)).toEqual([
+      'projeto 3 ("Jogo da velha"): título repetido — o mesmo do projeto 2 ("Jogo da velha"); cada projeto precisa de um título único',
+      'projeto 4 ("jogo da velha"): título repetido — o mesmo do projeto 2 ("Jogo da velha"); cada projeto precisa de um título único',
+    ]);
+  });
+});
