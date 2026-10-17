@@ -8,13 +8,28 @@
 //
 // Cada teste roda nos dois projetos do playwright.config.ts (celular e desktop). Em 360px o
 // desktop também usa o menu compacto (o menu em linha começa em 48rem = 768px).
+//
+// O tamanho do cabeçalho depende da fonte e do nome na marca: com a DejaVu Sans, "George Siqueira"
+// quebra em 2 linhas a 200%; com a Segoe UI, cabe em 1. Os testes que dependem da altura do
+// cabeçalho trocam o nome da marca por um de tamanho conhecido (curto ou longo) e conferem a
+// condição medida antes de esperar o resultado, para dar o mesmo resultado em qualquer sistema.
 import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
-import { PALAVRA_LONGA, esperarFocoVisivel, medirEstouroHorizontal, medirSecao, medirTexto } from '../apoio/pagina';
+import { PALAVRA_LONGA, esperarFocoVisivel, medirEstouroHorizontal, medirSecao, medirTexto, trocarTexto } from '../apoio/pagina';
 import { PROJETOS_DE_EXEMPLO, simularApi } from '../apoio/api';
 import { expect, test } from '../apoio/teste';
 
 const LARGURA_DO_CELULAR = 360;
+
+/** Um nome curto: no tamanho normal, cabe ao lado do botão Menu em 360px com qualquer fonte comum. */
+const NOME_CURTO = 'George Siqueira';
+
+/**
+ * Um nome longo (43 letras, 6 palavras): a 200% em 360px, a marca quebra em 3 linhas ou mais com
+ * qualquer fonte, e o cabeçalho passa de ~300px. Assim os bugs do cabeçalho alto aparecem sempre,
+ * e não só com fontes largas (como a DejaVu Sans do CI) ou com o nome real mais comprido.
+ */
+const NOME_LONGO = 'George Abreu de Siqueira Albuquerque Santos';
 
 /** Como quem aumenta o tamanho da fonte no navegador (WCAG 1.4.4): as medidas em rem crescem juntas. */
 async function ampliarTexto(page: Page) {
@@ -36,8 +51,16 @@ function cabecalho(page: Page): Locator {
   return page.getByRole('banner');
 }
 
-function marca(page: Page): Locator {
-  return cabecalho(page).getByRole('link', { name: ptBR.pessoa.nome, exact: true });
+function marca(page: Page, nome = ptBR.pessoa.nome): Locator {
+  return cabecalho(page).getByRole('link', { name: nome, exact: true });
+}
+
+/** Troca o nome na marca, como se o George tivesse escrito outro no arquivo de conteúdo. */
+async function trocarNomeDaMarca(page: Page, nome: string): Promise<Locator> {
+  await trocarTexto(marca(page), nome);
+  const nova = marca(page, nome);
+  await expect(nova).toHaveText(nome);
+  return nova;
 }
 
 function navegacao(page: Page): Locator {
@@ -104,16 +127,19 @@ async function trocarRotulo(link: Locator, novo: string) {
 test.describe('Cabeçalho e links-botão com o texto ampliado a 200% (T-029; WCAG 1.4.4 e 1.4.10)', () => {
   // Regressão: a quebra em linhas (flex-wrap) e o padding vertical novo não podem mudar o cabeçalho
   // de quem não ampliou o texto. 64px de altura (4rem) + 1px da borda de baixo.
+  // A marca recebe um nome curto: um nome real comprido pode, com razão, descer o menu para a linha
+  // de baixo em 360px (com a DejaVu Sans, "George Abreu de Siqueira" já não cabe ao lado do botão).
   for (const largura of [LARGURA_DO_CELULAR, 1440]) {
-    test(`${largura}px no tamanho normal: o cabeçalho continua numa linha só, com 64px de altura`, async ({ page }) => {
+    test(`${largura}px no tamanho normal, com um nome curto na marca: o cabeçalho continua numa linha só, com 64px de altura`, async ({ page }) => {
       await page.setViewportSize({ width: largura, height: 800 });
       await page.goto('/');
+      const marcaCurta = await trocarNomeDaMarca(page, NOME_CURTO);
 
       const doCabecalho = await caixa(cabecalho(page));
       expect(doCabecalho.altura).toBeCloseTo(65, 0);
 
       // A marca e o menu (botão no celular, links no desktop) ficam lado a lado, centralizados na mesma linha.
-      const daMarca = await caixa(marca(page));
+      const daMarca = await caixa(marcaCurta);
       const doMenu = largura < 768 ? botaoMenu(page) : navegacao(page).getByRole('link');
       for (const item of await doMenu.all()) {
         const doItem = await caixa(item);
@@ -232,18 +258,39 @@ test.describe('Cabeçalho e links-botão com o texto ampliado a 200% (T-029; WCA
   });
 });
 
-test.describe('Cabeçalho em 2 linhas a 200%: bugs conhecidos (achados da T-029)', () => {
+test.describe('Cabeçalho em várias linhas a 200%: bugs conhecidos (achados da T-029)', () => {
+  // Os dois bugs só aparecem quando o cabeçalho fica alto, o que depende da fonte e do nome: com a
+  // DejaVu Sans (CI) e "George Siqueira", o cabeçalho tem ~249px e os bugs aparecem; com a Segoe UI
+  // (Windows), ~201px e não aparecem. Por isso a marca recebe o NOME_LONGO (cabeçalho de ~300px ou
+  // mais) e cada teste confere a condição do bug ANTES do `test.fail()`: se ela não valer, o teste
+  // falha de verdade (não "como esperado"). Assim o "Expected to fail, but passed" só aparece quando
+  // o bug for corrigido, e aí é hora de tirar o `test.fail()`.
+
   // BUG CONHECIDO (achado no qa da T-029): o `scroll-padding-top` do html é fixo em 4rem (a altura
   // do cabeçalho numa linha; apps/web/src/index.css). Em 360px com o texto a 200%, o cabeçalho
-  // quebra em 2 linhas e fica mais alto que isso (~249px contra 128px). Ao seguir uma âncora do
-  // menu, a seção para 128px abaixo do topo e o título dela fica atrás do cabeçalho.
-  // Esperado: o título da seção abaixo do cabeçalho. Obtido: topo do título em y=225, base do cabeçalho em y=249.
+  // quebra em várias linhas e fica mais alto que isso. Ao seguir uma âncora do menu, a seção para
+  // 4rem (128px) abaixo do topo e o título dela fica atrás do cabeçalho.
+  // Esperado: o título da seção abaixo do cabeçalho. Obtido: topo do título em y=225, base do
+  // cabeçalho em y=249 (DejaVu Sans, "George Siqueira") ou y≈345 (NOME_LONGO).
   // A rolagem fica instantânea (movimento reduzido): com a rolagem suave, o título passa por baixo
   // do cabeçalho no meio da animação, e um teste que espera "o título na tela" passaria por engano.
-  test('360px a 200%: seguir um link do menu deixa o título da seção abaixo do cabeçalho', async ({ page }) => {
-    test.fail();
+  test('360px a 200%, com um nome longo na marca: seguir um link do menu deixa o título da seção abaixo do cabeçalho', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await abrirAmpliada(page);
+    await trocarNomeDaMarca(page, NOME_LONGO);
+
+    // Condição do bug: o cabeçalho é mais alto que o espaço que os 4rem do `scroll-padding-top`
+    // deixam acima do título (4rem + a distância do topo da seção ao título).
+    const alturaDoCabecalho = (await caixa(cabecalho(page))).altura;
+    const espacoAteOTitulo = await page.evaluate(() => {
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const secao = document.querySelector('#sobre')!;
+      const titulo = secao.querySelector('h1, h2')!;
+      return 4 * rem + titulo.getBoundingClientRect().top - secao.getBoundingClientRect().top;
+    });
+    expect(alturaDoCabecalho, 'o cabeçalho deveria ser mais alto que o espaço reservado acima do título').toBeGreaterThan(espacoAteOTitulo + 1);
+
+    test.fail();
     await botaoMenu(page).click();
     await navegacao(page).getByRole('link', { name: 'Sobre', exact: true }).click();
     await expect(page).toHaveURL(/#sobre$/);
@@ -255,13 +302,25 @@ test.describe('Cabeçalho em 2 linhas a 200%: bugs conhecidos (achados da T-029)
 
   // BUG CONHECIDO (achado no qa da T-029; mesma causa da T-024): a lista aberta é `position:
   // absolute` dentro do cabeçalho preso ao topo (sticky), então rolar a página não a move. Com o
-  // cabeçalho em 2 linhas, a lista começa mais abaixo e, em 360x800 com o texto a 200%, o último
-  // link ("Contato") termina abaixo da janela, sem como rolar até ele.
-  // Esperado: todos os links inteiros na tela (ou a lista rolando por dentro). Obtido: "Contato" vai até y≈840.
-  test('360x800 a 200%: a lista aberta cabe na tela ou rola por dentro', async ({ page }) => {
-    test.fail();
+  // cabeçalho em várias linhas, a lista começa mais abaixo e, em 360x800 com o texto a 200%, o
+  // último link ("Contato") termina abaixo da janela, sem como rolar até ele.
+  // Esperado: todos os links inteiros na tela (ou a lista rolando por dentro). Obtido: "Contato" vai
+  // até y≈841 (DejaVu Sans, "George Siqueira") ou y≈937 (NOME_LONGO).
+  test('360x800 a 200%, com um nome longo na marca: a lista aberta cabe na tela ou rola por dentro', async ({ page }) => {
     await abrirAmpliada(page);
+    await trocarNomeDaMarca(page, NOME_LONGO);
     await botaoMenu(page).click();
+    const links = navegacao(page).getByRole('link');
+    await expect(links).toHaveCount(6);
+
+    // Condição do bug: o cabeçalho e os seis links, um embaixo do outro, somam mais que a altura da
+    // janela. Só cabe tudo se a lista rolar por dentro (ou mudar de forma).
+    const baseDoCabecalho = (await caixa(cabecalho(page))).base;
+    const alturaDosLinks = (await links.evaluateAll((lista) => lista.map((el) => el.getBoundingClientRect().height))).reduce((soma, altura) => soma + altura, 0);
+    const alturaDaJanela = await page.evaluate(() => window.innerHeight);
+    expect(baseDoCabecalho + alturaDosLinks, 'o cabeçalho e os links deveriam somar mais que a janela').toBeGreaterThan(alturaDaJanela);
+
+    test.fail();
     const ultimo = navegacao(page).getByRole('link', { name: 'Contato', exact: true });
     await ultimo.scrollIntoViewIfNeeded();
     await expect(ultimo).toBeInViewport({ ratio: 1, timeout: 2000 });
