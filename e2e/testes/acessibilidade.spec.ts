@@ -6,7 +6,7 @@
 import type { Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { PROJETOS_DE_EXEMPLO, simularApi } from '../apoio/api';
-import { medirEstouroHorizontal } from '../apoio/pagina';
+import { ENDERECO_LONGO, medirEstouroHorizontal, medirTexto, PALAVRA_LONGA, trocarTexto } from '../apoio/pagina';
 import { expect, test } from '../apoio/teste';
 
 async function abrirComCards(page: Page) {
@@ -110,9 +110,12 @@ test.describe('Acessibilidade da página inteira (RNF-02)', () => {
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('smooth');
   });
 
-  // Com o texto em 200%, cada rem vale o dobro: 720px de tela equivalem aos 360px do menor celular
-  // de RNF-01 (e 1280px, a 640px). Abaixo disso (ex.: 360px a 200%, como uma tela de 180px), os
-  // cards estouram pela mesma causa do bug das palavras longas (projetos.spec.ts).
+  // Texto ampliado a 200% (WCAG 1.4.4): fontes, espaços e paddings em rem dobram, mas as media
+  // queries em rem NÃO acompanham o `font-size` do html: elas usam o tamanho inicial do navegador
+  // (16px). Por isso 720px a 200% não equivale a uma tela de 360px: continua no layout de 2 colunas
+  // (a partir de 36rem = 576px), só que com colunas estreitas para o texto dobrado (~198px úteis por
+  // card). E 1280px fica no layout de 3 colunas. Os dois casos já falharam no Linux (T-025): o par
+  // "Atualizado em 01/10/2026" dos dados vivos passava da borda do card.
   for (const largura of [720, 1280]) {
     test(`${largura}px com o texto ampliado a 200%: nada passa da largura da tela`, async ({ page }) => {
       await page.setViewportSize({ width: largura, height: 800 });
@@ -127,4 +130,25 @@ test.describe('Acessibilidade da página inteira (RNF-02)', () => {
       expect(medidas.larguraDoConteudo).toBeLessThanOrEqual(medidas.larguraDaTela);
     });
   }
+
+  // O menor celular de RNF-01 (360px, uma coluna) com o texto a 200% e o pior conteúdo: card com
+  // título e descrição longos, e uma palavra longa nas seções estáticas (Stacks e Serviços).
+  test('360px com o texto ampliado a 200% e textos longos: nada passa da largura da tela', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    const projetos = [{ ...PROJETOS_DE_EXEMPLO[0], titulo: PALAVRA_LONGA, descricao: ENDERECO_LONGO }, ...PROJETOS_DE_EXEMPLO];
+    await simularApi(page, projetos);
+    await page.goto('/');
+    await expect(page.getByRole('article')).toHaveCount(projetos.length);
+    await trocarTexto(page.locator('#stacks h3').first(), PALAVRA_LONGA);
+    await trocarTexto(page.locator('#servicos li').first(), `Sites e ${PALAVRA_LONGA}`);
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+
+    await expect.poll(async () => (await medirEstouroHorizontal(page)).estourados).toEqual([]);
+    const medidas = await medirEstouroHorizontal(page);
+    expect(medidas.larguraDoConteudo).toBeLessThanOrEqual(medidas.larguraDaTela);
+    // O texto longo continua inteiro e quebrado em linhas (não foi cortado para caber).
+    const titulo = await medirTexto(page.getByRole('heading', { level: 3, name: PALAVRA_LONGA }).first());
+    expect(titulo.cabeNaCaixa).toBe(true);
+    expect(titulo.linhas).toBeGreaterThan(1);
+  });
 });

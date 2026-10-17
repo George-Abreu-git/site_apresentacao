@@ -7,7 +7,16 @@ import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { PROJETOS_DE_EXEMPLO, simularApi } from '../apoio/api';
 import { contraste } from '../apoio/cores';
-import { esperarFocoVisivel, esperarSecaoNaTela } from '../apoio/pagina';
+import {
+  ENDERECO_LONGO,
+  esperarFocoVisivel,
+  esperarSecaoNaTela,
+  larguras,
+  medirEstouroHorizontal,
+  medirTexto,
+  PALAVRA_LONGA,
+  trocarTexto,
+} from '../apoio/pagina';
 import { expect, test } from '../apoio/teste';
 
 const { pessoa, inicio, sobre, servicos, contato, links, secoes, geral } = ptBR;
@@ -390,6 +399,66 @@ test.describe('Serviços (RF-07): pente-fino da T-016', () => {
     const botao = secao.getByRole('link', { name: servicos.botaoContato });
     const fundoDoBotao = await botao.evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(contraste(await corDoTexto(botao), fundoDoBotao)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+// T-025: no celular a grade dos blocos de Serviços não declarava colunas; a coluna implícita
+// (`auto`) cresceria com uma palavra longa. O texto é trocado direto na página, como se o George
+// o tivesse escrito no arquivo de conteúdo.
+test.describe('Serviços (RF-07): texto longo (T-025)', () => {
+  test('360px: palavra longa no subtítulo e num item da lista quebra no bloco, sem rolagem horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto('/#servicos');
+    const secao = regiao(page, secoes.servicos);
+    // Localizados pela posição (não pelo texto, que vai mudar).
+    const subtitulo = secao.getByRole('heading', { level: 3 }).first();
+    const item = secao.locator('ul > li').first();
+    await expect(subtitulo).toHaveText(servicos.oQueOfereco.titulo);
+    await expect(item).toHaveText(servicos.oQueOfereco.itens[0]);
+    await trocarTexto(subtitulo, PALAVRA_LONGA);
+    await trocarTexto(item, `Sites e ${PALAVRA_LONGA}`);
+
+    for (const elemento of [subtitulo, item]) {
+      const texto = await medirTexto(elemento);
+      expect(texto.cabeNaCaixa, `"${texto.texto}" passa da caixa dele`).toBe(true);
+      expect(texto.linhas).toBeGreaterThan(1);
+    }
+    const estouro = await medirEstouroHorizontal(page);
+    expect(estouro.estourados, 'elementos que passam da borda da tela').toEqual([]);
+    expect(estouro.larguraDoConteudo).toBeLessThanOrEqual(estouro.larguraDaTela);
+  });
+
+  test('360px: palavra longa e endereço no texto "Para quem" quebram no bloco, sem rolagem horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto('/#servicos');
+    // O parágrafo logo abaixo do subtítulo "Para quem", localizado pela posição (o texto vai mudar).
+    const paragrafo = regiao(page, secoes.servicos).locator('h3 + p');
+    await expect(paragrafo).toHaveText(servicos.paraQuem.texto);
+    // Sozinho, o endereço cabia neste bloco mesmo sem a correção (conferido na T-025); a palavra longa, não.
+    const textoLongo = `Exemplo: ${PALAVRA_LONGA}. ${ENDERECO_LONGO}`;
+    await trocarTexto(paragrafo, textoLongo);
+
+    const texto = await medirTexto(paragrafo);
+    expect(texto.texto).toBe(textoLongo);
+    expect(texto.cabeNaCaixa, 'o parágrafo passa da caixa dele').toBe(true);
+    const estouro = await medirEstouroHorizontal(page);
+    expect(estouro.estourados, 'elementos que passam da borda da tela').toEqual([]);
+    expect(estouro.larguraDoConteudo).toBeLessThanOrEqual(estouro.larguraDaTela);
+  });
+
+  test('1280px: uma palavra longa num bloco não alarga a coluna dele; os 3 blocos têm a mesma largura', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/#servicos');
+    const secao = regiao(page, secoes.servicos);
+    await trocarTexto(secao.getByRole('heading', { level: 3, name: servicos.oQueOfereco.titulo }), PALAVRA_LONGA);
+
+    // Cada bloco é um filho direto da grade (o <div> com o subtítulo e o conteúdo).
+    const blocos = secao.getByRole('heading', { level: 3 }).locator('xpath=..');
+    await expect(blocos).toHaveCount(3);
+    const posicoes = await blocos.evaluateAll((lista) => lista.map((bloco) => Math.round(bloco.getBoundingClientRect().left)));
+    expect(new Set(posicoes).size).toBe(3);
+    expect(new Set(await larguras(blocos)).size, 'blocos com larguras diferentes').toBe(1);
+    expect((await medirEstouroHorizontal(page)).estourados).toEqual([]);
   });
 });
 

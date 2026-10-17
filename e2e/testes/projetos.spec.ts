@@ -9,7 +9,7 @@ import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { PROJETOS_DE_EXEMPLO as PROJETOS, ROTA_DA_API, responder, simularApi } from '../apoio/api';
 import { contraste } from '../apoio/cores';
-import { esperarFocoVisivel, medirEstouroHorizontal } from '../apoio/pagina';
+import { ENDERECO_LONGO, esperarFocoVisivel, larguras, medirEstouroHorizontal, medirTexto, PALAVRA_LONGA } from '../apoio/pagina';
 import { expect, test } from '../apoio/teste';
 
 const { pessoa, secoes, sobre, servicos, contato, geral } = ptBR;
@@ -393,28 +393,85 @@ test.describe('Projetos: bordas (pente-fino da T-016)', () => {
     await page.goto('/#projetos');
     await expect(cartao(page, famoso.titulo).locator('dd').nth(1)).toHaveText('1.234.567');
   });
+});
 
-  // BUG CONHECIDO (T-016): uma palavra longa sem espaço no título ou na descrição de um projeto
-  // (ex.: um endereço colado na descrição, ou um nome de classe no título) alarga o card além da
-  // tela no celular e cria rolagem horizontal (RNF-01). O `overflow-wrap: break-word` do body não
-  // basta: o item da grade (`1fr` = no mínimo o maior conteúdo) cresce até caber a palavra.
-  // Esperado: o texto quebra dentro do card. Obtido em 360px: card de ~550px (título) ou ~363px
-  // (endereço na descrição), com a página rolando para o lado.
-  for (const [caso, projeto] of [
-    ['título com uma palavra longa', { titulo: 'ConfiguracaoDoGithubComCacheEFallbackParaAPI', descricao: 'd', stacks: ['TypeScript'] }],
-    [
-      'endereço longo na descrição',
-      { titulo: 'Integração', descricao: 'Detalhes em https://github.com/George-Abreu-git/site_apresentacao/tree/main/apps/api.', stacks: ['TypeScript'] },
-    ],
+// T-025 (BUG-Q4 da T-016): uma palavra longa sem espaço no título ou na descrição (ex.: um nome
+// de classe no título, um endereço colado na descrição) alargava o card além da tela no celular,
+// e a página rolava para o lado (RNF-01). Causa: sem colunas declaradas no celular, a grade da
+// lista criava uma coluna implícita (`auto`), que crescia até caber a palavra. Com a coluna
+// `minmax(0, 1fr)`, ela encolhe até a largura da tela e o `overflow-wrap: break-word` do body
+// quebra a palavra dentro do card.
+test.describe('Projetos: texto longo (T-025)', () => {
+  /** Um projeto completo (links e dados do GitHub) com título e descrição longos. */
+  const PROJETO_LONGO = { ...PROJETOS[0], titulo: PALAVRA_LONGA, descricao: ENDERECO_LONGO };
+
+  for (const [caso, projeto, campo] of [
+    ['título com uma palavra longa', { titulo: PALAVRA_LONGA, descricao: 'd', stacks: ['TypeScript'] }, 'titulo'],
+    ['endereço longo na descrição', { titulo: 'Integração', descricao: ENDERECO_LONGO, stacks: ['TypeScript'] }, 'descricao'],
   ] as const) {
     test(`360px: ${caso} quebra dentro do card, sem rolagem horizontal`, async ({ page }) => {
-      test.fail();
       await page.setViewportSize({ width: 360, height: 640 });
       await simularApi(page, [projeto]);
       await page.goto('/#projetos');
-      await expect(cartao(page, projeto.titulo)).toBeVisible();
+      const card = cartao(page, projeto.titulo);
+      await expect(card).toBeVisible();
+
       const medida = await medirEstouroHorizontal(page);
       expect(medida.estourados, 'elementos que passam da borda da tela').toEqual([]);
+      expect(medida.larguraDoConteudo).toBeLessThanOrEqual(medida.larguraDaTela);
+
+      // O texto longo aparece inteiro, quebrado em mais de uma linha, sem passar da caixa dele.
+      const elemento =
+        campo === 'titulo' ? card.getByRole('heading', { level: 3 }) : card.getByText(projeto.descricao, { exact: true });
+      const texto = await medirTexto(elemento);
+      expect(texto.texto).toBe(projeto[campo]);
+      expect(texto.cabeNaCaixa, 'o texto passa da caixa dele').toBe(true);
+      expect(texto.linhas).toBeGreaterThan(1);
+    });
+  }
+
+  test('360px: card completo com título e descrição longos: tudo dentro do card e o card dentro da tela', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await simularApi(page, [PROJETO_LONGO]);
+    await page.goto('/#projetos');
+    const card = cartao(page, PALAVRA_LONGA);
+    await expect(card).toBeVisible();
+
+    // Cada parte do card (título, descrição, stacks, dados vivos, links) fica entre as bordas dele.
+    const fora = await card.evaluate((el) => {
+      const caixa = el.getBoundingClientRect();
+      return [...el.querySelectorAll('*')]
+        .filter((parte) => {
+          const medida = parte.getBoundingClientRect();
+          return medida.width > 0 && (medida.left < caixa.left - 0.5 || medida.right > caixa.right + 0.5);
+        })
+        .map((parte) => `${parte.tagName.toLowerCase()} "${parte.textContent?.slice(0, 30)}"`);
+    });
+    expect(fora, 'partes do card que passam da borda dele').toEqual([]);
+    const caixa = (await card.boundingBox())!;
+    expect(caixa.x).toBeGreaterThanOrEqual(0);
+    expect(caixa.x + caixa.width).toBeLessThanOrEqual(360);
+    // Os dados vivos continuam lá, inteiros: nada foi escondido para caber.
+    await expect(card.locator('dd')).toHaveText(['TypeScript', '1.234', '01/10/2026']);
+  });
+
+  // Em 2 e 3 colunas a grade já usava `minmax(0, 1fr)`: o texto longo de um card não pode alargar
+  // a coluna dele nem apertar os vizinhos (regressão).
+  for (const { largura, colunas } of [
+    { largura: 768, colunas: 2 },
+    { largura: 1440, colunas: 3 },
+  ]) {
+    test(`${largura}px: o card com texto longo não alarga a coluna; os cards têm todos a mesma largura`, async ({ page }) => {
+      await page.setViewportSize({ width: largura, height: 900 });
+      await simularApi(page, [PROJETO_LONGO, ...PROJETOS]);
+      await page.goto('/#projetos');
+      const cards = secaoProjetos(page).getByRole('article');
+      await expect(cards).toHaveCount(PROJETOS.length + 1);
+
+      const posicoes = await cards.evaluateAll((lista) => lista.map((card) => Math.round(card.getBoundingClientRect().left)));
+      expect(new Set(posicoes).size).toBe(colunas);
+      expect(new Set(await larguras(cards)).size, 'cards com larguras diferentes').toBe(1);
+      expect((await medirEstouroHorizontal(page)).estourados).toEqual([]);
     });
   }
 });

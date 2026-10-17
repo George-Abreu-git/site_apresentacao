@@ -6,7 +6,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
 import { contraste } from '../apoio/cores';
-import { medirEstouroHorizontal } from '../apoio/pagina';
+import { larguras, medirEstouroHorizontal, medirTexto, PALAVRA_LONGA, trocarTexto } from '../apoio/pagina';
 import { expect, test } from '../apoio/teste';
 
 const { secoes, stacks } = ptBR;
@@ -86,6 +86,38 @@ test.describe('Stacks (RF-04)', () => {
       expect(estouro.larguraDoConteudo).toBeLessThanOrEqual(estouro.larguraDaTela);
     });
   }
+
+  // T-025: no celular a grade de categorias não declarava colunas; a coluna implícita (`auto`)
+  // cresceria com uma palavra longa num subtítulo. A palavra é trocada direto na página, como se
+  // o George a tivesse escrito no arquivo de conteúdo.
+  test('360px: um subtítulo de categoria com palavra longa quebra na coluna, sem rolagem horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto('/#stacks');
+    const secao = secaoStacks(page);
+    const subtitulo = secao.getByRole('heading', { level: 3 }).first();
+    await trocarTexto(subtitulo, PALAVRA_LONGA);
+
+    expect(await contarColunas(secao)).toBe(1);
+    const texto = await medirTexto(subtitulo);
+    expect(texto.cabeNaCaixa, 'o subtítulo passa da caixa dele').toBe(true);
+    expect(texto.linhas).toBeGreaterThan(1);
+    const estouro = await medirEstouroHorizontal(page);
+    expect(estouro.estourados, 'elementos que passam da borda da tela').toEqual([]);
+    expect(estouro.larguraDoConteudo).toBeLessThanOrEqual(estouro.larguraDaTela);
+  });
+
+  test('768px: um subtítulo longo não alarga a coluna dele; as categorias têm todas a mesma largura', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto('/#stacks');
+    const secao = secaoStacks(page);
+    await trocarTexto(secao.getByRole('heading', { level: 3 }).first(), PALAVRA_LONGA);
+
+    expect(await contarColunas(secao)).toBe(Math.min(2, stacks.categorias.length));
+    // Cada categoria é um filho direto da grade (o <div> com o subtítulo e a lista).
+    const categorias = secao.getByRole('heading', { level: 3 }).locator('xpath=..');
+    expect(new Set(await larguras(categorias)).size, 'categorias com larguras diferentes').toBe(1);
+    expect((await medirEstouroHorizontal(page)).estourados).toEqual([]);
+  });
 
   test('as etiquetas de tecnologia têm contraste suficiente (WCAG AA)', async ({ page }) => {
     await page.goto('/#stacks');

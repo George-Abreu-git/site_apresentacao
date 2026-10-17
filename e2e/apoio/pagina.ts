@@ -69,3 +69,39 @@ export async function medirEstouroHorizontal(page: Page) {
     };
   });
 }
+
+// Texto longo (T-025): uma "palavra" sem espaço, como um nome de classe colado no título, e um
+// endereço colado no meio de uma frase. Sem ponto de quebra, só o `overflow-wrap: break-word`
+// do body consegue parti-los, e só se o contêiner puder encolher até a largura da tela.
+export const PALAVRA_LONGA = 'ConfiguracaoDoGithubComCacheEFallbackParaAPI';
+export const ENDERECO_LONGO = 'Detalhes em https://github.com/George-Abreu-git/site_apresentacao/tree/main/apps/api.';
+
+/**
+ * Troca o texto de um elemento já na tela, como se o George tivesse escrito outro texto no arquivo
+ * de conteúdo. Serve para as seções estáticas (Serviços, Stacks), que não vêm da API simulada.
+ */
+export async function trocarTexto(elemento: Locator, texto: string) {
+  await elemento.evaluate((el, novo) => {
+    el.textContent = novo;
+  }, texto);
+}
+
+/**
+ * Como o texto do elemento ocupa a caixa dele: se cabe sem nada cortado ou passando da borda
+ * (`scrollWidth` ≤ `clientWidth`) e em quantas linhas quebrou (altura ÷ altura da linha).
+ */
+export async function medirTexto(elemento: Locator) {
+  return elemento.evaluate((el) => {
+    const alturaDaLinha = parseFloat(getComputedStyle(el).lineHeight);
+    return {
+      texto: el.textContent,
+      cabeNaCaixa: el.scrollWidth <= el.clientWidth + 1,
+      linhas: Math.round(el.getBoundingClientRect().height / alturaDaLinha),
+    };
+  });
+}
+
+/** As larguras (arredondadas) dos elementos: numa grade com colunas iguais, todas são a mesma. */
+export async function larguras(elementos: Locator): Promise<number[]> {
+  return elementos.evaluateAll((lista) => lista.map((el) => Math.round(el.getBoundingClientRect().width)));
+}
