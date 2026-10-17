@@ -20,7 +20,7 @@ Severidade: baixa.
 
 - [ ] Dois projetos com o mesmo título não geram aviso de chave duplicada nem cards trocados
 - [ ] A validação do arquivo curado (`validar-projetos-curados.ts`) recusa títulos repetidos, com mensagem clara que identifica os projetos (decisão do George: corrigir na API)
-- [ ] O `it.fails` do BUG-3 em `Projetos.test.tsx` vira teste normal e passa
+- [ ] O `it.fails` do BUG-3 em `Projetos.test.tsx` continua como bug conhecido do front, com o comentário apontando para a validação na API que impede títulos repetidos (decisão do George, 2026-10-17)
 - [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
 - [ ] Suíte inteira e validador verdes
 
@@ -33,6 +33,7 @@ Severidade: baixa.
 
 - 2026-10-16 — George: bugs e erros do pente-fino viram tarefas, em modo `agente-faz` (pedido de 2026-10-15).
 - 2026-10-17 — George: corrigir **na API** — a validação do arquivo curado recusa títulos repetidos (a API não sobe com erro claro); o front segue usando o título como `key`.
+- 2026-10-17 — George (critério 3): opção A — manter o `it.fails` do front, com o comentário apontando para a validação na API; critério 3 reescrito. Opções avaliadas: A) manter o `it.fails` e reescrever o critério; B) mudar também a `key` no front; C) apagar o `it.fails` e cobrir só na API.
 
 ## Dev
 
@@ -48,3 +49,4 @@ Severidade: baixa.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado (parte da API; critério 3 levado ao George)
+- 2026-10-17 — George: critério 3 decidido (opção A, manter o `it.fails` do front)
