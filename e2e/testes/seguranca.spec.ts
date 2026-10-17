@@ -90,20 +90,30 @@ test.describe('Segurança e privacidade no navegador (RNF-05, RNF-06)', () => {
     expect(dialogos).toEqual([]);
   });
 
-  test('endereço javascript: vindo da API não roda ao clicar no link do card', async ({ page }) => {
+  // Desde a T-018, o front só aceita links http(s) nos projetos: um endereço que não seja
+  // http(s) recusa a resposta inteira (a seção mostra a mensagem amigável) e nunca vira link.
+  test('endereço que não é http(s) vindo da API (javascript:, data:) não vira link nem roda', async ({ page }) => {
     const dialogos: string[] = [];
     page.on('dialog', async (dialogo) => {
       dialogos.push(dialogo.message());
       await dialogo.dismiss();
     });
-    await abrirComCards(page, [{ titulo: 'Link perigoso', descricao: 'd', stacks: ['A'], repositorio: 'javascript:alert("repositorio")' }]);
+    const ENDERECOS_PERIGOSOS: Pick<Projeto, 'repositorio' | 'demo'>[] = [
+      { repositorio: 'javascript:alert("repositorio")' },
+      { demo: 'JAVASCRIPT:alert("maiusculas")' },
+      { repositorio: ' javascript:alert("espaco na frente")' },
+      { demo: 'data:text/html,<script>alert("data")</script>' },
+    ];
 
-    const link = page.getByRole('article').getByRole('link', { name: ptBR.projetos.linkRepositorio });
-    // O React 19 troca endereços javascript: por um que só lança erro, e não os executa.
-    await expect(link).not.toHaveAttribute('href', /alert/);
-    const novaAba = page.context().waitForEvent('page', { timeout: 2000 }).catch(() => null);
-    await link.click();
-    await (await novaAba)?.close();
+    for (const endereco of ENDERECOS_PERIGOSOS) {
+      await simularApi(page, [...PROJETOS_DE_EXEMPLO, { titulo: 'Link perigoso', descricao: 'd', stacks: ['A'], ...endereco }]);
+      await page.goto('/');
+
+      const projetos = page.getByRole('region', { name: ptBR.secoes.projetos, exact: true });
+      await expect(projetos.getByRole('status'), JSON.stringify(endereco)).toHaveText(ptBR.projetos.erro);
+      await expect(projetos.getByRole('article')).toHaveCount(0);
+      await expect(page.locator('a[href*="javascript:" i], a[href^="data:" i]')).toHaveCount(0);
+    }
     expect(dialogos).toEqual([]);
   });
 });

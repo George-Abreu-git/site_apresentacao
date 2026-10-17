@@ -264,6 +264,109 @@ test.describe('Projetos: falha da API', () => {
   });
 });
 
+// T-018 (BUG-1 da T-016): um projeto fora do formato na resposta fazia o card lançar erro e o
+// React apagava a página inteira (tela em branco, sem o <h1>). Agora o front confere cada item da
+// resposta (um item inválido recusa a resposta inteira) e um limite de erro (error boundary)
+// segura um erro ao desenhar os cards dentro da seção. Nos dois casos, só a seção Projetos mostra
+// a mensagem amigável; o resto da página continua de pé e nenhum erro escapa para o console.
+test.describe('Projetos: projeto fora do formato na resposta (T-018)', () => {
+  /** Erros que a página deixou escapar: exceções não tratadas, erros no console e diálogos (alert). */
+  function observarErros(page: Page) {
+    const erros = { naoTratados: [] as string[], console: [] as string[], dialogos: [] as string[] };
+    page.on('pageerror', (erro) => erros.naoTratados.push(erro.message));
+    page.on('console', (mensagem) => {
+      if (mensagem.type() === 'error') erros.console.push(mensagem.text());
+    });
+    page.on('dialog', async (dialogo) => {
+      erros.dialogos.push(dialogo.message());
+      await dialogo.dismiss();
+    });
+    return erros;
+  }
+
+  /** Só a seção Projetos mostra a mensagem amigável, sem nenhum card; o resto da página está de pé. */
+  async function esperarErroSoEmProjetos(page: Page) {
+    await expect(aviso(page)).toHaveText(textos.erro);
+    await expect(aviso(page)).toBeVisible();
+    await expect(page.getByText(textos.erro, { exact: true }), 'a mensagem de erro aparece só uma vez, em Projetos').toHaveCount(1);
+    await expect(secaoProjetos(page).getByRole('article')).toHaveCount(0);
+    await expect(listaDeCards(page)).toHaveCount(0);
+    await expect(secaoProjetos(page).getByRole('heading', { level: 2, name: secoes.projetos })).toBeVisible();
+    await esperarConteudoEstatico(page);
+    // As seis seções continuam na página (Início, Sobre, Stacks, Projetos, Serviços, Contato).
+    await expect(page.getByRole('main').getByRole('region')).toHaveCount(Object.keys(secoes).length);
+    expect((await medirEstouroHorizontal(page)).estourados, 'elementos que passam da borda da tela').toEqual([]);
+  }
+
+  // Cada caso junta um item inválido a projetos válidos: basta um item fora do formato para
+  // recusar a resposta inteira (nenhum card, nem os válidos).
+  const ITENS_FORA_DO_FORMATO: { caso: string; item: unknown }[] = [
+    { caso: 'item sem um campo obrigatório (sem stacks)', item: { titulo: 'Sem stacks', descricao: 'Item fora do formato.' } },
+    { caso: 'campo com o tipo errado (stacks em texto, não em lista)', item: { ...PROJETOS[3], titulo: 'Tipo errado', stacks: 'React, NestJS' } },
+    { caso: 'link "javascript:" no repositório', item: { ...PROJETOS[3], titulo: 'Link perigoso', repositorio: 'javascript:alert("xss")' } },
+    { caso: 'dados do GitHub fora do formato (disponível, mas sem os dados)', item: { ...PROJETOS[0], titulo: 'GitHub incompleto', github: { disponivel: true } } },
+  ];
+
+  for (const { caso, item } of ITENS_FORA_DO_FORMATO) {
+    test(`${caso}: só Projetos mostra a mensagem amigável e o resto da página fica de pé`, async ({ page }) => {
+      const erros = observarErros(page);
+      await simularApi(page, [...PROJETOS, item]);
+      await page.goto('/#projetos');
+
+      await esperarErroSoEmProjetos(page);
+      await expect(page.locator('a[href*="javascript:" i]'), 'links com endereço javascript:').toHaveCount(0);
+      expect(erros).toEqual({ naoTratados: [], console: [], dialogos: [] });
+    });
+  }
+
+  test('erro ao desenhar um card: fica contido em Projetos, o resto da página fica de pé e o menu funciona', async ({ page, isMobile }) => {
+    // Os dados passam na conferência de formato; quem falha é o desenho do card. A falha é
+    // simulada no navegador: formatar o número de estrelas "marcado" lança erro. Assim o teste
+    // não depende de um bug real do card (como o da data inválida, BUG-2, que a T-019 corrige).
+    const ESTRELAS_QUE_QUEBRAM = 4_040_404;
+    await page.addInitScript((marcado) => {
+      const janela = window as unknown as { falhasSimuladas: number };
+      janela.falhasSimuladas = 0;
+      // `format` do Intl.NumberFormat é um "getter" que devolve a função de formatar.
+      const original = Object.getOwnPropertyDescriptor(Intl.NumberFormat.prototype, 'format')!;
+      Object.defineProperty(Intl.NumberFormat.prototype, 'format', {
+        configurable: true,
+        get() {
+          const formatar = original.get!.call(this) as (valor: number) => string;
+          return (valor: number) => {
+            if (valor === marcado) {
+              janela.falhasSimuladas++;
+              throw new Error('falha simulada ao desenhar o card');
+            }
+            return formatar(valor);
+          };
+        },
+      });
+    }, ESTRELAS_QUE_QUEBRAM);
+    const erros = observarErros(page);
+    const quebrado = { ...PROJETOS[0], titulo: 'Card que quebra', github: { ...PROJETOS[0].github!, estrelas: ESTRELAS_QUE_QUEBRAM } };
+    await simularApi(page, [...PROJETOS, quebrado]);
+    await page.goto('/#projetos');
+
+    await esperarErroSoEmProjetos(page);
+    // A falha aconteceu de fato (o teste não passou por outro motivo, como a resposta recusada).
+    expect(await page.evaluate(() => (window as unknown as { falhasSimuladas: number }).falhasSimuladas)).toBeGreaterThan(0);
+    // Nada escapou como erro não tratado. No console, só o aviso do React (em desenvolvimento) de
+    // que o erro foi segurado pelo limite de erro.
+    expect(erros.naoTratados).toEqual([]);
+    expect(erros.dialogos).toEqual([]);
+    for (const mensagem of erros.console) {
+      expect(mensagem, 'erro no console que não foi segurado pelo limite de erro').toContain('LimiteDeErro');
+    }
+
+    // A página continua usável: o menu leva ao Contato.
+    if (isMobile) await page.getByRole('button', { name: ptBR.navegacao.botaoMenu }).click();
+    await page.getByRole('navigation').getByRole('link', { name: secoes.contato, exact: true }).click();
+    await expect(page).toHaveURL(/#contato$/);
+    await expect(page.getByRole('link', { name: contato.linkEmail, exact: true })).toBeInViewport();
+  });
+});
+
 test.describe('Projetos: responsivo (RNF-01)', () => {
   const TELAS = [
     { largura: 360, altura: 640, colunas: 1 },
