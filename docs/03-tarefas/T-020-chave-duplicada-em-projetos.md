@@ -1,7 +1,7 @@
 ---
 id: T-020
 titulo: Projetos com o mesmo título não geram chave duplicada no React
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end, back-end]
 rodadas: 0
@@ -47,3 +47,4 @@ Severidade: baixa.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado (parte da API; critério 3 levado ao George)
