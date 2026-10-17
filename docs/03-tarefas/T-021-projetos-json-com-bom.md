@@ -1,7 +1,7 @@
 ---
 id: T-021
 titulo: Arquivo curado salvo em UTF-8 com BOM é lido normalmente
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -46,3 +46,4 @@ Severidade: baixa.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
