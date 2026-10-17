@@ -1,7 +1,7 @@
 ---
 id: T-025
 titulo: Texto longo nos cards de projeto não causa rolagem lateral
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -18,12 +18,12 @@ Severidade: média.
 
 ## Critérios de aceite
 
-- [ ] Título e descrição longos quebram dentro do card em 360px, sem rolagem lateral
-- [ ] Sem rolagem lateral com o texto a 200%
-- [ ] CI de volta ao verde: o e2e `e2e/testes/acessibilidade.spec.ts:117` ("720px com o texto ampliado a 200%: nada passa da largura da tela") passa também no Linux — hoje falha no CI porque os dados vivos do card (`div`, `dd`, `time`) passam da largura com as fontes do Linux (no Windows passa); comprovado num container `mcr.microsoft.com/playwright:v1.64.0-noble` com `CI=true`
-- [ ] Os `test.fail` do BUG-Q4 em `e2e/testes/projetos.spec.ts` viram testes normais e passam
-- [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] Título e descrição longos quebram dentro do card em 360px, sem rolagem lateral
+- [x] Sem rolagem lateral com o texto a 200%
+- [x] CI de volta ao verde: o e2e `e2e/testes/acessibilidade.spec.ts:117` ("720px com o texto ampliado a 200%: nada passa da largura da tela") passa também no Linux — hoje falha no CI porque os dados vivos do card (`div`, `dd`, `time`) passam da largura com as fontes do Linux (no Windows passa); comprovado num container `mcr.microsoft.com/playwright:v1.64.0-noble` com `CI=true`
+- [x] Os `test.fail` do BUG-Q4 em `e2e/testes/projetos.spec.ts` viram testes normais e passam
+- [x] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -96,3 +96,4 @@ Conceitos para estudo: media queries em rem × `font-size` do html; coluna impl�
 - 2026-10-16 — dev: CONCLUIDO — duas causas corrigidas em CSS; e2e de 200% verde no Linux
 - 2026-10-16 — code-reviewer: APROVADO — causas corrigidas só com CSS; e2e Linux com o qa
 - 2026-10-16 — qa: PASSOU — BUG-Q4 convertido; suíte e2e verde no container Linux do CI
+- 2026-10-16 — orquestrador: concluida — verificação verde (local: shared 5, API 227 + 4 esperadas, web 151 + 3, hooks 412, e2e com CI=1 268 + 12 pulados, lint, validador; Linux: prova do qa no container do CI); `pt-BR.ts` do George em stash durante a verificação e devolvido; CI da main acompanhado após o push; diário de estudo disparado após a integração
