@@ -81,6 +81,15 @@ Conceitos para estudo: teste de inicialização (fail fast) com `Test.createTest
 
 ## Estudo
 
+Resultado: CONCLUIDO
+Resumo: Diário em `docs/04-estudos/tarefas/T-020.md` (`consolidado: false`): o BUG-3 (título como `key` dos cards), a correção na API (`problemasDeTitulosRepetidos` com um `Map` do primeiro projeto de cada título; `tituloParaComparar` normalizando), por que o `it.fails` do front ficou (opção A) e o que cobrem os testes unitário, de rota e e2e, inclusive os que barram rigor excessivo. Dois exercícios.
+Arquivos alterados:
+- docs/04-estudos/tarefas/T-020.md
+Pendências:
+1. Três nomes para o mesmo conceito nas notas de estudo: `chave-key-no-react` (T-016), `key-estavel-em-listas-react` (T-009) e `key-em-listas-do-react` (T-012); a consolidação escolhe um.
+2. Conceitos novos sem nota: `normalizacao-de-texto-para-comparacao`, `map-para-achar-duplicatas`, `contrato-entre-front-e-api`.
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -92,3 +101,4 @@ Conceitos para estudo: teste de inicialização (fail fast) com `Test.createTest
 - 2026-10-17 — code-reviewer: APROVADO — critérios atendidos; normalização avisada ao George
 - 2026-10-17 — qa: PASSOU — rota e e2e cobrem títulos repetidos; suíte e2e verde no container Linux
 - 2026-10-17 — orquestrador: concluida — verificação verde (unitários, lint, validador, e2e 352 + 12 pulados); merge em main
+- 2026-10-17 — documentador: CONCLUIDO — diário integrado
