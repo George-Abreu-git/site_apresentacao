@@ -1,7 +1,7 @@
 ---
 id: T-029
 titulo: Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -58,6 +58,19 @@ Commit: `fix(web): cabeçalho e links-botão cabem em 360px com o texto a 200%`
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff resolve as duas causas sem cortar ou esconder conteúdo: `flex-wrap: wrap` e padding vertical de 0,5rem no cabeçalho (cabe nos 4rem por causa do border-box) e `overflow-wrap: anywhere` nos links-botão (card, Contato, Atalho). Confirmado que os `li`/`a` do log eram os botões "Repositório" (menu fechado tem `display: none`). Menu inalterado (JSX não tocado; lista `absolute` acompanha o cabeçalho). 5 cenários unitários passam (17/17 no arquivo) e lint passa; as 3 falhas do web vêm do `pt-BR.ts` do George (T-015). Dev só em `apps/web/**`. e2e com a DejaVu não rodado pelo revisor.
+Arquivos alterados: nenhum
+Pendências:
+1. qa: e2e da mudança (5 cenários) e confirmação do `acessibilidade.spec.ts:136` no container Linux com a DejaVu Sans.
+2. orquestrador: confirmar o CI verde na `main` após o push.
+3. orquestrador: tarefa de bug para o `scroll-padding-top` fixo (`apps/web/src/index.css:12`): com o cabeçalho em 2 linhas a 200%, a âncora pode deixar o título atrás do cabeçalho.
+4. *opcional* — o 2º cenário unitário confere o valor exato do padding (frágil).
+Decisão pendente: nenhuma
+Conceitos para estudo: `flex-wrap`; min-content e `break-word` × `anywhere`; `border-box` com `min-height`; `absolute` dentro de `sticky`; `scroll-padding-top`; WCAG 1.4.4 e 1.4.10.
+
 ## QA
 
 ## Estudo
@@ -69,3 +82,4 @@ Commit: `fix(web): cabeçalho e links-botão cabem em 360px com o texto a 200%`
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — prioridade (CI vermelho); dev chamado
 - 2026-10-16 — dev: CONCLUIDO — cabeçalho com flex-wrap e links-botão com overflow-wrap: anywhere; :136 verde com a DejaVu
+- 2026-10-16 — code-reviewer: APROVADO — duas causas corrigidas em CSS; e2e Linux com o qa
