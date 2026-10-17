@@ -1,7 +1,7 @@
 ---
 id: T-020
 titulo: Projetos com o mesmo título não geram chave duplicada no React
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end, back-end]
 rodadas: 0
@@ -18,11 +18,11 @@ Severidade: baixa.
 
 ## Critérios de aceite
 
-- [ ] Dois projetos com o mesmo título não geram aviso de chave duplicada nem cards trocados
-- [ ] A validação do arquivo curado (`validar-projetos-curados.ts`) recusa títulos repetidos, com mensagem clara que identifica os projetos (decisão do George: corrigir na API)
-- [ ] O `it.fails` do BUG-3 em `Projetos.test.tsx` continua como bug conhecido do front, com o comentário apontando para a validação na API que impede títulos repetidos (decisão do George, 2026-10-17)
-- [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] Dois projetos com o mesmo título não geram aviso de chave duplicada nem cards trocados
+- [x] A validação do arquivo curado (`validar-projetos-curados.ts`) recusa títulos repetidos, com mensagem clara que identifica os projetos (decisão do George: corrigir na API)
+- [x] O `it.fails` do BUG-3 em `Projetos.test.tsx` continua como bug conhecido do front, com o comentário apontando para a validação na API que impede títulos repetidos (decisão do George, 2026-10-17)
+- [x] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -68,6 +68,17 @@ Conceitos para estudo: validação de dados `unknown`; normalização de texto p
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Critérios atendidos. 5 cenários de rota (7 testes) em `apps/api/test/projetos.e2e-spec.ts`: com título repetido (idêntico, espaços, caixa) a API não sobe e o erro traz o arquivo e os projetos; títulos parecidos sobem com 200 na ordem do arquivo; a repetição sai na mesma mensagem dos outros erros (4 linhas exatas); o `projetos.json` real não tem repetidos; três iguais apontam para o primeiro. 1 e2e com o conteúdo curado real: um `<h3>` por projeto, sem repetidos e sem erros no console (falha quando o arquivo tem título duplicado). Com o validador do `main`, 5 dos 7 de rota falham (os 2 restantes protegem contra rigor excessivo). No `t029-linux` com o `pt-BR.ts` do HEAD: API 267 + 3 esperadas, web 189 + 1 esperada, lint verde, Playwright 352 passaram e 12 pulados, validador verde.
+Arquivos alterados:
+- apps/api/test/projetos.e2e-spec.ts
+- e2e/testes/projetos.spec.ts
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: teste de inicialização (fail fast) com `Test.createTestingModule` e `overrideProvider`; testes contra rigor excessivo; prova de que o teste falha sem a correção; e2e com dados reais e observação do console; contrato validado na API versus no front.
+
 ## Estudo
 
 ## DevOps
@@ -79,3 +90,5 @@ Conceitos para estudo: validação de dados `unknown`; normalização de texto p
 - 2026-10-17 — George: critério 3 decidido (opção A, manter o `it.fails` do front)
 - 2026-10-17 — dev: CONCLUIDO — API recusa títulos repetidos; comentário do BUG-3 aponta para a API
 - 2026-10-17 — code-reviewer: APROVADO — critérios atendidos; normalização avisada ao George
+- 2026-10-17 — qa: PASSOU — rota e e2e cobrem títulos repetidos; suíte e2e verde no container Linux
+- 2026-10-17 — orquestrador: concluida — verificação verde (unitários, lint, validador, e2e 352 + 12 pulados); merge em main
