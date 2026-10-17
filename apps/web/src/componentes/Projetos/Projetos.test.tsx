@@ -175,10 +175,12 @@ describe('Projetos (RF-05, RNF-03)', () => {
     }
   });
 
-  // BUG CONHECIDO (T-016): a lista usa o título como `key` do React (`key={projeto.titulo}`), mas nada
-  // garante títulos únicos (a validação do arquivo curado na API não confere repetição). Com dois projetos
-  // de mesmo título, o React avisa "Encountered two children with the same key" e pode trocar ou repetir
-  // cards em atualizações da lista. Esperado: nenhum aviso. Obtido: aviso de chave duplicada no console.
+  // BUG CONHECIDO (T-016): a lista usa o título como `key` do React (`key={projeto.titulo}`) e confia no
+  // contrato da API: desde a T-020, a validação do arquivo curado (apps/api/src/projetos/validar-projetos-curados.ts)
+  // recusa títulos repetidos e a API não sobe com eles. Este teste documenta o que acontece se esse contrato
+  // for quebrado por outra fonte de dados: com dois projetos de mesmo título, o React avisa "Encountered two
+  // children with the same key" e pode trocar ou repetir cards em atualizações da lista.
+  // Esperado: nenhum aviso. Obtido: aviso de chave duplicada no console.
   it.fails('dois projetos com o mesmo título não geram aviso de chave duplicada', async () => {
     simularApiRespondendo([
       { titulo: 'Mesmo título', descricao: 'Primeiro', stacks: ['React'] },
