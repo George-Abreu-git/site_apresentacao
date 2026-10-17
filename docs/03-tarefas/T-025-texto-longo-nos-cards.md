@@ -1,7 +1,7 @@
 ---
 id: T-025
 titulo: Texto longo nos cards de projeto não causa rolagem lateral
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -20,6 +20,7 @@ Severidade: média.
 
 - [ ] Título e descrição longos quebram dentro do card em 360px, sem rolagem lateral
 - [ ] Sem rolagem lateral com o texto a 200%
+- [ ] CI de volta ao verde: o e2e `e2e/testes/acessibilidade.spec.ts:117` ("720px com o texto ampliado a 200%: nada passa da largura da tela") passa também no Linux — hoje falha no CI porque os dados vivos do card (`div`, `dd`, `time`) passam da largura com as fontes do Linux (no Windows passa); comprovado num container `mcr.microsoft.com/playwright:v1.64.0-noble` com `CI=true`
 - [ ] Os `test.fail` do BUG-Q4 em `e2e/testes/projetos.spec.ts` viram testes normais e passam
 - [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
 - [ ] Suíte inteira e validador verdes
@@ -32,6 +33,7 @@ Severidade: média.
 ## Decisões
 
 - 2026-10-16 — George: bugs e erros do pente-fino viram tarefas, em modo `agente-faz` (pedido de 2026-10-15).
+- 2026-10-16 — George: CI da `main` vermelho desde o fim da T-016 (e2e de texto a 200% falha só no Linux) → **A**: executar a T-025 agora, com prioridade, corrigindo a causa no layout do card, sem enfraquecer testes; verificar no container Linux antes do merge.
 
 ## Dev
 
@@ -46,3 +48,4 @@ Severidade: média.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-16 — orquestrador: em-andamento — prioridade por decisão do George (CI vermelho); dev chamado
