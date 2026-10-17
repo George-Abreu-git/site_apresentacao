@@ -1,7 +1,7 @@
 ---
 id: T-023
 titulo: Abrir o site direto numa âncora rola até a seção
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -53,6 +53,18 @@ Commit: `fix(web): rola até a âncora do endereço ao abrir o site`
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O hook `useAncoraInicial` (`useLayoutEffect` + `scrollIntoView` com `instant`, id como veio e depois decodificado, sem lançar erro) corrige a causa do BUG-Q2 sem escopo extra. Âncora só usada em `getElementById` (sem injeção); sem segredos. 5 cenários de comportamento (5/5); lint e tsc sem erros; unitários do web só com as 3 falhas de nome (`pt-BR.ts` do George, T-015). Dev só em `apps/web/src`. e2e não rodado pelo revisor.
+Arquivos alterados: nenhum
+Pendências:
+1. qa: converter os `test.fail` do BUG-Q2 (`e2e/testes/navegacao.spec.ts` ~434) e fazer o teste "abrir a página já numa âncora" (~137) não depender do `goto('/')` do `beforeEach` (critério 3); cobrir o build de produção (critério 2).
+2. *opcional* — `useAncoraInicial.ts:16` e `:24`: parâmetro `documento` não usado.
+3. *opcional* — `useAncoraInicial.ts:36`: comentar que no StrictMode o efeito roda duas vezes (sem efeito visível).
+Decisão pendente: nenhuma
+Conceitos para estudo: fragmento de URL; `useLayoutEffect` × `useEffect`; StrictMode rodando efeitos duas vezes; `scrollIntoView` com `instant` e `scroll-padding-top`; espiões no protótipo no Vitest/jsdom.
+
 ## QA
 
 ## Estudo
@@ -64,3 +76,4 @@ Commit: `fix(web): rola até a âncora do endereço ao abrir o site`
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
 - 2026-10-16 — dev: CONCLUIDO — hook useAncoraInicial; BUG-Q2 corrigido em dev e preview
+- 2026-10-16 — code-reviewer: APROVADO — hook corrige a causa; conversão dos test.fail com o qa
