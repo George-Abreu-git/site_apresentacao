@@ -1,7 +1,7 @@
 ---
 id: T-018
 titulo: Projeto fora do formato na resposta da API não derruba a página
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end, api]
 rodadas: 0
@@ -18,11 +18,11 @@ Severidade: média.
 
 ## Critérios de aceite
 
-- [ ] Projeto fora do formato na resposta não apaga a página: a seção Projetos mostra a mensagem amigável (ou ignora o item inválido) e o resto da página continua visível
-- [ ] Erros de renderização na seção Projetos ficam contidos nela (error boundary ou validação da resposta)
-- [ ] O `it.fails` do BUG-1 em `apps/web/src/App.test.tsx` vira teste normal e passa
-- [ ] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
-- [ ] Suíte inteira e validador verdes
+- [x] Projeto fora do formato na resposta não apaga a página: a seção Projetos mostra a mensagem amigável (ou ignora o item inválido) e o resto da página continua visível
+- [x] Erros de renderização na seção Projetos ficam contidos nela (error boundary ou validação da resposta)
+- [x] O `it.fails` do BUG-1 em `apps/web/src/App.test.tsx` vira teste normal e passa
+- [x] 5 cenários de teste para a mudança (unitário, rota e/ou e2e, conforme a área), seguindo o padrão do George
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -89,3 +89,4 @@ Conceitos para estudo: `page.addInitScript` para injetar falha; mutação manual
 - 2026-10-16 — dev: CONCLUIDO — validação da resposta + error boundary na seção Projetos
 - 2026-10-16 — code-reviewer: APROVADO — validação + error boundary; aviso para a T-019 anotado
 - 2026-10-16 — qa: PASSOU — 5 cenários e2e; suíte verde no container Linux
+- 2026-10-16 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 169 + 2; hooks 412; e2e CI=1 294 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
