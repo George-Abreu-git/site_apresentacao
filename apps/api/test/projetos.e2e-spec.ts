@@ -455,3 +455,130 @@ describe('arquivo curado com títulos repetidos (T-020)', () => {
     ]);
   });
 });
+
+// T-021 (BUG-4 da T-016): editores do Windows costumam salvar em "UTF-8 com BOM", gravando os
+// bytes EF BB BF (o caractere U+FEFF) antes do conteúdo. A API passa a aceitar esse arquivo e
+// sobe normalmente; o resto do conteúdo continua sendo validado como antes.
+describe('arquivo curado salvo em UTF-8 com BOM (T-021)', () => {
+  /** Os bytes do BOM no UTF-8, como um editor os grava no disco. */
+  const BOM = Buffer.from([0xef, 0xbb, 0xbf]);
+  let pasta: string;
+  let arquivo: string;
+  const apps: INestApplication[] = [];
+
+  beforeEach(() => {
+    pasta = mkdtempSync(join(tmpdir(), 'api-projetos-bom-'));
+    arquivo = join(pasta, 'projetos.json');
+  });
+
+  afterEach(async () => {
+    await Promise.all(apps.splice(0).map((app) => app.close()));
+    rmSync(pasta, { recursive: true, force: true });
+  });
+
+  /** Grava o texto em UTF-8 com o BOM na frente (bytes crus, como no disco). */
+  function gravarComBom(caminho: string, texto: string, quantosBoms = 1): void {
+    writeFileSync(caminho, Buffer.concat([...Array<Buffer>(quantosBoms).fill(BOM), Buffer.from(texto, 'utf8')]));
+  }
+
+  async function subir(caminho: string): Promise<INestApplication> {
+    const app = await criarAppComArquivo(caminho);
+    apps.push(app);
+    return app;
+  }
+
+  it('com BOM, a API sobe e GET /api/projetos responde 200 com o mesmo corpo do arquivo sem BOM', async () => {
+    const projetos = [
+      { titulo: 'Primeiro', descricao: 'sem repositório', stacks: ['React'] },
+      { titulo: 'Segundo', descricao: 'no GitHub', stacks: ['NestJS'], repositorio: 'https://github.com/George-Abreu-git/segundo' },
+    ];
+    const texto = JSON.stringify(projetos, null, 2);
+    const semBom = join(pasta, 'sem-bom.json');
+    writeFileSync(semBom, texto, 'utf8');
+    gravarComBom(arquivo, texto);
+    expect(readFileSync(arquivo).subarray(0, 3)).toEqual(BOM);
+
+    const respostaSemBom = await request((await subir(semBom)).getHttpServer()).get('/api/projetos');
+    const respostaComBom = await request((await subir(arquivo)).getHttpServer()).get('/api/projetos');
+
+    expect(respostaComBom.status).toBe(200);
+    expect(respostaComBom.headers['content-type']).toMatch(/application\/json/);
+    expect(respostaComBom.body).toEqual(respostaSemBom.body);
+    expect(respostaComBom.body).toEqual([projetos[0], { ...projetos[1], github: DADOS_VIVOS_SIMULADOS }]);
+  });
+
+  it('acentos, aspas tipográficas e emoji chegam intactos depois do BOM, sem U+FEFF no corpo', async () => {
+    const projeto = {
+      titulo: 'Aplicação de seleção ✨',
+      descricao: 'Ação, coração e “aspas tipográficas” — com ‘simples’ também',
+      stacks: ['C#', 'Ação/Reação'],
+    };
+    gravarComBom(arquivo, JSON.stringify([projeto]));
+    const app = await subir(arquivo);
+
+    const resposta = await request(app.getHttpServer()).get('/api/projetos');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.headers['content-type']).toBe('application/json; charset=utf-8');
+    expect(resposta.body).toEqual([projeto]);
+    expect(resposta.text.startsWith('[')).toBe(true);
+    expect(resposta.text).not.toContain('﻿');
+  });
+
+  it('o projetos.json do repositório, regravado com BOM, sobe e responde igual ao original', async () => {
+    gravarComBom(arquivo, readFileSync(CAMINHO_DO_ARQUIVO_CURADO, 'utf8'));
+
+    const original = await request((await subir(CAMINHO_DO_ARQUIVO_CURADO)).getHttpServer()).get('/api/projetos');
+    const comBom = await request((await subir(arquivo)).getHttpServer()).get('/api/projetos');
+
+    expect(original.status).toBe(200);
+    expect(comBom.status).toBe(200);
+    expect(comBom.body).toEqual(original.body);
+    expect(comBom.body.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it.each([
+    ['só com o BOM', '', 1],
+    ['com o BOM e só espaços', '  \n\t ', 1],
+    ['com o BOM seguido de JSON inválido', '[{ "titulo": "sem fechar" ', 1],
+    ['com dois BOMs seguidos (só um é removido)', '[]', 2],
+  ])('arquivo %s: a API não sobe, e o erro diz que não é JSON e traz o caminho', async (_caso, texto, quantosBoms) => {
+    gravarComBom(arquivo, texto, quantosBoms);
+
+    const erro = await criarAppComArquivo(arquivo).then(
+      async (app) => {
+        await app.close();
+        throw new Error('a API subiu com um arquivo curado inválido');
+      },
+      (e: Error) => e,
+    );
+
+    expect(erro.message).toContain('Arquivo curado de projetos inválido');
+    expect(erro.message).toContain(arquivo);
+    expect(erro.message).toMatch(/não é um JSON válido/);
+  });
+
+  it('com BOM e título repetido, a API continua sem subir: o erro é o da validação (T-020), não o de JSON', async () => {
+    gravarComBom(
+      arquivo,
+      JSON.stringify([
+        { titulo: 'Portfólio pessoal', descricao: 'o primeiro', stacks: ['React'] },
+        { titulo: 'PORTFÓLIO PESSOAL', descricao: 'o repetido', stacks: ['Go'] },
+      ]),
+    );
+
+    const erro = await criarAppComArquivo(arquivo).then(
+      async (app) => {
+        await app.close();
+        throw new Error('a API subiu com títulos repetidos no arquivo curado');
+      },
+      (e: Error) => e,
+    );
+
+    expect(erro.message).toContain(arquivo);
+    expect(erro.message).not.toMatch(/não é um JSON válido/);
+    expect(erro.message).toContain(
+      'projeto 2 ("PORTFÓLIO PESSOAL"): título repetido — o mesmo do projeto 1 ("Portfólio pessoal"); cada projeto precisa de um título único',
+    );
+  });
+});
