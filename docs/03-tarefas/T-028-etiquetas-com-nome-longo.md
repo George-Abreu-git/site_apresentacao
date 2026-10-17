@@ -1,7 +1,7 @@
 ---
 id: T-028
 titulo: Etiquetas de tecnologia com nome longo não causam rolagem lateral
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -36,6 +36,21 @@ Severidade: média.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Etiquetas de tecnologia (`.stack` em `CartaoDeProjeto.module.css` e `.tecnologia` em `Stacks.module.css`) ganharam `overflow-wrap: anywhere`: a largura mínima do item flex (`min-width: auto`) deixa de ser a palavra inteira e o nome longo quebra dentro da etiqueta, também a 200% (mesma solução dos links-botão da T-029). Nada cortado ou escondido. 5 cenários unitários em `responsividade.test.ts` (3 vermelhos antes): `.stack` e `.tecnologia` com `anywhere`; toda etiqueta em pílula (`border-radius: 999px`) com `anywhere`; listas mantêm `flex-wrap: wrap`; nada da seção Stacks cortado. Título de um teste da T-029 ajustado ("fica só nos links-botão e nas etiquetas"). Container `t029-linux` (DejaVu, `CI=true`, `--workers=2`, `pt-BR.ts` do HEAD): diagnóstico fora do repositório reproduziu o bug (8/8 falhando, página com 420 a 897px) e confirmou a correção (8/8, 360px; etiquetas curtas não quebram quando cabem); suíte e2e 313 passaram, 12 pulados, 1 instável conhecido (T-031); unitários, lint, build e validador verdes.
+Arquivos alterados:
+- `apps/web/src/componentes/CartaoDeProjeto/CartaoDeProjeto.module.css`, `apps/web/src/componentes/Stacks/Stacks.module.css`
+- `apps/web/src/responsividade.test.ts`
+Pendências:
+1. qa: e2e da tarefa (referência: `scratchpad/t029/diag028/t028-diag.spec.ts` com `rodar-t028.sh`).
+2. Efeito visível (para o George): a 200% com a DejaVu, "TypeScript" e "Markdown" do card quebram no meio (etiqueta 188px × lista 182px); antes passavam ~6px por cima do padding do card. Segue o critério e o padrão da T-029.
+3. `navegacao.spec.ts` ("botão Voltar", celular) instável uma vez — já na T-031.
+Decisão pendente: nenhuma
+Conceitos para estudo: `min-width: auto` de item flex; `break-word` × `anywhere` (min-content); `flex-wrap` e flex-basis = max-content; WCAG 1.4.4 e 1.4.10; testes que leem o CSS (`?raw`).
+Commit: `fix(web): quebra nome longo dentro das etiquetas de tecnologia`
+
 ## Revisão
 
 ## QA
@@ -48,3 +63,4 @@ Severidade: média.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado
+- 2026-10-17 — dev: CONCLUIDO — overflow-wrap: anywhere nas etiquetas; provado no container Linux
