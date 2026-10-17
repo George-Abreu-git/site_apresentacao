@@ -74,6 +74,12 @@ describe('buscarProjetos (GET /api/projetos)', () => {
     await expect(buscarProjetos()).rejects.toThrow('lista');
   });
 
+  it('falha quando algum projeto da lista está fora do formato (ex.: sem stacks), mesmo com os outros certos', async () => {
+    simularFetch(respostaJson([...PROJETOS, { titulo: 'Sem stacks', descricao: 'Item fora do formato' }]));
+
+    await expect(buscarProjetos()).rejects.toThrow('fora do formato');
+  });
+
   it('devolve a lista vazia quando a API não tem projetos', async () => {
     simularFetch(respostaJson([]));
 

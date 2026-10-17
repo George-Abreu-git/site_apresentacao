@@ -73,27 +73,47 @@ describe('App (layout base da página única)', () => {
     expect(within(screen.getByRole('main')).getAllByRole('region')).toHaveLength(IDS_DAS_SECOES.length);
   });
 
-  // BUG CONHECIDO (T-016): o front confia no formato de cada projeto que a API devolve
-  // (src/api/projetos.ts só confere que é uma lista) e não há error boundary. Um item fora do formato
-  // (ex.: sem `stacks`) faz o CartaoDeProjeto lançar erro e o React desmonta a PÁGINA INTEIRA (tela em branco).
-  // Esperado (RF-05): mensagem amigável na seção Projetos e o resto da página de pé.
-  // Obtido: nenhum elemento na tela (nem o <h1>).
-  it.fails('um projeto fora do formato na resposta da API não derruba a página inteira', async () => {
+  // T-018 (BUG-1 da T-016): antes, um item fora do formato (ex.: sem `stacks`) fazia o CartaoDeProjeto
+  // lançar erro e o React desmontava a PÁGINA INTEIRA (tela em branco, sem o <h1>).
+  it('um projeto fora do formato na resposta da API não derruba a página: só Projetos mostra o erro (RF-05)', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn<typeof fetch>().mockResolvedValue(
         new Response(JSON.stringify([{ titulo: 'Sem stacks', descricao: 'Item fora do formato' }]), { status: 200 }),
       ),
     );
+
+    render(<App />);
+
+    const projetos = screen.getByRole('region', { name: conteudo.secoes.projetos });
+    await waitFor(() => expect(within(projetos).getByRole('status')).toHaveTextContent(conteudo.projetos.erro));
+    expect(within(projetos).queryByRole('article')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: conteudo.pessoa.nome })).toBeInTheDocument();
+    expect(within(screen.getByRole('main')).getAllByRole('region')).toHaveLength(IDS_DAS_SECOES.length);
+  });
+
+  it('um erro ao desenhar um card fica contido na seção Projetos; o resto da página continua (RF-05)', async () => {
+    // Data que passa na conferência de formato (é um texto), mas faz o Intl lançar RangeError ao
+    // formatar (BUG-2, corrigido no card pela T-019). Aqui o que importa é a contenção do erro.
+    const projetoComDataInvalida = {
+      titulo: 'Data inválida',
+      descricao: 'O card lança erro ao desenhar',
+      stacks: ['React'],
+      github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1, ultimaAtualizacao: 'não é uma data' },
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify([projetoComDataInvalida]), { status: 200 })),
+    );
     const captura = capturarErrosDeRenderizacao();
 
     try {
       render(<App />);
-      // Espera a resposta da API ser tratada (o aviso de carregamento some, de um jeito ou de outro).
-      await waitFor(() => expect(screen.queryByText(conteudo.projetos.carregando)).not.toBeInTheDocument());
 
+      const projetos = screen.getByRole('region', { name: conteudo.secoes.projetos });
+      await waitFor(() => expect(within(projetos).getByRole('status')).toHaveTextContent(conteudo.projetos.erro));
       expect(screen.getByRole('heading', { level: 1, name: conteudo.pessoa.nome })).toBeInTheDocument();
-      expect(screen.getByRole('region', { name: conteudo.secoes.projetos })).toBeInTheDocument();
+      expect(within(screen.getByRole('main')).getAllByRole('region')).toHaveLength(IDS_DAS_SECOES.length);
     } finally {
       captura.parar();
     }

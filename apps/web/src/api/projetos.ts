@@ -1,5 +1,6 @@
 import type { Projeto } from '@site-apresentacao/shared';
 import { enderecoDaApi } from './endereco-da-api';
+import { ehProjeto } from './formato-do-projeto';
 
 /**
  * Busca a lista de projetos na API (GET /api/projetos, RF-06).
@@ -21,6 +22,10 @@ export async function buscarProjetos(sinal?: AbortSignal): Promise<Projeto[]> {
   if (!Array.isArray(corpo)) {
     throw new Error('A API de projetos não devolveu uma lista');
   }
-  // O formato de cada item é garantido pela API, que usa o mesmo tipo Projeto (packages/shared).
-  return corpo as Projeto[];
+  // O tipo Projeto compartilhado com a API não vale em tempo de execução: cada item é conferido.
+  // Basta um item fora do formato para recusar a resposta inteira (mensagem amigável na seção, T-018).
+  if (!corpo.every(ehProjeto)) {
+    throw new Error('A API de projetos devolveu um projeto fora do formato');
+  }
+  return corpo;
 }

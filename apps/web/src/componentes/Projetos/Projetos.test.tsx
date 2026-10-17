@@ -1,6 +1,7 @@
 import type { Projeto } from '@site-apresentacao/shared';
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { capturarErrosDeRenderizacao } from '../../apoio-de-testes/capturar-erros-de-renderizacao';
 import { conteudo } from '../../conteudo';
 import Projetos from './Projetos';
 
@@ -132,6 +133,43 @@ describe('Projetos (RF-05, RNF-03)', () => {
     render(<Projetos />);
 
     expect(await screen.findByText(textos.erro)).toBeInTheDocument();
+  });
+
+  it('quando um projeto da resposta está fora do formato, mostra a mensagem amigável e nenhum card (T-018)', async () => {
+    simularApiRespondendo([...PROJETOS, { titulo: 'Sem stacks', descricao: 'Item fora do formato' }]);
+
+    render(<Projetos />);
+
+    expect(await screen.findByText(textos.erro)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(textos.erro);
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+  });
+
+  it('quando um card lança erro ao desenhar, a seção troca os cards pela mensagem amigável (T-018)', async () => {
+    // A data passa na conferência de formato (é um texto), mas o Intl lança RangeError ao formatá-la
+    // (BUG-2, corrigido no card pela T-019). Serve aqui como exemplo de erro de renderização.
+    simularApiRespondendo([
+      ...PROJETOS,
+      {
+        titulo: 'Data inválida',
+        descricao: 'O card lança erro ao desenhar',
+        stacks: ['React'],
+        github: { disponivel: true, linguagem: 'TypeScript', estrelas: 1, ultimaAtualizacao: 'não é uma data' },
+      },
+    ]);
+    const captura = capturarErrosDeRenderizacao();
+
+    try {
+      render(<Projetos />);
+
+      expect(await screen.findByText(textos.erro)).toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent(textos.erro);
+      expect(screen.queryByRole('list', { name: secoes.projetos })).not.toBeInTheDocument();
+      expect(screen.getByRole('region', { name: secoes.projetos })).toBeInTheDocument();
+      expect(captura.erros).toEqual([]);
+    } finally {
+      captura.parar();
+    }
   });
 
   // BUG CONHECIDO (T-016): a lista usa o título como `key` do React (`key={projeto.titulo}`), mas nada

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { conteudo } from '../../conteudo';
 import { idDoTituloDaSecao } from '../../secoes';
 import CartaoDeProjeto from '../CartaoDeProjeto/CartaoDeProjeto';
+import LimiteDeErro from '../LimiteDeErro/LimiteDeErro';
 import Secao from '../Secao/Secao';
 import estilos from './Projetos.module.css';
 import { type EstadoDosProjetos, useProjetos } from './useProjetos';
@@ -21,6 +23,8 @@ function avisoDoEstado(estado: EstadoDosProjetos): string {
  */
 function Projetos() {
   const estado = useProjetos();
+  // Liga quando algum card lança erro ao desenhar: os cards saem e fica a mensagem amigável (T-018).
+  const [falhouAoMostrarOsCards, setFalhouAoMostrarOsCards] = useState(false);
   const projetos = estado.situacao === 'carregado' ? estado.projetos : [];
 
   return (
@@ -31,18 +35,24 @@ function Projetos() {
         leitor de tela só acompanha regiões que já existiam antes da mudança.
       */}
       <p role="status" className={estilos.aviso}>
-        {avisoDoEstado(estado)}
+        {falhouAoMostrarOsCards ? textos.erro : avisoDoEstado(estado)}
       </p>
-      {projetos.length > 0 && (
-        // A lista recebe o nome do título da seção: o leitor de tela anuncia "lista Projetos, 2 itens".
-        <ul aria-labelledby={idDoTituloDaSecao('projetos')} className={estilos.lista}>
-          {projetos.map((projeto) => (
-            <li key={projeto.titulo}>
-              <CartaoDeProjeto projeto={projeto} />
-            </li>
-          ))}
-        </ul>
-      )}
+      {/*
+        O limite de erro segura um erro de renderização dos cards aqui dentro da seção;
+        sem ele, o React apagaria a página inteira (T-018).
+      */}
+      <LimiteDeErro aoFalhar={() => setFalhouAoMostrarOsCards(true)}>
+        {projetos.length > 0 && (
+          // A lista recebe o nome do título da seção: o leitor de tela anuncia "lista Projetos, 2 itens".
+          <ul aria-labelledby={idDoTituloDaSecao('projetos')} className={estilos.lista}>
+            {projetos.map((projeto) => (
+              <li key={projeto.titulo}>
+                <CartaoDeProjeto projeto={projeto} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </LimiteDeErro>
     </Secao>
   );
 }
