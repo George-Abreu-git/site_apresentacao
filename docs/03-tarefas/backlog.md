@@ -32,6 +32,6 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-026-cabecalhos-de-seguranca-api|T-026]] | Cabeçalhos de segurança nas respostas da API | backlog | agente-faz | back-end, api |
 | [[docs/03-tarefas/T-027-checagem-de-tipos-do-e2e|T-027]] | Checagem de tipos dos testes de ponta a ponta (pasta e2e/) | backlog | agente-faz | infra |
 | [[docs/03-tarefas/T-028-etiquetas-com-nome-longo|T-028]] | Etiquetas de tecnologia com nome longo não causam rolagem lateral | backlog | agente-faz | front-end |
-| [[docs/03-tarefas/T-029-cabecalho-texto-ampliado|T-029]] | Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px | backlog | agente-faz | front-end |
+| [[docs/03-tarefas/T-029-cabecalho-texto-ampliado|T-029]] | Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px | em-andamento | agente-faz | front-end |
 
 > Ordem: T-004 → T-005 → **T-014** → T-006 → T-001 → T-007 → T-008 → T-009 → T-010 → T-011 → T-012 → **T-017** → **T-016** → bugs do pente-fino (média primeiro: T-025 ✔, T-029 (CI vermelho), T-018, T-023, T-028; depois T-019, T-020, T-021, T-022, T-024, T-026, T-027) → **T-015** → T-013. Requisitos e ADR de stack já concluídos ([[docs/02-arquitetura/ADR-0001-stack|ADR-0001]]); a T-001 agora depende só da T-005 (pastas criadas).

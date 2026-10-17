@@ -1,7 +1,7 @@
 ---
 id: T-029
 titulo: Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -50,3 +50,4 @@ Severidade: média (CI vermelho na `main`).
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-16 — orquestrador: em-andamento — prioridade (CI vermelho); dev chamado
