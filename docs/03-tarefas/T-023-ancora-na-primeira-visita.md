@@ -82,6 +82,15 @@ Conceitos para estudo: navegação para fragmento numa visita nova × mesma pág
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-023.md` (`consolidado: false`) explicando o BUG-Q2 (o navegador procura a âncora uma vez, quando o HTML chega e as seções ainda não existem) e a correção com `useAncoraInicial`, além dos testes (5 unitários com espião no jsdom; bloco e2e sem `beforeEach`). 18 conceitos com o porquê (nomes reaproveitados de outros diários para a consolidação), 2 exercícios e links para T-023, T-016, T-007 e T-012. Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-023.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -92,3 +101,4 @@ Conceitos para estudo: navegação para fragmento numa visita nova × mesma pág
 - 2026-10-16 — code-reviewer: APROVADO — hook corrige a causa; conversão dos test.fail com o qa
 - 2026-10-17 — qa: PASSOU — BUG-Q2 convertido; 5 cenários e2e; suíte verde no container Linux
 - 2026-10-17 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 174 + 2; hooks 412; e2e CI=1 314 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; build de produção validado fora da suíte (e2e de preview vira tarefa do devops); CI da main acompanhado após o push; diário de estudo disparado após a integração
+- 2026-10-17 — documentador: CONCLUIDO — diário integrado
