@@ -83,6 +83,13 @@ Conceitos para estudo: teste de rota com `fetch` simulado; provar que o teste fa
 
 ## Estudo
 
+Resultado: CONCLUIDO
+Resumo: Diário em `docs/04-estudos/tarefas/T-019.md` (`consolidado: false`): as duas proteções (type guard `ehDataEHoraIso` com regex ancorada e `Date.parse` na API; `formatarData`/`UltimaAtualizacao` omitindo a data inválida no card em vez de lançar `RangeError`) e a troca da muleta do bug nos testes da T-018 por um dublê com `vi.mock`/`importOriginal`. Conceitos novos: `iso-8601-e-date-parse`, `expressoes-regulares-com-ancoras`, `intl-datetimeformat-e-rangeerror`, `vi-mock-com-importoriginal-e-hoisting`, `duble-de-teste-para-provocar-erro`.
+Arquivos alterados:
+- docs/04-estudos/tarefas/T-019.md
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -93,3 +100,4 @@ Conceitos para estudo: teste de rota com `fetch` simulado; provar que o teste fa
 - 2026-10-17 — code-reviewer: APROVADO — critérios atendidos; teste de rota com o qa
 - 2026-10-17 — qa: PASSOU — rota e e2e cobrem a data inválida; suíte e2e verde no container Linux
 - 2026-10-17 — orquestrador: concluida — verificação verde (unitários, lint, validador, e2e 350 + 12 pulados); merge em main
+- 2026-10-17 — documentador: CONCLUIDO — diário integrado
