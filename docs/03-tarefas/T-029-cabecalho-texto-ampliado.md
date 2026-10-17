@@ -73,6 +73,22 @@ Conceitos para estudo: `flex-wrap`; min-content e `break-word` × `anywhere`; `b
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Critérios atendidos. Container `t029-linux` (ubuntu:24.04, Node 24, Chromium, `sans-serif` e `system-ui` = DejaVu Sans), `CI=true`, `--workers=2`, `pt-BR.ts` do HEAD: e2e 284 passaram, 12 pulados, sem instáveis, inclusive `acessibilidade.spec.ts:136` nos dois projetos; unitários shared 5, API 227 + 4 esperadas, web 156 + 3. Windows (Segoe UI): e2e 284 + 12 pulados. Validador e lint verdes. 5 cenários novos em `e2e/testes/texto-ampliado.spec.ts` (celular e desktop): cabeçalho em 1 linha com 65px no tamanho normal; a 200% em 360px marca em cima e Menu embaixo, inteiros e com ≥44px; menu aberto a 200% com teclado (Tab, Enter, Esc devolve o foco) e clique; "Repositório" medido com `<canvas>` (exige quebra só se não cabe — independe da fonte); atalhos, "Fale comigo" e canais de Contato a 200%, também com palavra longa.
+Arquivos alterados:
+- `e2e/testes/texto-ampliado.spec.ts` (novo)
+Bugs encontrados (registrados com `test.fail`, fora do escopo):
+1. **`scroll-padding-top` fixo (média)**: em 360x800 a 200%, seguir um link do menu deixa o título da seção 24px atrás do cabeçalho (título em y=225, cabeçalho até y=249; `scroll-padding-top` 128px, cabeçalho 249px). Causa: `apps/web/src/index.css:12`. → vira tarefa.
+2. **Lista do menu aberta sai da janela a 200% (média)**: em 360x800, "Contato" vai de y=744 a y=840 e não dá para rolar (lista `absolute` dentro do cabeçalho `sticky`). Mesma causa da T-024, agora também com o celular em pé. → ampliar a T-024.
+Pendências:
+3. *baixa* — `esperarSecaoNaTela` (`e2e/apoio/pagina.ts`) pode passar por engano durante a rolagem suave (o título passa pela posição certa no meio da animação). → vira tarefa.
+4. Confirmar o CI verde na `main` após o push.
+5. Os 3 unitários que falham no Windows vêm do `pt-BR.ts` do George (T-015).
+Decisão pendente: nenhuma
+Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects()`; `test.fail`; rolagem suave × movimento reduzido nos testes; `scroll-padding-top` com cabeçalho de altura variável; `absolute` dentro de `sticky`; WCAG 1.4.4 e 1.4.10.
+
 ## Estudo
 
 ## DevOps
@@ -83,3 +99,4 @@ Conceitos para estudo: `flex-wrap`; min-content e `break-word` × `anywhere`; `b
 - 2026-10-16 — orquestrador: em-andamento — prioridade (CI vermelho); dev chamado
 - 2026-10-16 — dev: CONCLUIDO — cabeçalho com flex-wrap e links-botão com overflow-wrap: anywhere; :136 verde com a DejaVu
 - 2026-10-16 — code-reviewer: APROVADO — duas causas corrigidas em CSS; e2e Linux com o qa
+- 2026-10-16 — qa: PASSOU — e2e verde no Linux com a DejaVu Sans; 2 bugs novos com test.fail
