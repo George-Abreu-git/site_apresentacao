@@ -117,9 +117,14 @@ describe('validarProjetosCurados', () => {
   });
 
   it('numera os projetos a partir de 1 e aponta só os inválidos', () => {
-    const mensagem = mensagemDeErro([projetoMinimo, projetoMinimo, { ...projetoMinimo, descricao: '' }]);
+    // Títulos diferentes: título repetido também é erro (T-020) e sujaria a mensagem.
+    const mensagem = mensagemDeErro([
+      { ...projetoMinimo, titulo: 'Primeiro' },
+      { ...projetoMinimo, titulo: 'Segundo' },
+      { ...projetoMinimo, titulo: 'Terceiro', descricao: '' },
+    ]);
 
-    expect(mensagem).toMatch(/projeto 3 \("Site de apresentação"\): campo "descricao"/);
+    expect(mensagem).toMatch(/projeto 3 \("Terceiro"\): campo "descricao"/);
     expect(mensagem).not.toMatch(/projeto [12]\b/);
   });
 
@@ -136,5 +141,68 @@ describe('validarProjetosCurados', () => {
 
   it('recusa endereço com espaço no meio', () => {
     expect(mensagemDeErro([{ ...projetoMinimo, demo: 'https://exemplo.com/meu projeto' }])).toMatch(/campo "demo"/);
+  });
+
+  // O título identifica o projeto no site (e é a `key` dos cards no React, T-020):
+  // dois projetos com o "mesmo" título confundem quem visita e quebram a lista.
+  describe('títulos repetidos', () => {
+    const outro = { ...projetoMinimo, titulo: 'Outro projeto' };
+
+    it('recusa dois projetos com o mesmo título e aponta os dois', () => {
+      const mensagem = mensagemDeErro([projetoMinimo, outro, projetoMinimo]);
+
+      expect(mensagem).toBe(
+        'projeto 3 ("Site de apresentação"): título repetido — o mesmo do projeto 1 ("Site de apresentação"); cada projeto precisa de um título único',
+      );
+    });
+
+    it('com três iguais, aponta cada repetição para o primeiro projeto com aquele título', () => {
+      const mensagem = mensagemDeErro([outro, projetoMinimo, projetoMinimo, projetoMinimo]);
+
+      expect(mensagem.split('\n')).toEqual([
+        expect.stringMatching(/^projeto 3 \("Site de apresentação"\): título repetido — o mesmo do projeto 2 /),
+        expect.stringMatching(/^projeto 4 \("Site de apresentação"\): título repetido — o mesmo do projeto 2 /),
+      ]);
+    });
+
+    it.each([
+      ['espaços nas pontas', '  Site de apresentação  '],
+      ['maiúsculas e minúsculas', 'SITE DE APRESENTAÇÃO'],
+      ['espaços a mais no meio', 'Site  de   apresentação'],
+    ])('considera repetido um título que só muda em %s (no card, parecem o mesmo projeto)', (_caso, titulo) => {
+      const mensagem = mensagemDeErro([projetoMinimo, { ...projetoMinimo, titulo }]);
+
+      expect(mensagem).toBe(
+        `projeto 2 ("${titulo}"): título repetido — o mesmo do projeto 1 ("Site de apresentação"); cada projeto precisa de um título único`,
+      );
+    });
+
+    it('lista a repetição junto com os outros problemas, numa só mensagem', () => {
+      const mensagem = mensagemDeErro([projetoMinimo, { ...projetoMinimo, demo: 'ftp://x' }]);
+
+      expect(mensagem).toMatch(/^projeto 2 \("Site de apresentação"\): campo "demo"/m);
+      expect(mensagem).toMatch(/^projeto 2 \("Site de apresentação"\): título repetido — o mesmo do projeto 1/m);
+    });
+
+    it('aceita títulos diferentes, inclusive parecidos', () => {
+      const projetos = [projetoMinimo, { ...projetoMinimo, titulo: 'Site de apresentação 2' }, outro];
+
+      expect(validarProjetosCurados(projetos)).toEqual(projetos);
+    });
+
+    it('não compara projetos sem título válido (o erro deles é só o do campo "titulo")', () => {
+      const semTitulo = { ...projetoMinimo, titulo: '   ' };
+      const mensagem = mensagemDeErro([semTitulo, semTitulo, { ...projetoMinimo, titulo: 42 }]);
+
+      expect(mensagem).not.toMatch(/título repetido/);
+      expect(mensagem.split('\n')).toHaveLength(3);
+    });
+
+    it('ignora itens que não são objetos ao procurar repetições', () => {
+      const mensagem = mensagemDeErro([projetoMinimo, 'texto solto', projetoMinimo]);
+
+      expect(mensagem).toMatch(/^projeto 2: deve ser um objeto/m);
+      expect(mensagem).toMatch(/^projeto 3 \("Site de apresentação"\): título repetido — o mesmo do projeto 1/m);
+    });
   });
 });

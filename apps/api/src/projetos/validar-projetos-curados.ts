@@ -33,7 +33,10 @@ export function validarProjetosCurados(dados: unknown): ProjetoCurado[] {
     );
   }
 
-  const problemas = dados.flatMap((item, indice) => problemasDoProjeto(item, indice));
+  const problemas = [
+    ...dados.flatMap((item, indice) => problemasDoProjeto(item, indice)),
+    ...problemasDeTitulosRepetidos(dados),
+  ];
   if (problemas.length > 0) {
     throw new ArquivoDeProjetosInvalidoError(problemas.join('\n'));
   }
@@ -87,6 +90,45 @@ function problemasDosCampos(projeto: Record<string, unknown>): string[] {
   }
 
   return problemas;
+}
+
+/**
+ * Aponta cada projeto cujo título repete o de um projeto anterior (o título identifica
+ * o projeto no site e é a `key` dos cards no React). Cada repetição cita o primeiro
+ * projeto com aquele título. Itens sem título válido ficam de fora: o erro deles já
+ * é o do campo "titulo".
+ */
+function problemasDeTitulosRepetidos(dados: unknown[]): string[] {
+  const primeiroComOTitulo = new Map<string, { numero: number; titulo: string }>();
+  const problemas: string[] = [];
+
+  dados.forEach((item, indice) => {
+    if (!ehObjeto(item) || !ehTextoNaoVazio(item.titulo)) return;
+
+    const numero = indice + 1;
+    const chave = tituloParaComparar(item.titulo);
+    const primeiro = primeiroComOTitulo.get(chave);
+
+    if (primeiro) {
+      problemas.push(
+        `projeto ${numero} ("${item.titulo}"): título repetido — o mesmo do projeto ${primeiro.numero} ` +
+          `("${primeiro.titulo}"); cada projeto precisa de um título único`,
+      );
+    } else {
+      primeiroComOTitulo.set(chave, { numero, titulo: item.titulo });
+    }
+  });
+
+  return problemas;
+}
+
+/**
+ * Forma do título usada só na comparação. Ignora o que não muda o que a pessoa vê
+ * ou entende no card: espaços nas pontas, espaços a mais no meio (o navegador já os
+ * junta num só) e maiúsculas/minúsculas ("Site" e "SITE" seriam o mesmo projeto).
+ */
+function tituloParaComparar(titulo: string): string {
+  return titulo.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
 }
 
 function ehObjeto(valor: unknown): valor is Record<string, unknown> {
