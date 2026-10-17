@@ -1,7 +1,7 @@
 ---
 id: T-020
 titulo: Projetos com o mesmo título não geram chave duplicada no React
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end, back-end]
 rodadas: 0
@@ -37,6 +37,22 @@ Severidade: baixa.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: A validação do arquivo curado recusa títulos repetidos com `problemasDeTitulosRepetidos`, que compara a forma normalizada (`tituloParaComparar`: sem espaços nas pontas, espaços do meio juntados, minúsculas pt-BR) e gera, na mesma mensagem dos outros problemas, uma linha por repetição: `projeto N ("título"): título repetido — o mesmo do projeto M ("título"); cada projeto precisa de um título único`. Itens sem título válido ou que não são objeto ficam fora da comparação. 9 testes unitários novos e 1 de leitura de arquivo; o teste antigo de numeração passou a usar títulos distintos, com as mesmas asserções. README do conteúdo documenta a regra; o `projetos.json` real é válido. Complemento (critério 3, opção A do George): só o comentário do `it.fails` do BUG-3 em `Projetos.test.tsx` mudou, apontando para o contrato da API. API 260 + 3 esperadas; web 186 + 1 esperada + 3 falhas do `pt-BR.ts` do George; lint verde.
+Arquivos alterados:
+- apps/api/src/projetos/validar-projetos-curados.ts
+- apps/api/src/projetos/validar-projetos-curados.spec.ts
+- apps/api/src/projetos/ler-projetos-curados.spec.ts
+- apps/api/conteudo/README.md
+- apps/web/src/componentes/Projetos/Projetos.test.tsx (só o comentário)
+Pendências:
+1. Teste de rota para título repetido, se o qa achar útil (área do qa).
+2. A comparação ignora espaços e maiúsculas/minúsculas (escolha do dev, justificada: para o visitante seriam cards com o mesmo nome); comparar só textos idênticos é mudança de uma linha em `tituloParaComparar`.
+Decisão pendente: nenhuma
+Conceitos para estudo: validação em tempo de execução de dados `unknown`; normalização de texto (`trim`, `\s+`, `toLocaleLowerCase`); `Map` para achar duplicatas numa passada; `key` de listas no React; fail fast na inicialização; contrato entre front e API; `it.fails` como registro de bug conhecido.
+
 ## Revisão
 
 ## QA
@@ -50,3 +66,4 @@ Severidade: baixa.
 - 2026-10-16 — tarefa criada
 - 2026-10-17 — orquestrador: em-andamento — início no modo agente-faz; dev chamado (parte da API; critério 3 levado ao George)
 - 2026-10-17 — George: critério 3 decidido (opção A, manter o `it.fails` do front)
+- 2026-10-17 — dev: CONCLUIDO — API recusa títulos repetidos; comentário do BUG-3 aponta para a API
