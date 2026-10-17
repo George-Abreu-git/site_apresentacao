@@ -82,6 +82,15 @@ Conceitos para estudo: esperar a rolagem suave terminar antes de medir; `addInit
 
 ## Estudo
 
+### Diário de estudo (documentador)
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-030.md` (`consolidado: false`) explicando por que o `scroll-padding-top` fixo falhava com o cabeçalho em várias linhas, a correção (`useAlturaDoCabecalho` com `ResizeObserver` `border-box` gravando `--altura-real-do-cabecalho` no `<html>`, padrão em `tema.css`), a ordem dos `useLayoutEffect` diante da âncora inicial, os dublês do jsdom e as técnicas dos e2e (esperar a rolagem parar, `addInitScript` com `MutationObserver`, contraprova). 18 conceitos (nomes reaproveitados), 2 exercícios e links para T-029 e o diário da T-023. Nenhuma outra nota alterada.
+Arquivos alterados:
+- `docs/04-estudos/tarefas/T-030.md` (novo)
+Pendências: nenhuma
+Decisão pendente: nenhuma
+
 ## DevOps
 
 ## Log
@@ -92,3 +101,4 @@ Conceitos para estudo: esperar a rolagem suave terminar antes de medir; `addInit
 - 2026-10-17 — code-reviewer: APROVADO — altura real medida; conversão do test.fail com o qa
 - 2026-10-17 — qa: PASSOU — test.fail convertido; 5 cenários e2e; verde no Linux e no Windows
 - 2026-10-17 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 184 + 2; hooks 412; e2e CI=1 336 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
+- 2026-10-17 — documentador: CONCLUIDO — diário integrado
