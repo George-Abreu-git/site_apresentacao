@@ -4,6 +4,7 @@
 // fazem sentido num deles usam o `isMobile` do Playwright para pular o outro.
 import type { Locator, Page } from '@playwright/test';
 import { ptBR } from '../../apps/web/src/conteudo/pt-BR';
+import { PROJETOS_DE_EXEMPLO, ROTA_DA_API, responder } from '../apoio/api';
 import { contraste } from '../apoio/cores';
 import { esperarFocoVisivel, esperarSecaoNaTela, medirEstouroHorizontal, medirSecao } from '../apoio/pagina';
 import { expect, test } from '../apoio/teste';
@@ -132,11 +133,6 @@ test.describe('layout base: navegação pelo menu (RF-01)', () => {
     await expect(linkDoMenu(page, 'Sobre')).toBeInViewport();
     await linkDoMenu(page, 'Sobre').click();
     await esperarSecaoNaTela(page, 'sobre');
-  });
-
-  test('abrir a página já numa âncora mostra a seção abaixo do cabeçalho', async ({ page }) => {
-    await page.goto('/#servicos');
-    await esperarSecaoNaTela(page, 'servicos');
   });
 });
 
@@ -419,23 +415,131 @@ test.describe('navegação: bordas e regressão (pente-fino da T-016)', () => {
   });
 });
 
-test.describe('abrir o site direto numa âncora (achado da T-012, pente-fino da T-016)', () => {
-  // Sem beforeEach: aqui o endereço com âncora é a PRIMEIRA visita da página (como quem abre um
-  // link compartilhado). O teste "abrir a página já numa âncora..." acima não pega o problema
-  // porque o beforeEach dele abre "/" antes, e o segundo goto só troca a âncora na mesma página.
-  //
-  // BUG CONHECIDO (T-016): abrir o site direto em /#servicos (ou qualquer outra seção) deixa a
-  // página no topo. O navegador procura a âncora quando o HTML chega, mas as seções só existem
-  // depois que o React monta a página; ninguém rola até ela depois disso.
-  // Esperado: o título da seção abaixo do cabeçalho, como ao clicar no menu. Obtido: rolagem 0
-  // (o título de Serviços fica ~2.500 px abaixo da janela).
-  for (const id of ['servicos', 'contato'] as const) {
-    test(`abrir /#${id} numa visita nova mostra a seção na tela`, async ({ page }) => {
-      test.fail();
+/**
+ * Guarda, desde antes de a página carregar, a posição da rolagem a cada evento `scroll`.
+ * Uma rolagem animada (suave) deixa várias posições no caminho; uma rolagem direta, só a final.
+ */
+async function registrarRolagens(page: Page) {
+  await page.addInitScript(() => {
+    const posicoes: number[] = [];
+    (window as unknown as { __rolagens: number[] }).__rolagens = posicoes;
+    window.addEventListener('scroll', () => posicoes.push(window.scrollY), { passive: true });
+  });
+}
+
+/** As posições guardadas por `registrarRolagens`, na ordem em que aconteceram. */
+function lerRolagens(page: Page): Promise<number[]> {
+  return page.evaluate(() => (window as unknown as { __rolagens: number[] }).__rolagens);
+}
+
+/** Tempo para uma rolagem atrasada (ou animada) aparecer, se houvesse uma. */
+const ESPERA_POR_MOVIMENTO_MS = 500;
+
+test.describe('abrir o site direto numa âncora (T-023; achado da T-012, pente-fino da T-016)', () => {
+  // Sem beforeEach: aqui o endereço com âncora é a PRIMEIRA visita da página, como quem abre um
+  // link compartilhado. Antes da T-023 a página ficava no topo: o navegador procura a âncora quando
+  // o HTML chega, mas as seções só existem depois que o React monta a página. Agora o App rola até
+  // a seção logo depois de montá-la (useAncoraInicial).
+
+  for (const { id } of SECOES) {
+    test(`visita nova em /#${id}: a seção aparece abaixo do cabeçalho e a página fica parada`, async ({ page }) => {
       await page.goto(`/#${id}`);
+      await esperarSecaoNaTela(page, id);
+
+      // Nada a rola de novo depois: nem uma segunda rolagem, nem a volta ao topo.
+      const rolagem = await page.evaluate(() => window.scrollY);
+      await page.waitForTimeout(ESPERA_POR_MOVIMENTO_MS);
+      expect(await page.evaluate(() => window.scrollY)).toBe(rolagem);
       await esperarSecaoNaTela(page, id);
     });
   }
+
+  for (const movimento of ['no-preference', 'reduce'] as const) {
+    test(`vai direto à seção, sem animação de rolagem (prefers-reduced-motion: ${movimento})`, async ({ page }) => {
+      // Mesmo com a rolagem suave do site ligada (no-preference), quem chega por um link vê a
+      // seção direto, como o navegador faz numa página comum; com `reduce`, não pode haver animação.
+      await page.emulateMedia({ reducedMotion: movimento });
+      await registrarRolagens(page);
+      await page.goto('/#contato');
+      await esperarSecaoNaTela(page, 'contato');
+      await page.waitForTimeout(ESPERA_POR_MOVIMENTO_MS);
+
+      const final = await page.evaluate(() => window.scrollY);
+      expect(final).toBeGreaterThan(0);
+      // Toda posição registrada já é a final: a página foi do topo à seção num salto só.
+      expect(new Set(await lerRolagens(page))).toEqual(new Set([final]));
+    });
+  }
+
+  for (const endereco of ['/', '/#']) {
+    test(`sem âncora (${endereco}): a página abre e continua no topo`, async ({ page }) => {
+      await registrarRolagens(page);
+      await page.goto(endereco);
+      await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+      await page.waitForTimeout(ESPERA_POR_MOVIMENTO_MS);
+
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+      expect((await lerRolagens(page)).filter((posicao) => posicao !== 0)).toEqual([]);
+    });
+  }
+
+  test('a API responde depois da rolagem: Serviços (abaixo de Projetos) continua na tela', async ({ page }) => {
+    // A API "acorda" só depois de a página chegar à seção (partida a frio, RNF-03). Os cards de
+    // Projetos aumentam a altura da página acima de Serviços; a seção não pode sair da tela.
+    let liberarApi!: () => void;
+    const apiLiberada = new Promise<void>((resolver) => (liberarApi = resolver));
+    await page.route(ROTA_DA_API, async (rota) => {
+      await apiLiberada;
+      await responder(rota, PROJETOS_DE_EXEMPLO);
+    });
+
+    await page.goto('/#servicos');
+    await esperarSecaoNaTela(page, 'servicos');
+
+    liberarApi();
+    await expect(page.getByRole('region', { name: 'Projetos', exact: true }).getByRole('article')).toHaveCount(
+      PROJETOS_DE_EXEMPLO.length,
+    );
+    await page.waitForTimeout(ESPERA_POR_MOVIMENTO_MS);
+    await esperarSecaoNaTela(page, 'servicos');
+  });
+
+  test('depois de chegar pela âncora, a pessoa navega pelo menu e a página não volta para a âncora', async ({
+    page,
+    isMobile,
+  }) => {
+    // A rolagem até a âncora acontece uma vez, na chegada; nada a repete quando a página muda depois
+    // (a pessoa escolhe outra seção e só então a API responde, redesenhando Projetos).
+    let liberarApi!: () => void;
+    const apiLiberada = new Promise<void>((resolver) => (liberarApi = resolver));
+    await page.route(ROTA_DA_API, async (rota) => {
+      await apiLiberada;
+      await responder(rota, PROJETOS_DE_EXEMPLO);
+    });
+
+    await page.goto('/#contato');
+    await esperarSecaoNaTela(page, 'contato');
+
+    if (isMobile) await botaoMenu(page).click();
+    await linkDoMenu(page, 'Sobre').click();
+    await expect(page).toHaveURL(/#sobre$/);
+    await esperarSecaoNaTela(page, 'sobre');
+
+    liberarApi();
+    await expect(page.getByRole('article').first()).toBeAttached();
+    await page.waitForTimeout(ESPERA_POR_MOVIMENTO_MS);
+    await esperarSecaoNaTela(page, 'sobre');
+  });
+
+  test('trocar a âncora no endereço com a página já aberta leva à seção', async ({ page }) => {
+    // Outro caminho: a página já está aberta em "/" e só a âncora muda (navegação no mesmo
+    // documento). Aqui quem rola é o próprio navegador, que já encontra a seção pronta.
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+    await page.goto('/#servicos');
+    await expect(page).toHaveURL(/#servicos$/);
+    await esperarSecaoNaTela(page, 'servicos');
+  });
 });
 
 test.describe('menu do celular em paisagem com pouca altura (pente-fino da T-016)', () => {
