@@ -4,7 +4,7 @@ titulo: Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px
 status: em-qa
 modo: agente-faz
 tags: [front-end]
-rodadas: 0
+rodadas: 1
 criada: 2026-10-16
 ---
 
@@ -36,6 +36,7 @@ Severidade: média (CI vermelho na `main`).
 ## Decisões
 
 - 2026-10-16 — George: bugs viram tarefas em `agente-faz` (pedido de 2026-10-15); CI vermelho na `main` → corrigir a causa com prioridade, sem enfraquecer testes (decisão A da T-025, aplicada ao mesmo caso).
+- 2026-10-16 — orquestrador, aplicando a decisão do George para o mesmo caso (T-012 Q1 → A: teste dependente do ambiente na verificação → devolver ao qa, conta rodada): os 2 `test.fail` de bugs conhecidos em `texto-ampliado.spec.ts` passam no Windows com o `pt-BR.ts` do HEAD ("Expected to fail, but passed") e só falham no Linux; o qa os torna determinísticos.
 
 ## Dev
 
@@ -100,3 +101,4 @@ Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects()`; `t
 - 2026-10-16 — dev: CONCLUIDO — cabeçalho com flex-wrap e links-botão com overflow-wrap: anywhere; :136 verde com a DejaVu
 - 2026-10-16 — code-reviewer: APROVADO — duas causas corrigidas em CSS; e2e Linux com o qa
 - 2026-10-16 — qa: PASSOU — e2e verde no Linux com a DejaVu Sans; 2 bugs novos com test.fail
+- 2026-10-16 — orquestrador: em-qa — verificação local vermelha: os 2 `test.fail` de `texto-ampliado.spec.ts` (243 e 261) passam no Windows com o nome do HEAD; rodadas = 1; volta ao qa
