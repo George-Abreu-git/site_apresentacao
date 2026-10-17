@@ -1,7 +1,7 @@
 ---
 id: T-029
 titulo: Cabeçalho e menu não passam da tela com texto ampliado a 200% em 360px
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -39,6 +39,23 @@ Severidade: média (CI vermelho na `main`).
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Duas causas (a nota acertou só a primeira). (1) Cabeçalho: a 200% em 360px, marca (150px, em 2 linhas) + espaço (32px) + botão Menu (154px) + padding (80px) = 416px → `.conteudo` de `Cabecalho.module.css` com `flex-wrap: wrap` (o menu desce para a linha de baixo) e `padding: 0.5rem var(--espaco-lateral)` (altura normal continua 64px). (2) Os `li`/`a` do log do CI eram os botões "Repositório" dos cards, não o menu (fechado, sem ocupar espaço): a palavra em DejaVu negrito a 32px era mais larga que o miolo do card (182px), e `break-word` não reduz a largura mínima → `overflow-wrap: anywhere` em `.link` (card), `.canal` (Contato) e `.atalho` (Atalho), os links com cara de botão. Medido a 360px/200%: largura do conteúdo 360px, nada passando da borda, menu aberto ou fechado. 5 cenários unitários em `responsividade.test.ts` (3 falhavam antes; 2 protegem contra regressão). Container ubuntu:24.04 + Node 24 + DejaVu Sans, `CI=true`, `--workers=2`: `acessibilidade.spec.ts:136` passa nos dois projetos; suíte e2e inteira 268 passaram, 12 pulados, sem instáveis; nenhum `test.fail` passou a passar. Unitários no container (pt-BR.ts do HEAD): web 156 + 3 esperadas, API 227 + 4, shared 5, hooks 412; lint e build verdes. Com o nome novo do George, os testes de 200% e de "nada passa da largura" também passam.
+Arquivos alterados:
+- `apps/web/src/componentes/Cabecalho/Cabecalho.module.css`, `CartaoDeProjeto/CartaoDeProjeto.module.css`, `Contato/Contato.module.css`, `Atalho/Atalho.module.css`
+- `apps/web/src/responsividade.test.ts`
+Pendências:
+1. qa: e2e da mudança (sugestões: 360px a 200% com o menu aberto; "Repositório" quebrado e inteiro dentro do card; cabeçalho em 2 linhas a 200% e em 1 linha com 64px no tamanho normal).
+2. Os 3 unitários locais que falham vêm do `pt-BR.ts` do George (T-015).
+3. Possível bug novo: em 360px a 200% o cabeçalho tem 249px e o `scroll-padding-top` (4rem = 128px) não acompanha; ao seguir uma âncora, o título pode ficar atrás do cabeçalho.
+4. Confirmar o CI verde na `main` após o push.
+Reprodução (fora do repositório): scripts em `scratchpad/t029/` (`rodar.sh`, `rodar-unit.sh`) e container `t029-linux` ligado com Node 24, dependências, Chromium e DejaVu.
+Decisão pendente: nenhuma
+Conceitos para estudo: `flex-wrap`; min-content e `min-width: auto`; `overflow-wrap: break-word` × `anywhere`; WCAG 1.4.4 e 1.4.10; media queries em rem; fallback de `sans-serif` (DejaVu Sans no Linux); reproduzir o CI num container.
+Commit: `fix(web): cabeçalho e links-botão cabem em 360px com o texto a 200%`
+
 ## Revisão
 
 ## QA
@@ -51,3 +68,4 @@ Severidade: média (CI vermelho na `main`).
 
 - 2026-10-16 — tarefa criada
 - 2026-10-16 — orquestrador: em-andamento — prioridade (CI vermelho); dev chamado
+- 2026-10-16 — dev: CONCLUIDO — cabeçalho com flex-wrap e links-botão com overflow-wrap: anywhere; :136 verde com a DejaVu
