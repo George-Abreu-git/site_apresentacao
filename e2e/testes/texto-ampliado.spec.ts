@@ -258,39 +258,107 @@ test.describe('Cabeçalho e links-botão com o texto ampliado a 200% (T-029; WCA
   });
 });
 
-test.describe('Cabeçalho em várias linhas a 200%: bugs conhecidos (achados da T-029)', () => {
-  // Os dois bugs só aparecem quando o cabeçalho fica alto, o que depende da fonte e do nome: com a
-  // DejaVu Sans (CI) e "George Siqueira", o cabeçalho tem ~249px e os bugs aparecem; com a Segoe UI
-  // (Windows), ~201px e não aparecem. Por isso a marca recebe o NOME_LONGO (cabeçalho de ~300px ou
-  // mais) e cada teste confere a condição do bug ANTES do `test.fail()`: se ela não valer, o teste
-  // falha de verdade (não "como esperado"). Assim o "Expected to fail, but passed" só aparece quando
-  // o bug for corrigido, e aí é hora de tirar o `test.fail()`.
+/**
+ * Onde a seção, o título dela e o cabeçalho estão na tela. `topoDaSecao` é a borda de cima da
+ * seção: ao seguir uma âncora, ela deve parar logo abaixo do cabeçalho, qualquer que seja a altura
+ * dele (o `scroll-padding-top` do <html> acompanha a altura medida; T-030).
+ */
+async function medirAncora(page: Page, id: string) {
+  return page.evaluate((idDaSecao) => {
+    const secao = document.getElementById(idDaSecao)!.getBoundingClientRect();
+    const titulo = document.querySelector(`#${idDaSecao} h1, #${idDaSecao} h2`)!.getBoundingClientRect();
+    const doCabecalho = document.querySelector('header')!.getBoundingClientRect();
+    return {
+      topoDaSecao: secao.top,
+      topoDoTitulo: titulo.top,
+      baseDoTitulo: titulo.bottom,
+      baseDoCabecalho: doCabecalho.bottom,
+      alturaDaJanela: window.innerHeight,
+      rolagemVertical: window.scrollY,
+    };
+  }, id);
+}
 
-  // BUG CONHECIDO (achado no qa da T-029): o `scroll-padding-top` do html é fixo em 4rem (a altura
-  // do cabeçalho numa linha; apps/web/src/index.css). Em 360px com o texto a 200%, o cabeçalho
-  // quebra em várias linhas e fica mais alto que isso. Ao seguir uma âncora do menu, a seção para
-  // 4rem (128px) abaixo do topo e o título dela fica atrás do cabeçalho.
-  // Esperado: o título da seção abaixo do cabeçalho. Obtido: topo do título em y=225, base do
-  // cabeçalho em y=249 (DejaVu Sans, "George Siqueira") ou y≈345 (NOME_LONGO).
-  // A rolagem fica instantânea (movimento reduzido): com a rolagem suave, o título passa por baixo
-  // do cabeçalho no meio da animação, e um teste que espera "o título na tela" passaria por engano.
+/**
+ * Espera a rolagem (suave ou não) terminar: duas leituras seguidas, com 200ms entre elas, na mesma
+ * posição. Medir no meio da animação daria um resultado falso (o título passa pela tela no caminho).
+ */
+async function esperarRolagemParar(page: Page) {
+  let anterior: number | undefined;
+  await expect
+    .poll(
+      async () => {
+        const atual = await page.evaluate(() => window.scrollY);
+        const parou = atual === anterior;
+        anterior = atual;
+        return parou;
+      },
+      { intervals: [200], message: 'a rolagem deveria terminar' },
+    )
+    .toBe(true);
+}
+
+/** Segue o link do menu (abrindo a lista, se o menu compacto estiver na tela) e espera a rolagem terminar. */
+async function seguirPeloMenu(page: Page, id: string, titulo: string) {
+  const antes = await page.evaluate(() => window.scrollY);
+  if (await botaoMenu(page).isVisible()) await botaoMenu(page).click();
+  await navegacao(page).getByRole('link', { name: titulo, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`#${id}$`));
+  // Em todos os casos dos testes a página precisa sair do lugar; só então dá para esperar o fim.
+  await expect.poll(() => page.evaluate(() => window.scrollY)).not.toBe(antes);
+  await esperarRolagemParar(page);
+}
+
+/**
+ * A seção começa logo abaixo do cabeçalho: nem atrás dele (o título ficaria coberto) nem com um vão
+ * acima dela (o espaço reservado maior que o cabeçalho). A expectativa sai da altura medida do
+ * cabeçalho na hora, então vale com qualquer fonte e qualquer nome na marca. 1px de folga para o
+ * arredondamento (a altura reservada é a do cabeçalho arredondada para cima) e o subpixel do celular.
+ */
+async function esperarSecaoLogoAbaixoDoCabecalho(page: Page, id: string) {
+  const m = await medirAncora(page, id);
+  expect(m.topoDaSecao - m.baseDoCabecalho, `#${id}: distância entre a base do cabeçalho e o topo da seção`).toBeGreaterThanOrEqual(-1);
+  expect(m.topoDaSecao - m.baseDoCabecalho, `#${id}: distância entre a base do cabeçalho e o topo da seção`).toBeLessThanOrEqual(1.5);
+  expect(m.baseDoTitulo, `#${id}: título abaixo da janela`).toBeLessThanOrEqual(m.alturaDaJanela + 1);
+}
+
+/** Os links e botões visíveis, na ordem do documento, como "texto|href" (o caminho do Tab). */
+async function focaveisVisiveis(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('a[href], button')]
+      .filter((el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden')
+      .map((el) => `${el.textContent?.trim()}|${el.getAttribute('href') ?? 'botão'}`),
+  );
+}
+
+/** O elemento com foco, como "texto|href", e se o cabeçalho preso ao topo cobre parte dele (WCAG 2.4.11). */
+async function focoAtual(page: Page) {
+  return page.evaluate(() => {
+    const el = document.activeElement as HTMLElement;
+    const caixaDoFoco = el.getBoundingClientRect();
+    const baseDoCabecalho = document.querySelector('header')!.getBoundingClientRect().bottom;
+    return {
+      id: `${el.textContent?.trim()}|${el.getAttribute('href') ?? (el.tagName === 'BUTTON' ? 'botão' : el.tagName)}`,
+      cobertoPeloCabecalho: !el.closest('header') && caixaDoFoco.top < baseDoCabecalho - 1,
+    };
+  });
+}
+
+test.describe('Âncora e foco abaixo do cabeçalho, qualquer que seja a altura dele (T-030)', () => {
+  // Antes da T-030 o `scroll-padding-top` era fixo em 4rem (a altura do cabeçalho numa linha). Com o
+  // texto a 200% numa tela estreita o cabeçalho quebra em várias linhas e fica mais alto que isso:
+  // ao seguir uma âncora, o título da seção parava atrás dele. Agora a página mede a altura real do
+  // cabeçalho e reserva esse espaço. A marca recebe o NOME_LONGO (cabeçalho de ~300px ou mais a
+  // 200% em 360px, com qualquer fonte), para o caso difícil aparecer no Windows e no Linux do CI.
+
+  // Achado no qa da T-029. A rolagem fica instantânea (movimento reduzido): com a rolagem suave, o
+  // título passa por baixo do cabeçalho no meio da animação, e um teste que espera "o título na
+  // tela" passaria por engano. A rolagem suave tem o seu próprio teste, logo abaixo.
   test('360px a 200%, com um nome longo na marca: seguir um link do menu deixa o título da seção abaixo do cabeçalho', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await abrirAmpliada(page);
     await trocarNomeDaMarca(page, NOME_LONGO);
 
-    // Condição do bug: o cabeçalho é mais alto que o espaço que os 4rem do `scroll-padding-top`
-    // deixam acima do título (4rem + a distância do topo da seção ao título).
-    const alturaDoCabecalho = (await caixa(cabecalho(page))).altura;
-    const espacoAteOTitulo = await page.evaluate(() => {
-      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const secao = document.querySelector('#sobre')!;
-      const titulo = secao.querySelector('h1, h2')!;
-      return 4 * rem + titulo.getBoundingClientRect().top - secao.getBoundingClientRect().top;
-    });
-    expect(alturaDoCabecalho, 'o cabeçalho deveria ser mais alto que o espaço reservado acima do título').toBeGreaterThan(espacoAteOTitulo + 1);
-
-    test.fail();
     await botaoMenu(page).click();
     await navegacao(page).getByRole('link', { name: 'Sobre', exact: true }).click();
     await expect(page).toHaveURL(/#sobre$/);
@@ -299,6 +367,133 @@ test.describe('Cabeçalho em várias linhas a 200%: bugs conhecidos (achados da 
     const secao = await medirSecao(page, 'sobre');
     expect(secao.topoDoTitulo).toBeGreaterThanOrEqual(secao.baseDoCabecalho - 1);
   });
+
+  // Com a rolagem suave (quem não pediu movimento reduzido), descendo e subindo pela página. Em 768px
+  // o menu fica em linha e o cabeçalho quebra de outro jeito. Só os quatro primeiros links: com o
+  // nome longo, a lista aberta passa da janela em 360px (bug da T-024) e "Contato" não dá para tocar.
+  for (const largura of [LARGURA_DO_CELULAR, 768]) {
+    test(`${largura}px a 200%, com um nome longo e a rolagem suave: cada link do menu para a seção logo abaixo do cabeçalho`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await abrirAmpliada(page, largura);
+      await trocarNomeDaMarca(page, NOME_LONGO);
+
+      for (const { id, titulo } of [
+        { id: 'projetos', titulo: 'Projetos' },
+        { id: 'sobre', titulo: 'Sobre' },
+        { id: 'stacks', titulo: 'Stacks' },
+        { id: 'inicio', titulo: 'Início' },
+      ]) {
+        await seguirPeloMenu(page, id, titulo);
+        await esperarSecaoLogoAbaixoDoCabecalho(page, id);
+      }
+    });
+  }
+
+  // Quem chega por um link compartilhado (/#contato) com o navegador já configurado para texto a
+  // 200%: a página abre com o cabeçalho alto desde o início. O texto ampliado e o nome mais longo
+  // (um complemento posto pelo CSS, `::after`) entram ANTES de o React montar a página, como uma
+  // configuração do navegador; trocar o nome depois da carga não testaria a primeira medida.
+  test('abrir o site em /#contato a 200% em 360px, com um nome longo na marca: o título de Contato aparece abaixo do cabeçalho', async ({ page }) => {
+    await page.setViewportSize({ width: LARGURA_DO_CELULAR, height: 800 });
+    await page.addInitScript((complemento) => {
+      const estilo = document.createElement('style');
+      estilo.textContent = `html { font-size: 200% !important; } header a[href="#inicio"]::after { content: "${complemento}"; }`;
+      // O script roda antes de o HTML existir: põe o estilo assim que o <head> aparecer.
+      new MutationObserver((_, observador) => {
+        if (!document.head) return;
+        document.head.append(estilo);
+        observador.disconnect();
+      }).observe(document, { childList: true, subtree: true });
+    }, ` ${NOME_LONGO}`);
+    await page.goto('/#contato');
+    await expect(page.getByRole('heading', { name: ptBR.secoes.contato, exact: true })).toBeVisible();
+    await esperarRolagemParar(page);
+
+    const m = await medirAncora(page, 'contato');
+    // O estilo valeu (o cabeçalho quebrou em várias linhas, mais alto que os 4rem de uma linha só)
+    // e a página rolou até a seção.
+    const alturaDeUmaLinha = await page.evaluate(() => 4 * parseFloat(getComputedStyle(document.documentElement).fontSize));
+    expect(m.baseDoCabecalho, 'o cabeçalho deveria estar em várias linhas').toBeGreaterThan(alturaDeUmaLinha + 1);
+    expect(m.rolagemVertical).toBeGreaterThan(0);
+    expect(m.topoDaSecao, 'a seção começa atrás do cabeçalho').toBeGreaterThanOrEqual(m.baseDoCabecalho - 1);
+    expect(m.topoDoTitulo, 'o título fica atrás do cabeçalho').toBeGreaterThanOrEqual(m.baseDoCabecalho - 1);
+    expect(m.baseDoTitulo, 'o título fica abaixo da janela').toBeLessThanOrEqual(m.alturaDaJanela + 1);
+  });
+
+  // Tab e Shift+Tab rolam a página até o elemento focado, respeitando o mesmo `scroll-padding-top`.
+  // O Shift+Tab (subindo) era o caso que deixava o foco atrás do cabeçalho alto. Movimento reduzido:
+  // a rolagem até o foco é imediata, e a medida não pega a página no meio da animação.
+  test('360px a 200%, com um nome longo na marca: Tab até o fim e Shift+Tab de volta, sem o foco ficar atrás do cabeçalho', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await abrirAmpliada(page);
+    await trocarNomeDaMarca(page, NOME_LONGO);
+    const esperados = await focaveisVisiveis(page);
+    expect(esperados.length).toBeGreaterThan(10);
+
+    for (const [i, esperado] of esperados.entries()) {
+      await page.keyboard.press('Tab');
+      const foco = await focoAtual(page);
+      expect(foco.id, `Tab nº ${i + 1}`).toBe(esperado);
+      expect(foco.cobertoPeloCabecalho, `${foco.id} atrás do cabeçalho (Tab)`).toBe(false);
+    }
+    for (const esperado of [...esperados].reverse().slice(1)) {
+      await page.keyboard.press('Shift+Tab');
+      const foco = await focoAtual(page);
+      expect(foco.id).toBe(esperado);
+      expect(foco.cobertoPeloCabecalho, `${foco.id} atrás do cabeçalho (Shift+Tab)`).toBe(false);
+    }
+  });
+
+  // A altura do cabeçalho muda com a página aberta (tela girada, janela redimensionada): o espaço
+  // reservado acompanha, para mais e para menos. Em 1440px o cabeçalho fica mais baixo; se o espaço
+  // ficasse o de 360px, a seção pararia longe do cabeçalho, com um vão no meio.
+  test('mudar a largura com a página aberta (360px → 1440px → 360px a 200%, nome longo): a seção continua parando logo abaixo do cabeçalho', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await abrirAmpliada(page);
+    await trocarNomeDaMarca(page, NOME_LONGO);
+    const alturaEstreita = (await caixa(cabecalho(page))).altura;
+
+    await seguirPeloMenu(page, 'sobre', 'Sobre');
+    await esperarSecaoLogoAbaixoDoCabecalho(page, 'sobre');
+
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await expect.poll(async () => (await caixa(cabecalho(page))).altura, 'em 1440px o cabeçalho deveria ficar mais baixo').toBeLessThan(alturaEstreita - 1);
+    await seguirPeloMenu(page, 'projetos', 'Projetos');
+    await esperarSecaoLogoAbaixoDoCabecalho(page, 'projetos');
+
+    await page.setViewportSize({ width: LARGURA_DO_CELULAR, height: 800 });
+    await expect.poll(async () => (await caixa(cabecalho(page))).altura).toBeCloseTo(alturaEstreita, 0);
+    await seguirPeloMenu(page, 'stacks', 'Stacks');
+    await esperarSecaoLogoAbaixoDoCabecalho(page, 'stacks');
+  });
+
+  // Regressão: no tamanho normal o cabeçalho tem uma linha (4rem + 1px de borda) e a seção continua
+  // parando logo abaixo dele, do celular ao desktop largo.
+  test('tamanho normal, de 360px a 1440px: cada link do menu para a seção logo abaixo do cabeçalho', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    for (const largura of [LARGURA_DO_CELULAR, 768, 1440]) {
+      await page.setViewportSize({ width: largura, height: 800 });
+      await page.goto('/');
+      await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+      for (const { id, titulo } of [
+        { id: 'projetos', titulo: 'Projetos' },
+        { id: 'sobre', titulo: 'Sobre' },
+        { id: 'stacks', titulo: 'Stacks' },
+      ]) {
+        await seguirPeloMenu(page, id, titulo);
+        await esperarSecaoLogoAbaixoDoCabecalho(page, id);
+      }
+    }
+  });
+});
+
+test.describe('Cabeçalho em várias linhas a 200%: bug conhecido (achado da T-029)', () => {
+  // O bug só aparece quando o cabeçalho fica alto, o que depende da fonte e do nome: com a DejaVu
+  // Sans (CI) e "George Siqueira", o cabeçalho tem ~249px e o bug aparece; com a Segoe UI (Windows),
+  // ~201px e não aparece. Por isso a marca recebe o NOME_LONGO (cabeçalho de ~300px ou mais) e o
+  // teste confere a condição do bug ANTES do `test.fail()`: se ela não valer, o teste falha de
+  // verdade (não "como esperado"). Assim o "Expected to fail, but passed" só aparece quando o bug
+  // for corrigido, e aí é hora de tirar o `test.fail()`.
 
   // BUG CONHECIDO (achado no qa da T-029; mesma causa da T-024): a lista aberta é `position:
   // absolute` dentro do cabeçalho preso ao topo (sticky), então rolar a página não a move. Com o

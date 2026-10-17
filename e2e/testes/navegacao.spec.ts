@@ -104,7 +104,8 @@ test.describe('layout base: navegação pelo menu (RF-01)', () => {
       await expect(page).toHaveURL(new RegExp(`#${id}$`));
       await esperarSecaoNaTela(page, id);
       if (id === 'inicio') {
-        // Volta ao topo. Tolera 1px: o cabeçalho tem 4rem + 1px de borda e o scroll-padding-top, 4rem.
+        // Volta ao topo. Tolera 1px de arredondamento (subpixel; o scroll-padding-top é a altura do
+        // cabeçalho medida e arredondada para cima, T-030).
         await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(1);
       }
       if (isMobile) {
