@@ -1,7 +1,7 @@
 ---
 id: T-028
 titulo: Etiquetas de tecnologia com nome longo não causam rolagem lateral
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -18,11 +18,11 @@ Severidade: média.
 
 ## Critérios de aceite
 
-- [ ] Em 360px, nome de tecnologia longo e sem espaço quebra dentro da etiqueta, no card de projeto e na seção Stacks, sem rolagem lateral
-- [ ] Sem rolagem lateral também com o texto a 200%
-- [ ] Nada é cortado ou escondido (sem `overflow: hidden`, reticências ou `nowrap`)
-- [ ] 5 cenários de teste para a mudança (unitário e e2e), seguindo o padrão do George, incluindo a prova no container Linux do CI (`mcr.microsoft.com/playwright:v1.64.0-noble`, `CI=true`)
-- [ ] Suíte inteira e validador verdes
+- [x] Em 360px, nome de tecnologia longo e sem espaço quebra dentro da etiqueta, no card de projeto e na seção Stacks, sem rolagem lateral
+- [x] Sem rolagem lateral também com o texto a 200%
+- [x] Nada é cortado ou escondido (sem `overflow: hidden`, reticências ou `nowrap`)
+- [x] 5 cenários de teste para a mudança (unitário e e2e), seguindo o padrão do George, incluindo a prova no container Linux do CI (`mcr.microsoft.com/playwright:v1.64.0-noble`, `CI=true`)
+- [x] Suíte inteira e validador verdes
 
 ## Contexto relevante
 
@@ -88,3 +88,4 @@ Conceitos para estudo: `measureText` no `<canvas>`; `Range.getClientRects`; test
 - 2026-10-17 — dev: CONCLUIDO — overflow-wrap: anywhere nas etiquetas; provado no container Linux
 - 2026-10-17 — code-reviewer: APROVADO — anywhere nas etiquetas; e2e e prova Linux com o qa
 - 2026-10-17 — qa: PASSOU — 5 cenários e2e; mutação reprovada; suíte verde no Linux e no Windows
+- 2026-10-17 — orquestrador: concluida — verificação verde (shared 5; API 227 + 4; web 179 + 2; hooks 412; e2e CI=1 324 + 12 pulados; lint; validador), com o `pt-BR.ts` do George em stash durante a verificação; Linux comprovado pelo qa; CI da main acompanhado após o push; diário de estudo disparado após a integração
