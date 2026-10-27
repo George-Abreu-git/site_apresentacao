@@ -92,13 +92,21 @@ casosDeArquivo('Edit/Write por agente (critérios 22 a 27 e 30)', [
   ['dev', 'packages/shared/src/index.ts', 'permitir'],
   ['dev', 'apps/web/package.json', 'permitir'],
   ['dev', 'apps/api/test/projetos.e2e-spec.ts', 'negar'],
-  ['dev', 'e2e/home.spec.ts', 'negar'],
+  ['dev', 'e2e/testes/home.spec.ts', 'negar'],
+  ['dev', 'e2e/playwright.config.ts', 'negar'],
   ['dev', 'docs/03-tarefas/T-001.md', 'negar'],
   ['dev', 'package.json', 'negar'],
   ['dev', '.claude/agents/dev.md', 'negar'],
-  // qa: e2e/** e apps/api/test/**
-  ['qa', 'e2e/home.spec.ts', 'permitir'],
+  // qa: só arquivos de teste — e2e/testes/**, e2e/apoio/** e apps/api/test/**
+  // (decisão do George na T-035: a configuração do e2e é do devops)
+  ['qa', 'e2e/testes/home.spec.ts', 'permitir'],
+  ['qa', 'e2e/apoio/pagina.ts', 'permitir'],
+  ['qa', '.claude/worktrees/T-999/e2e/testes/home.spec.ts', 'permitir'],
   ['qa', 'apps/api/test/projetos.e2e-spec.ts', 'permitir'],
+  ['qa', 'e2e/playwright.config.ts', 'negar'],
+  ['qa', 'e2e/tsconfig.json', 'negar'],
+  ['qa', 'e2e/package.json', 'negar'],
+  ['qa', '.claude/worktrees/T-999/e2e/playwright.config.ts', 'negar'],
   ['qa', 'apps/web/src/App.tsx', 'negar'],
   ['qa', 'docs/03-tarefas/backlog.md', 'negar'],
   // instrutor: docs/04-estudos/**
@@ -122,7 +130,14 @@ casosDeArquivo('Edit/Write por agente (critérios 22 a 27 e 30)', [
   ['devops', 'eslint.config.mjs', 'permitir'],
   ['devops', 'apps/web/src/App.tsx', 'negar'],
   ['devops', 'packages/shared/src/index.ts', 'negar'],
-  ['devops', 'e2e/home.spec.ts', 'negar'],
+  ['devops', 'e2e/testes/home.spec.ts', 'negar'],
+  ['devops', 'e2e/apoio/pagina.ts', 'negar'],
+  // configuração do e2e: do devops (decisão do George na T-035)
+  ['devops', 'e2e/playwright.config.ts', 'permitir'],
+  ['devops', '.claude/worktrees/T-999/e2e/playwright.config.ts', 'permitir'],
+  ['devops', 'e2e/tsconfig.json', 'permitir'],
+  ['devops', 'e2e/tsconfig.app.json', 'permitir'],
+  ['devops', 'e2e/package.json', 'permitir'],
   ['devops', 'docs/03-tarefas/T-001.md', 'negar'],
   ['devops', 'docs/04-estudos/hooks.md', 'negar'],
   ['devops', 'docs/02-arquitetura/ADR-0003-x.md', 'negar'],
@@ -165,7 +180,7 @@ casosDeBash('Bash: réplicas do dev (T-035)', ['dev-2', 'dev-3'].flatMap((agente
 describe('Edit/Write: detalhes', () => {
   test('Edit, MultiEdit e NotebookEdit seguem a mesma regra do Write', () => {
     assert.equal(escrever('qa', 'apps/web/src/App.tsx', 'Edit'), 'negar');
-    assert.equal(escrever('qa', 'e2e/a.spec.ts', 'MultiEdit'), 'permitir');
+    assert.equal(escrever('qa', 'e2e/testes/a.spec.ts', 'MultiEdit'), 'permitir');
     const nb = entrada('dev', 'NotebookEdit', { notebook_path: path.join(raiz, 'docs/03-tarefas/x.ipynb') });
     assert.equal(decidir(nb), 'negar');
   });
@@ -247,7 +262,9 @@ casosDeBash('Bash: comandos comuns que não podem virar falso positivo', [
 casosDeBash('Bash: qa, instrutor e documentador', [
   ['qa', 'npm run test:e2e', 'permitir'],
   ['qa', 'npx playwright test --project=desktop', 'permitir'],
-  ['qa', 'echo x > e2e/notas.txt', 'permitir'],
+  ['qa', 'echo x > e2e/apoio/notas.txt', 'permitir'],
+  ['qa', 'echo x > e2e/playwright.config.ts', 'negar'],
+  ['qa', 'rm -rf e2e', 'negar'],
   ['qa', 'echo x > apps/web/src/a.ts', 'negar'],
   ['qa', 'git checkout -- apps/web/src/App.tsx', 'negar'],
   ['instrutor', 'echo x > docs/04-estudos/hooks.md', 'permitir'],

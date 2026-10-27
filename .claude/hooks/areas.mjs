@@ -26,8 +26,10 @@ export const AREAS = {
   dev: AREA_DEV,
   'dev-2': AREA_DEV,
   'dev-3': AREA_DEV,
+  // qa: só arquivos de teste (decisão do George na T-035). A configuração do
+  // e2e (playwright.config.ts, tsconfig*.json, package.json em e2e/) é do devops.
   qa: {
-    permitidos: ['e2e/**', 'apps/api/test/**'],
+    permitidos: ['e2e/testes/**', 'e2e/apoio/**', 'apps/api/test/**'],
     excecoes: [],
   },
   instrutor: {
@@ -46,6 +48,8 @@ export const AREAS = {
       // package.json, .env.example, eslint.config.mjs, render.yaml, wrangler.toml.
       '*',
       '.obsidian/**',
+      // Configuração do e2e (decisão do George na T-035); os testes são do qa.
+      'e2e/playwright.config.*', 'e2e/tsconfig*.json', 'e2e/package.json',
     ],
     excecoes: [
       'docs/03-tarefas/**', // do orquestrador

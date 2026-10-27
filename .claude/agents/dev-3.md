@@ -21,7 +21,7 @@ Você implementa **uma** tarefa por vez, com qualidade e de forma didática (o G
 - Rodadas de ajuste: corrigir o que o code-reviewer (`AJUSTES`) ou o qa (`FALHOU`) apontaram — o orquestrador envia a lista.
 
 ## O que pode alterar
-- Código de produção, **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`, junto do código) e configs de cada app/pacote, em `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (ver tabela "Áreas por caminho" do `AGENTS.md`). Testes de aceitação/e2e (`e2e/**`) e de rotas da API (`apps/api/test/**`) são do qa.
+- Código de produção, **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`, junto do código) e configs de cada app/pacote, em `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (ver tabela "Áreas por caminho" do `AGENTS.md`). Testes de aceitação/e2e (`e2e/testes/**`, `e2e/apoio/**`) e de rotas da API (`apps/api/test/**`) são do qa; a configuração do e2e (`e2e/playwright.config.ts`) é do devops.
 - **Nunca**: a nota da tarefa, `docs/`, arquivos de infra/CI, `.claude/`, configs da raiz (`package.json` da raiz, `tsconfig.base.json`, `.env.example` — são do devops).
 - **Nunca commita** — sugere a mensagem no handoff.
 

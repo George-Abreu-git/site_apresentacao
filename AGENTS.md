@@ -31,7 +31,7 @@ scripts/                utilitários (ex.: validar_estrutura.py)
 apps/web/               front-end (React + Vite + TypeScript)
 apps/api/               API (NestJS, um módulo por domínio; testes de rotas em apps/api/test/)
 packages/shared/        tipos compartilhados entre front e API (ex.: Projeto)
-e2e/                    testes de aceitação/e2e (Playwright)
+e2e/                    testes de aceitação/e2e (Playwright): testes/ e apoio/ (qa), playwright.config.ts (devops)
 ```
 
 O código é um **monorepo com npm workspaces** (`apps/*` e `packages/*`), conforme a ADR-0001.
@@ -79,10 +79,10 @@ Subagentes não decidem: registram a decisão no handoff e devolvem com `AGUARDA
 | dev | Implementa a tarefa com TDD | Código e testes da tarefa |
 | dev-2, dev-3 | Réplicas do `dev` (mesmo papel, instruções e área), para implementar outras tarefas **em paralelo**, cada uma no seu git worktree (T-035; seção "Tarefas em paralelo" da `orquestrar-tarefa`). Tudo o que estas regras e as skills dizem do `dev` vale também para eles | Igual ao dev |
 | code-reviewer | Revisa o diff (convenções, segurança, legibilidade, área de cada agente) | Nada (somente leitura) |
-| qa | Valida critérios de aceite, responsividade e acessibilidade | Apenas arquivos de teste |
+| qa | Valida critérios de aceite, responsividade e acessibilidade | Apenas arquivos de teste (a configuração do e2e é do devops) |
 | instrutor | Mentor do George no modo `eu-faco` (guia sem escrever o código; não fecha a tarefa); sob demanda tira dúvidas na hora, de forma interativa (`/estudar`), e cria ou atualiza a nota por conceito. Não consolida | Apenas `docs/04-estudos/` |
 | documentador | Sempre em segundo plano e num git worktree isolado. (1) Disparado no fim do encerramento de toda tarefa (`agente-faz`, `eu-faco` e `revisao`): escreve o diário de estudo da tarefa (`docs/04-estudos/tarefas/T-XXX.md`) a partir da nota dela; pode consultar e, se necessário, atualizar outras notas de estudo. (2) `/estudar-consolidar`: consolida os diários pendentes em notas por conceito (branch `estudos/consolidacao-AAAA-MM-DD`) | Apenas `docs/04-estudos/` |
-| devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`. **Dono da plataforma**: CI, ambientes, deploy, hooks, orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz e `docs/**` (exceto `03-tarefas` e `04-estudos`). Não cria ADRs (`docs/02-arquitetura/ADR-*`): devolve `AGUARDANDO-DECISAO` e o orquestrador cria via `registrar-decisao`. `docs/00-visao/**` e `docs/01-requisitos/**` nascem do levantamento de requisitos, conduzido pela sessão principal | Apenas a área de plataforma (tabela abaixo) |
+| devops | Implementador de tarefas com tag `infra`, `release` ou `orquestracao`. **Dono da plataforma**: CI, ambientes, deploy, hooks, orquestração (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), `scripts/**`, configs da raiz e `docs/**` (exceto `03-tarefas` e `04-estudos`) e a configuração do e2e (`e2e/playwright.config.ts`). Não cria ADRs (`docs/02-arquitetura/ADR-*`): devolve `AGUARDANDO-DECISAO` e o orquestrador cria via `registrar-decisao`. `docs/00-visao/**` e `docs/01-requisitos/**` nascem do levantamento de requisitos, conduzido pela sessão principal | Apenas a área de plataforma (tabela abaixo) |
 
 O **orquestrador** (sessão principal) não é um subagente: coordena o fluxo, escreve nas notas de tarefa e no backlog e faz os commits.
 
@@ -95,10 +95,10 @@ Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. De
 | Agente | Caminhos permitidos |
 |---|---|
 | dev, dev-2, dev-3 | `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (que é do qa). Inclui os **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`), que ficam junto do código, e as configs de cada app/pacote (ex.: `apps/web/vite.config.ts`, `apps/api/package.json`) |
-| qa | **Testes de aceitação/e2e**: `e2e/**` (Playwright) e `apps/api/test/**` (testes de rotas da API com Supertest). Na revisão documental (tag `revisao`), nenhum arquivo |
+| qa | **Só arquivos de teste de aceitação/e2e**: `e2e/testes/**` e `e2e/apoio/**` (Playwright) e `apps/api/test/**` (testes de rotas da API com Supertest). A configuração do e2e (`e2e/playwright.config.ts` e, se surgirem, `e2e/tsconfig*.json` e `e2e/package.json`) é do devops (decisão do George na T-035). Na revisão documental (tag `revisao`), nenhum arquivo |
 | instrutor | `docs/04-estudos/**` (lê e grava) |
 | documentador | `docs/04-estudos/**` (lê e grava, igual ao instrutor), no worktree dele. Produto: o diário da tarefa recebida (`docs/04-estudos/tarefas/T-XXX.md`) ou, na consolidação, as notas por conceito e o campo `consolidado` dos diários |
-| devops | Plataforma: `.claude/**` (agentes, skills, comandos, `settings.json`, hooks), `AGENTS.md`, `CLAUDE.md`, `scripts/**`, `docs/**` exceto `docs/03-tarefas/**` e `docs/04-estudos/**`. CI e deploy: `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, configs de deploy na raiz (ex.: `render.yaml`, `wrangler.*`). Configs da raiz: `.gitignore`, `.gitattributes`, `.obsidian/**`, `package.json` (workspaces), `package-lock.json`, `.env.example` etc. |
+| devops | Plataforma: `.claude/**` (agentes, skills, comandos, `settings.json`, hooks), `AGENTS.md`, `CLAUDE.md`, `scripts/**`, `docs/**` exceto `docs/03-tarefas/**` e `docs/04-estudos/**`. CI e deploy: `.github/**`, `infra/**`, `Dockerfile*`, `docker-compose*`, configs de deploy na raiz (ex.: `render.yaml`, `wrangler.*`). Configs da raiz: `.gitignore`, `.gitattributes`, `.obsidian/**`, `package.json` (workspaces), `package-lock.json`, `.env.example` etc. Configuração do e2e: `e2e/playwright.config.*`, `e2e/tsconfig*.json`, `e2e/package.json` (os testes em `e2e/testes/**` e `e2e/apoio/**` são do qa) |
 | orquestrador | `docs/03-tarefas/**` (notas e backlog, inclusive a nota editada dentro do worktree de estudos), os commits, e os arquivos que as skills `registrar-decisao` (ADRs) e `levantar-requisitos` (visão e requisitos) mandam a sessão principal criar |
 | todos os subagentes | nunca `docs/03-tarefas/**` (só o orquestrador) |
 

@@ -19,6 +19,7 @@ Sem `agent_id`, a chamada é da **sessão principal** (o orquestrador), que **nu
 
 Regras para todo subagente: nunca `docs/03-tarefas/**`, `.git/**` nem `package-lock.json` editado à mão.
 As réplicas do dev (`dev-2` e `dev-3`, T-035) têm a mesma área do `dev` (`AREA_DEV` em `areas.mjs`).
+O qa só escreve arquivos de teste (`e2e/testes/**`, `e2e/apoio/**`, `apps/api/test/**`); a configuração do e2e (`e2e/playwright.config.*`, `e2e/tsconfig*.json`, `e2e/package.json`) é do devops (decisão do George na T-035).
 Agente fora da tabela (ex.: `Explore`, `general-purpose`) não tem área: não escreve no repositório.
 Caminhos fora do repositório (ex.: a pasta temporária) não são governados pela tabela.
 Dentro de um worktree de subagente (`.claude/worktrees/<nome>/`), o caminho é avaliado relativo à raiz do worktree.

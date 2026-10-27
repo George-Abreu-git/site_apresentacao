@@ -59,6 +59,12 @@ describe('script restringir-escrita.mjs', () => {
     assert.equal(decisao(rodarHook(chamada('qa', 'Bash', { command: 'npm run test:e2e' })).saida), 'sem saída');
     assert.equal(decisao(rodarHook(chamada('qa', 'Bash', { command: 'echo x > apps/web/src/a.ts' })).saida), 'deny');
   });
+  test('config do e2e: do devops, não do qa (decisão do George na T-035)', () => {
+    const config = path.join(RAIZ, 'e2e/playwright.config.ts');
+    assert.equal(decisao(rodarHook(chamada('qa', 'Edit', { file_path: config })).saida), 'deny');
+    assert.deepEqual(rodarHook(chamada('devops', 'Edit', { file_path: config })), { codigo: 0, saida: '' });
+    assert.deepEqual(rodarHook(chamada('qa', 'Write', { file_path: path.join(RAIZ, 'e2e/testes/x.spec.ts') })), { codigo: 0, saida: '' });
+  });
   test('JSON com BOM no início também é lido', () => {
     const json = JSON.stringify(chamada('dev', 'Write', { file_path: path.join(RAIZ, 'docs/03-tarefas/x.md') }));
     assert.equal(decisao(rodarHook(String.fromCharCode(0xfeff) + json).saida), 'deny');
