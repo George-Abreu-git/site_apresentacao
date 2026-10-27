@@ -1,7 +1,7 @@
 ---
 id: T-035
 titulo: Mais dois subagentes dev (dev-2 e dev-3) para codar em paralelo
-status: em-andamento
+status: aguardando-decisao
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -60,6 +60,18 @@ Pendências:
 Decisão pendente: Q1 — quem altera o e2e/playwright.config.ts (A: qa; B: orquestrador; C: tornar o arquivo área do devops). Recomendação do devops: A.
 Conceitos para estudo: git worktree (vários checkouts de um repositório), variáveis de ambiente em configuração de ferramenta, porta TCP e reuseExistingServer do Playwright, rebase antes do merge fast-forward, execução paralela e conflitos em arquivos compartilhados (backlog, lockfile)
 
+### Rodada 1 (retomada após a decisão Q1)
+
+Resultado: CONCLUIDO
+Resumo: Apliquei a decisão Q1. O qa fica com `e2e/testes/**`, `e2e/apoio/**` e `apps/api/test/**`; o devops recebe `e2e/playwright.config.*`, `e2e/tsconfig*.json` e `e2e/package.json`. Isso está no `areas.mjs`, nos testes do hook (novos casos de permitir e negar, inclusive dentro de worktree), no AGENTS.md (estrutura, Papéis e Áreas por caminho), no README dos hooks e nas definições qa, devops, dev, dev-2 e dev-3 (uma linha em cada). A porta por `E2E_PORTA_FRONT` não pôde ser gravada porque o hook ativo é o do checkout principal, ainda com a área antiga; o arquivo pronto ficou no scratchpad. test:hooks (465), npm test, lint e validador verdes. e2e com a config proposta na porta 5174: 352 passaram, 12 pulados, 0 falhas. Sem a variável, a config resolve 5173.
+Arquivos alterados: .claude/hooks/areas.mjs, .claude/hooks/tests/politica.test.mjs, .claude/hooks/tests/integracao.test.mjs, .claude/hooks/README.md, .claude/agents/qa.md, .claude/agents/devops.md, .claude/agents/dev.md, .claude/agents/dev-2.md, .claude/agents/dev-3.md, AGENTS.md
+Pendências:
+1. Gravar o `e2e/playwright.config.ts` com a porta por `E2E_PORTA_FRONT` (bloqueado pelo hook do checkout principal) e rodar `E2E_PORTA_FRONT=5174 npm run test:e2e` e o lint no worktree.
+2. A ADR-0001 (linha 72) ainda diz "qa → `e2e/**`"; registrar a atualização via `registrar-decisao`.
+3. O code-reviewer confere a mudança de uma linha nas 5 definições de agente (coberta pela Q1) e a inclusão de `E2E_PORTA_FRONT` nas variáveis seguras em politica.mjs.
+Decisão pendente: nenhuma
+Conceitos para estudo: área de escrita por caminho (glob) e separação teste × configuração; hook carregado do checkout principal versus mudança feita num worktree (só vale depois do merge); validação de variável de ambiente com padrão e falha rápida; reuseExistingServer e porta estrita (--strictPort) no Playwright
+
 ## Log
 
 - 2026-10-27 — tarefa criada
@@ -68,3 +80,5 @@ Conceitos para estudo: git worktree (vários checkouts de um repositório), vari
 - 2026-10-27 — orquestrador: aguardando-decisao — Q1 apresentada ao George
 - 2026-10-27 — George: Q1 — qa só altera testes; config do e2e vira área do devops (registrado em Decisões)
 - 2026-10-27 — orquestrador: em-andamento — devops retoma (rodada 1, após decisão)
+- 2026-10-27 — devops: CONCLUIDO — área do qa só com testes; config do e2e do devops; porta do e2e bloqueada pelo hook do checkout principal (área antiga)
+- 2026-10-27 — orquestrador: aguardando-decisao — Q3 apresentada ao George (como gravar a config do e2e)
