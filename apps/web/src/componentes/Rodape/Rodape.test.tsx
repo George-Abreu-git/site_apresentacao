@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { conteudo } from '../../conteudo';
 import Rodape from './Rodape';
 
 describe('Rodape', () => {
@@ -8,7 +9,7 @@ describe('Rodape', () => {
 
     const rodape = screen.getByRole('contentinfo');
     expect(rodape.tagName).toBe('FOOTER');
-    expect(rodape).toHaveTextContent('George Siqueira');
+    expect(rodape).toHaveTextContent(conteudo.pessoa.nome);
     expect(rodape).toHaveTextContent(String(new Date().getFullYear()));
   });
 });

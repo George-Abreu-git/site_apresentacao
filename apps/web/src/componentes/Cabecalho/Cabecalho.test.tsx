@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { conteudo } from '../../conteudo';
 import { SECOES } from '../../secoes';
 import estilosGlobais from '../../index.css?raw';
 import Cabecalho from './Cabecalho';
@@ -18,7 +19,7 @@ describe('Cabecalho', () => {
   it('tem o nome do George como link de volta ao início', () => {
     render(<Cabecalho />);
 
-    expect(screen.getByRole('link', { name: 'George Siqueira' })).toHaveAttribute('href', '#inicio');
+    expect(screen.getByRole('link', { name: conteudo.pessoa.nome })).toHaveAttribute('href', '#inicio');
   });
 
   it('leva a todas as seis seções pelo menu', () => {
