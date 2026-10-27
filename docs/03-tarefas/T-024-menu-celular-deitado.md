@@ -1,7 +1,7 @@
 ---
 id: T-024
 titulo: Lista do menu cabe ou rola no celular deitado com pouca altura
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -89,3 +89,4 @@ Conceitos para estudo: contêiner de rolagem e scrollHeight vs clientHeight, rol
 - 2026-10-27 — qa: PASSOU — 3 test.fail viraram testes normais; 5 cenários e2e novos; bug baixo novo (anel de foco do último link cortado embaixo) registrado em test.fail
 - 2026-10-27 — orquestrador: aguardando-decisao — George decide se o bug do anel de foco é corrigido agora ou vira tarefa nova
 - 2026-10-27 — George: Q2 — B, o bug vira a T-036; a T-024 segue para o encerramento
+- 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
