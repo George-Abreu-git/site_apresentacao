@@ -1,7 +1,7 @@
 ---
 id: T-026
 titulo: Cabeçalhos de segurança nas respostas da API
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -36,6 +36,18 @@ Severidade: baixa.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Instalei o `helmet` (ADR-0003) como dependência de produção de `apps/api` e liguei com `app.use(helmet())` em `criarApp()`, antes do prefixo global; vale para toda resposta, inclusive 404 e 400 do Nest. Escrevi 5 cenários unitários em `criar-app.spec.ts` (TDD: 4 falharam antes, todos passam depois). Os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts` agora "passam inesperadamente" (correção confirmada); não editei porque é área do qa. Lint, build e validador passaram; fora esses 2, a suíte passou toda.
+Arquivos alterados: apps/api/package.json, apps/api/src/criar-app.ts, apps/api/src/criar-app.spec.ts, package-lock.json (gerado pelo npm install; só entradas do helmet)
+Pendências:
+1. qa: converter em testes normais os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts` ("sem X-Powered-By" e "nosniff") — critério 3 e parte do 5.
+2. Para a T-013 (CORS/deploy): o `helmet` também envia `Cross-Origin-Resource-Policy: same-origin` e um `Content-Security-Policy` padrão; pela especificação do Fetch o CORP não bloqueia `fetch` em modo CORS, mas vale confirmar no e2e quando o CORS for ligado (consequência já prevista na ADR-0003).
+3. O `npm install` mostrou aviso de `npm audit`; fica para o devops conferir.
+Decisão pendente: nenhuma
+Conceitos para estudo: cabeçalhos HTTP de segurança (X-Content-Type-Options/MIME sniffing, X-Powered-By e fingerprinting, X-Frame-Options/clickjacking, CORP e CSP); middleware no Express/Nest (`app.use`) e ordem de registro; pacote helmet; TDD com Supertest em teste unitário da fábrica da app; `it.fails` do Vitest
+
 ## Revisão
 
 ## QA
@@ -48,3 +60,5 @@ Severidade: baixa.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-27 — orquestrador: em-andamento — branch feat/T-026-cabecalhos-de-seguranca-api; dev chamado
+- 2026-10-27 — dev: CONCLUIDO — helmet ligado em criarApp(); 5 cenários unitários; it.fails do BUG-Q5 ficam para o qa
+- 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
