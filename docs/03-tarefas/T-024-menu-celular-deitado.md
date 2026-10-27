@@ -1,7 +1,7 @@
 ---
 id: T-024
 titulo: Lista do menu cabe ou rola no celular deitado com pouca altura
-status: em-qa
+status: aguardando-decisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -62,6 +62,17 @@ Conceitos para estudo: bloco de contenção de absolute dentro de sticky, max-he
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os 3 `test.fail` do bug (navegacao.spec.ts 568x320 no projeto celular; texto-ampliado.spec.ts 360x800 a 200% nos projetos celular e desktop) viraram testes normais e passam. Adicionei 5 cenários e2e normais (rolagem interna em 568x320 sem rolar a página, teclado com anel de foco sem corte dos lados, regressões em 640x360, 360x800 e desktop 1280x320) e 1 `test.fail` que registra um bug novo de severidade baixa. Suíte verde: e2e com 358 passaram e 18 pulados; unitários, API, hooks, lint e validador verdes.
+Arquivos alterados: e2e/testes/navegacao.spec.ts; e2e/testes/texto-ampliado.spec.ts
+Pendências:
+1. (George decide) Bug baixo: em 568x320, o Tab até "Contato" deixa os 6px de baixo do anel de foco cortados pela lista que rola, porque o navegador rola até a caixa do link e não até o anel. Registrado em `test.fail` em navegacao.spec.ts. Correção sugerida: `scroll-padding-block` na `.aberta`, feita pelo dev agora ou numa tarefa nova.
+2. (só registro) Em 640x360 a lista agora tem 16px de rolagem interna, só o padding de baixo. Os links não mudam de lugar.
+Decisão pendente: nenhuma
+Conceitos para estudo: contêiner de rolagem e scrollHeight vs clientHeight, rolagem até o foco (scroll into view) que ignora outline e outline-offset, scroll-padding, overscroll-behavior, test.fail como registro de bug conhecido, medir layout com getBoundingClientRect no Playwright
+
 ## Estudo
 
 ## DevOps
@@ -74,3 +85,5 @@ Conceitos para estudo: bloco de contenção de absolute dentro de sticky, max-he
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
 - 2026-10-27 — code-reviewer: APROVADO — correção só no CSS, dentro da área; test.fail do e2e ficam para o qa
 - 2026-10-27 — orquestrador: em-qa — qa chamado
+- 2026-10-27 — qa: PASSOU — 3 test.fail viraram testes normais; 5 cenários e2e novos; bug baixo novo (anel de foco do último link cortado embaixo) registrado em test.fail
+- 2026-10-27 — orquestrador: aguardando-decisao — George decide se o bug do anel de foco é corrigido agora ou vira tarefa nova
