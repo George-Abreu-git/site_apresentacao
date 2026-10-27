@@ -64,6 +64,17 @@ Conceitos para estudo: middleware no Nest/Express (`app.use`) e a ordem em que �
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Converti em testes normais os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts` e ampliei os dois para 6 tipos de resposta (200, HEAD, 404 de rota, 404 de método, 400 malformado e fora do /api). Também acrescentei um teste de que os códigos de status não mudam. Os critérios 1 a 5 foram atendidos. API 291/291, hooks 412/412, lint ok, validador ok, e2e 361 passaram e 21 foram pulados. Sem interface: responsividade e acessibilidade não se aplicam.
+Arquivos alterados: apps/api/test/health.e2e-spec.ts
+Pendências:
+1. *opcional*: na T-013 (CORS), confirmar no e2e que o `Cross-Origin-Resource-Policy: same-origin` e o CSP padrão do helmet não atrapalham o `fetch` do front.
+2. *opcional*: o devops avaliar o aviso de `npm audit`.
+Decisão pendente: nenhuma
+Conceitos para estudo: converter `it.fails` em teste normal quando o bug é corrigido; testes de rota com tabela de casos (vários métodos e status com o Supertest); cabeçalhos de segurança em respostas de erro geradas pelo framework
+
 ## Estudo
 
 ## DevOps
@@ -76,3 +87,4 @@ Conceitos para estudo: middleware no Nest/Express (`app.use`) e a ordem em que �
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
 - 2026-10-27 — code-reviewer: APROVADO — helmet conforme a ADR-0003; lock só com helmet; dentro da área
 - 2026-10-27 — orquestrador: em-qa — qa chamado
+- 2026-10-27 — qa: PASSOU — it.fails do BUG-Q5 viraram testes normais, ampliados para 6 tipos de resposta
