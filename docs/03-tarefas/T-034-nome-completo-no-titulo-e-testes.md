@@ -1,7 +1,7 @@
 ---
 id: T-034
 titulo: Nome completo do George no título da aba e nos testes do cabeçalho e do rodapé
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -49,3 +49,4 @@ O e2e (`npm run test:e2e`) já passa: o `texto-ampliado.spec.ts` usa nomes de te
 ## Log
 
 - 2026-10-27 — tarefa criada
+- 2026-10-27 — orquestrador: em-andamento — branch feat/T-034-nome-completo-no-titulo-e-testes; dev chamado
