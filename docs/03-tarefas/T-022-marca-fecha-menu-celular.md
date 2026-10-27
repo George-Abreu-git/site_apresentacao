@@ -71,6 +71,15 @@ Conceitos para estudo: `test.fail` do Playwright x teste normal; ponto de partid
 
 ## Estudo
 
+### Diário de estudo
+
+Resultado: CONCLUIDO
+Resumo: Diário da T-022 (BUG-Q1: tocar na marca no celular não fechava a lista do menu), escrito a partir da nota da tarefa, de `Cabecalho.tsx`, `Menu.tsx`, `Cabecalho.test.tsx`, do `MenuComEstado` em `Menu.test.tsx` e do bloco T-022 de `e2e/testes/navegacao.spec.ts`. Explica a elevação do estado do Menu para o Cabecalho, o Menu como componente controlado com props de callback, os 5 cenários unitários do dev e os e2e do qa (inclusive o ponto de partida do Tab depois de seguir a âncora). Tem 2 exercícios. Nenhuma outra nota de estudo alterada.
+Arquivos alterados: docs/04-estudos/tarefas/T-022.md
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: elevar-o-estado; componente-controlado-e-nao-controlado; props-de-callback; atualizacao-funcional-do-estado; menu-compacto-acessivel; involucro-de-teste-com-estado; limitacoes-do-jsdom; navegacao-por-ancoras; bug-conhecido-com-it-fails-e-test-fail; tipos-de-teste-unitario-rota-e2e
+
 ## DevOps
 
 ## Log
@@ -83,3 +92,4 @@ Conceitos para estudo: `test.fail` do Playwright x teste normal; ponto de partid
 - 2026-10-27 — orquestrador: em-qa — qa chamado
 - 2026-10-27 — qa: PASSOU — test.fail do BUG-Q1 virou teste normal; 3 cenários e2e de teclado e regressão
 - 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
+- 2026-10-27 — documentador: CONCLUIDO — diário integrado
