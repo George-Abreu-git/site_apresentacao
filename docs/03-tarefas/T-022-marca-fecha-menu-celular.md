@@ -1,7 +1,7 @@
 ---
 id: T-022
 titulo: Tocar na marca no celular fecha a lista do menu
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -35,6 +35,16 @@ Severidade: baixa.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Passei o estado da lista do menu do `Menu` para o `Cabecalho`, e o `Menu` virou um componente controlado (props `aberto`, `aoAlternar`, `aoFechar`). Assim a marca, que fica fora do menu, também fecha a lista ao ser tocada (`onClick={fecharMenu}`). Os 5 cenários novos estão em `Cabecalho.test.tsx` (4 falhavam antes da correção). Os testes do `Menu` passaram a usar o invólucro `MenuComEstado`. Suíte, lint, build e validador verdes.
+Arquivos alterados: apps/web/src/componentes/Cabecalho/Cabecalho.tsx; apps/web/src/componentes/Cabecalho/Cabecalho.test.tsx; apps/web/src/componentes/Menu/Menu.tsx; apps/web/src/componentes/Menu/Menu.test.tsx
+Pendências:
+1. (qa) O `test.fail` do BUG-Q1 em `e2e/testes/navegacao.spec.ts:408` agora passa ("Expected to fail, but passed"). Ele precisa virar teste normal (critério de aceite 3, área do qa).
+Decisão pendente: nenhuma
+Conceitos para estudo: componente controlado x não controlado (React); elevar o estado (lifting state up); props de callback (`aoAlternar`/`aoFechar`); invólucro de teste com estado (wrapper); `aria-expanded`; `test.fail` do Playwright e "passou inesperadamente"
+
 ## Revisão
 
 ## QA
@@ -47,3 +57,5 @@ Severidade: baixa.
 
 - 2026-10-16 — tarefa criada
 - 2026-10-27 — orquestrador: em-andamento — branch feat/T-022-marca-fecha-menu-celular; dev chamado
+- 2026-10-27 — dev: CONCLUIDO — estado do menu elevado ao Cabecalho; a marca fecha a lista; test.fail do e2e fica para o qa
+- 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
