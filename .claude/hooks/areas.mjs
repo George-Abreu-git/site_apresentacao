@@ -15,11 +15,17 @@ const WINDOWS = process.platform === 'win32';
 // Áreas de cada agente: `permitidos` menos `excecoes`.
 // Agente sem entrada aqui (ex.: Explore, general-purpose) não tem área:
 // não escreve em nenhum caminho do repositório.
+// Área do dev, compartilhada com as réplicas dev-2 e dev-3 (T-035), que
+// implementam outras tarefas em paralelo, cada uma no seu worktree.
+const AREA_DEV = {
+  permitidos: ['apps/**', 'packages/**'],
+  excecoes: ['apps/api/test/**'], // testes de rotas: área do qa
+};
+
 export const AREAS = {
-  dev: {
-    permitidos: ['apps/**', 'packages/**'],
-    excecoes: ['apps/api/test/**'], // testes de rotas: área do qa
-  },
+  dev: AREA_DEV,
+  'dev-2': AREA_DEV,
+  'dev-3': AREA_DEV,
   qa: {
     permitidos: ['e2e/**', 'apps/api/test/**'],
     excecoes: [],

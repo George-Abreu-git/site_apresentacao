@@ -18,6 +18,7 @@ Sem `agent_id`, a chamada é da **sessão principal** (o orquestrador), que **nu
 - **perguntar**: `permissionDecision: "ask"`. Usado quando o devops altera `.claude/agents/**`: o George confirma na hora (critério 30).
 
 Regras para todo subagente: nunca `docs/03-tarefas/**`, `.git/**` nem `package-lock.json` editado à mão.
+As réplicas do dev (`dev-2` e `dev-3`, T-035) têm a mesma área do `dev` (`AREA_DEV` em `areas.mjs`).
 Agente fora da tabela (ex.: `Explore`, `general-purpose`) não tem área: não escreve no repositório.
 Caminhos fora do repositório (ex.: a pasta temporária) não são governados pela tabela.
 Dentro de um worktree de subagente (`.claude/worktrees/<nome>/`), o caminho é avaliado relativo à raiz do worktree.

@@ -15,7 +15,8 @@ SKILLS = [
     "nota-de-estudo", "commit-convencional", "apresentar-decisao",
     "orquestrar-tarefa", "levantar-requisitos",
 ]
-AGENTES = ["dev", "code-reviewer", "qa", "instrutor", "devops", "documentador"]
+# dev-2 e dev-3: réplicas do dev para implementar tarefas em paralelo (T-035).
+AGENTES = ["dev", "dev-2", "dev-3", "code-reviewer", "qa", "instrutor", "devops", "documentador"]
 # Campos de frontmatter obrigatórios só para alguns agentes (valores como texto, como o parser lê).
 # documentador: roda em segundo plano num git worktree isolado (T-014).
 CAMPOS_AGENTE = {"documentador": {"background": "true", "isolation": "worktree"}}

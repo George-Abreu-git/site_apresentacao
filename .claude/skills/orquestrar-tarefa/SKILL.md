@@ -1,6 +1,6 @@
 ---
 name: orquestrar-tarefa
-description: Use na sessão principal para executar uma tarefa do backlog do início ao fim, coordenando os subagentes dev, code-reviewer, qa, instrutor, devops e documentador. Acionada por /executar-tarefa.
+description: Use na sessão principal para executar uma tarefa do backlog do início ao fim, coordenando os subagentes dev (e as réplicas dev-2 e dev-3), code-reviewer, qa, instrutor, devops e documentador. Acionada por /executar-tarefa.
 ---
 
 # Orquestrar tarefa
@@ -9,12 +9,12 @@ Você é o orquestrador: delega, transcreve handoffs (contrato em `atualizar-tar
 
 ## Preparação
 1. Leia a nota `docs/03-tarefas/T-XXX-*.md`. Se não existir ou não tiver critérios de aceite, pare e peça ao George.
-2. Crie/troque para a branch `feat/T-XXX-<slug>` a partir de `main`.
+2. Crie/troque para a branch `feat/T-XXX-<slug>` a partir de `main`. Se outra tarefa já estiver em andamento no checkout principal, a nova roda num worktree (seção "Tarefas em paralelo").
 3. Status `em-andamento`; linha no Log; commit.
 
 **Modo de fluxo**: se a tarefa tem a tag `revisao`, siga o **modo `revisao`** (abaixo), seja qual for o `modo` da nota. Senão, siga `agente-faz` ou `eu-faco`, conforme a nota.
 
-**Implementador**: `devops` se a tarefa tem tag `infra`, `release` ou `orquestracao` (o devops é o dono da plataforma: orquestração, `scripts/**`, configs da raiz e `docs/**` exceto `03-tarefas` e `04-estudos`); senão `dev`. Nos passos abaixo, "implementador" é um deles.
+**Implementador**: `devops` se a tarefa tem tag `infra`, `release` ou `orquestracao` (o devops é o dono da plataforma: orquestração, `scripts/**`, configs da raiz e `docs/**` exceto `03-tarefas` e `04-estudos`); senão `dev` — ou `dev-2`/`dev-3` numa tarefa em paralelo (seção "Tarefas em paralelo"). Nos passos abaixo, "implementador" é um deles.
 
 Ao chamar cada subagente, envie: id e caminho da tarefa, modo, e (em rodadas de ajuste) a lista de ajustes. Nada além disso — ele carrega o resto com `carregar-contexto`.
 
@@ -120,6 +120,45 @@ A consolidação dos diários em notas por conceito também é do `documentador`
 | Falha | descartar e registrar no Log da tarefa | descartar (passo 1 de **Falha**) e avisar o George; não há Log de tarefa para registrar |
 
 No fim, mostre ao George as notas criadas e as atualizadas (lista do handoff). Um diário redisparado depois da consolidação volta a `consolidado: false` e entra na consolidação seguinte.
+
+## Tarefas em paralelo (dev, dev-2, dev-3)
+
+O `dev-2` e o `dev-3` são réplicas do `dev` (mesmo papel, instruções e área; T-035). Com eles, mais de uma tarefa pode estar em andamento ao mesmo tempo: a primeira segue no **checkout principal**, como sempre; cada uma das outras roda num **git worktree** próprio, em `.claude/worktrees/T-XXX` (pasta ignorada pelo git), na sua branch `feat/T-XXX-<slug>`. O fluxo de cada tarefa é o de sempre (modos, rodadas, limite, conferência de área, commits, encerramento); muda só **onde** os comandos rodam e como a integração é ordenada.
+
+### Quando duas tarefas podem rodar juntas
+Todas as condições abaixo; na dúvida, rode uma depois da outra.
+1. **Implementadores diferentes**: cada tarefa em andamento tem o seu (`dev` no checkout principal; `dev-2` e `dev-3` nos worktrees; `devops` em no máximo uma tarefa; o George, no `eu-faco`, conta como implementador e trabalha no checkout principal).
+2. **Sem arquivos em comum previstos**: compare a descrição, os critérios e o "Contexto relevante" das notas (ex.: duas tarefas no mesmo componente ou na mesma nota de estudo não rodam juntas).
+3. **Sem dependência entre elas**: nenhuma precisa do resultado da outra.
+4. **No máximo uma mexe em dependências** (`package.json` de qualquer workspace e `package-lock.json`): o lock é gerado e conflita fácil.
+
+### Preparação da tarefa no worktree (no lugar dos passos 2 e 3 da Preparação)
+Os comandos rodam a partir do checkout principal, que continua na branch da outra tarefa (não troque de branch nele). `WT=.claude/worktrees/T-XXX`.
+1. A `main` local deve estar igual à `origin/main` (sem commits sem push). Crie o worktree: `git worktree add "$WT" -b feat/T-XXX-<slug> main`.
+2. Instale as dependências **nele** (cada worktree tem a sua `node_modules`): `cd "$WT" && npm ci` (no PowerShell: `Push-Location $WT; npm ci; Pop-Location`). Os navegadores do Playwright ficam no cache do usuário e já servem a todos.
+3. **Porta do e2e**: o checkout principal usa a padrão (5173, sem variável). Cada worktree recebe uma porta só dele, a primeira livre entre `5174`, `5175` e `5176`, passada em `E2E_PORTA_FRONT` (o `e2e/playwright.config.ts` a lê; sem ela, um e2e reaproveitaria o servidor do outro checkout e testaria o código errado). Registre a porta no Log da tarefa.
+4. Status `em-andamento` e linha no Log (`orquestrador: em-andamento — worktree $WT, branch feat/T-XXX-<slug>, porta do e2e NNNN`) na nota **do worktree** (`$WT/docs/03-tarefas/T-XXX-<slug>.md`); commit com `git -C "$WT"`. Nunca edite a cópia da nota que está no checkout principal.
+
+### Durante o fluxo
+- **Chamada de cada subagente** (implementador, code-reviewer, qa; e o instrutor no `eu-faco`, se for o caso): além do id, caminho da tarefa e modo, envie o caminho absoluto do worktree, a instrução de trabalhar **só** dentro dele (ler a nota a partir dele, rodar os comandos lá — `cd "$WT" && ...` ou `git -C "$WT"`), de **não** alterar arquivos do checkout principal, e a porta: `E2E_PORTA_FRONT=NNNN npm run test:e2e`. O code-reviewer e o qa da tarefa também trabalham no worktree dela (`git -C "$WT" diff main...HEAD`).
+- **Implementador**: `dev-2` no primeiro worktree e `dev-3` no segundo (ou o `devops`, se a tarefa tem tag `infra`, `release` ou `orquestracao`). Use sempre o mesmo implementador nas rodadas de ajuste da tarefa.
+- **Conferência de área**: `git -C "$WT" status --porcelain --untracked-files=all`, com a mesma tabela "Áreas por caminho" (o hook avalia os caminhos relativos à raiz do worktree). Confira também que o `git status --porcelain` do checkout principal só tem o que é da tarefa de lá.
+- **Commits**: `git -C "$WT" add <arquivos>` e `git -C "$WT" commit` (mesma ordem de sempre: arquivos do agente, depois a nota).
+- **Backlog**: enquanto houver tarefas em paralelo, **nenhuma** delas atualiza o `docs/03-tarefas/backlog.md` durante o fluxo — as linhas das tarefas ficam próximas e conflitariam no rebase. Cada uma atualiza a sua linha só no encerramento (abaixo), já sobre a `main` atual.
+
+### Encerramento em paralelo (uma tarefa de cada vez)
+Se duas tarefas chegarem ao `PASSOU` do qa juntas, encerre uma por completo (até o push e a remoção do worktree) antes de começar a outra. A tarefa do checkout principal segue o **Encerramento** normal (o merge pode virar `--no-ff`, já previsto). Para a tarefa do worktree:
+1. `definition-of-done` com base nos handoffs (passo 1 do Encerramento).
+2. **Atualize sobre a `main`**: `git -C "$WT" rebase main`. Conflito → `git -C "$WT" rebase --abort`, anote os arquivos (nada de forçar), status `aguardando-decisao` e apresente ao George. Se o rebase trouxe mudanças em `package.json`/`package-lock.json`, rode `npm ci` no worktree de novo.
+3. **Verificação no worktree** (regra do George, passo 2 do Encerramento): `npm test`, `E2E_PORTA_FRONT=NNNN npm run test:e2e` e `python3 scripts/validar_estrutura.py` (no Windows, `PYTHONUTF8=1`), todos dentro de `$WT`. Algo falhou → não marque `concluida` nem faça merge; status `aguardando-decisao` e apresente ao George.
+4. Tudo verde → status `concluida`, Log, a linha da tarefa no backlog (no worktree); commit com `git -C "$WT"`.
+5. **Integração** (sempre fast-forward, porque o passo 2 deixou a branch sobre a `main`):
+   - checkout principal numa branch de tarefa: `git -C "$WT" switch main && git -C "$WT" merge --ff-only feat/T-XXX-<slug>`;
+   - checkout principal em `main` (nenhuma outra tarefa em andamento): `git merge --ff-only feat/T-XXX-<slug>` nele;
+   - `git push origin main`. Falhou → tente de novo; sem credenciais, avise o George (igual ao Encerramento).
+6. **Diário de estudo**: dispare o `documentador` (passo 5 do Encerramento; ele nasce da `origin/main`, por isso depois do push).
+7. **Limpeza**: pare servidores que tenham ficado rodando no worktree (no Windows, arquivos abertos travam a remoção), `git worktree remove "$WT"` (a `node_modules` é ignorada pelo git e sai junto) e apague a branch depois de confirmar que já está na `main`: `git merge-base --is-ancestor feat/T-XXX-<slug> main && git branch -D feat/T-XXX-<slug>`.
+8. A outra tarefa em andamento nasceu de uma `main` mais antiga: no encerramento dela, o rebase (worktree) ou o merge `--no-ff` (checkout principal) traz esta. Conflito → George decide, como sempre.
 
 ## Regras de escrita na nota da tarefa
 

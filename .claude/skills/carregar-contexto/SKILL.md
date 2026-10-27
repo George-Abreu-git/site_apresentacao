@@ -16,7 +16,7 @@ Leia **somente** o que o seu papel precisa. Contexto enxuto = respostas melhores
 
 | Papel | Leia também |
 |---|---|
-| dev | ADRs em `docs/02-arquitetura/ADR-*.md` citadas na tarefa ou relacionadas à stack; arquivos citados em "Contexto relevante"; testes existentes da área afetada |
+| dev, dev-2, dev-3 | ADRs em `docs/02-arquitetura/ADR-*.md` citadas na tarefa ou relacionadas à stack; arquivos citados em "Contexto relevante"; testes existentes da área afetada |
 | code-reviewer | `git diff main...HEAD` e `git log main..HEAD --oneline`; skill `definition-of-done`; handoff do dev na tarefa |
 | qa | "Critérios de aceite" da tarefa; `git diff main...HEAD`; requisitos `RF/RNF` citados; testes existentes |
 | instrutor | Modo mentor (`eu-faco`): seções Dev/Revisão/QA/Estudo da tarefa (handoffs e guias anteriores). `/estudar`: a nota por conceito do tema (se existir) e, se ajudarem nos exemplos, os diários e o código citados nela |

@@ -22,6 +22,6 @@ Conceitos para estudo: <lista curta de conceitos que apareceram>
 Mensagem de commit sugerida: <commit convencional ou "nenhuma">
 ```
 
-Resultados por agente: dev → `CONCLUIDO`; code-reviewer → `APROVADO`/`AJUSTES`; qa → `PASSOU`/`FALHOU`; instrutor e devops → `CONCLUIDO`; documentador → `CONCLUIDO`/`FALHOU` (não conseguiu escrever o diário ou consolidar). Qualquer um pode devolver `AGUARDANDO-DECISAO`, exceto o documentador: ele roda em segundo plano (depois do encerramento ou no `/estudar-consolidar`) e registra dúvidas em "Pendências".
+Resultados por agente: dev (e as réplicas dev-2 e dev-3) → `CONCLUIDO`; code-reviewer → `APROVADO`/`AJUSTES`; qa → `PASSOU`/`FALHOU`; instrutor e devops → `CONCLUIDO`; documentador → `CONCLUIDO`/`FALHOU` (não conseguiu escrever o diário ou consolidar). Qualquer um pode devolver `AGUARDANDO-DECISAO`, exceto o documentador: ele roda em segundo plano (depois do encerramento ou no `/estudar-consolidar`) e registra dúvidas em "Pendências".
 
 Em pedidos sem tarefa (ex.: `/estudar`, `/estudar-consolidar`), use `avulso` no lugar de `<T-XXX>`.

@@ -45,6 +45,12 @@ describe('script restringir-escrita.mjs', () => {
     const r = rodarHook(chamada('dev', 'Write', { file_path: path.join(RAIZ, 'apps/web/src/x.ts') }));
     assert.deepEqual(r, { codigo: 0, saida: '' });
   });
+  test('réplicas do dev (dev-2, dev-3): mesma área do dev (T-035)', () => {
+    for (const agente of ['dev-2', 'dev-3']) {
+      assert.deepEqual(rodarHook(chamada(agente, 'Write', { file_path: path.join(RAIZ, 'apps/web/src/x.ts') })), { codigo: 0, saida: '' });
+      assert.equal(decisao(rodarHook(chamada(agente, 'Write', { file_path: path.join(RAIZ, 'e2e/x.spec.ts') })).saida), 'deny');
+    }
+  });
   test('devops na definição de um agente: "ask" (o George confirma)', () => {
     const r = rodarHook(chamada('devops', 'Edit', { file_path: path.join(RAIZ, '.claude/agents/dev.md') }));
     assert.equal(decisao(r.saida), 'ask');

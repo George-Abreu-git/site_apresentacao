@@ -281,9 +281,10 @@ const ATRIBUICAO = /^[A-Za-z_][A-Za-z0-9_]*=/;
 
 // Variáveis de ambiente que o code-reviewer pode definir antes de um comando.
 // `IFS` só muda a separação de palavras do próprio shell (`while IFS= read -r l`).
+// `E2E_PORTA_FRONT` só escolhe a porta do front no e2e de um worktree (T-035).
 const VARIAVEIS_SEGURAS = new Set([
   'PYTHONUTF8', 'PYTHONIOENCODING', 'CI', 'FORCE_COLOR', 'NO_COLOR', 'LANG', 'LC_ALL', 'LC_CTYPE',
-  'TZ', 'TERM', 'COLUMNS', 'IFS',
+  'TZ', 'TERM', 'COLUMNS', 'IFS', 'E2E_PORTA_FRONT',
 ]);
 
 function atribuicaoSegura(a) {

@@ -137,6 +137,31 @@ casosDeArquivo('Edit/Write por agente (critérios 22 a 27 e 30)', [
   ['general-purpose', 'docs/03-tarefas/T-001.md', 'negar'],
 ]);
 
+// T-035: dev-2 e dev-3 são réplicas do dev, com a mesma área, e trabalham
+// num worktree próprio (.claude/worktrees/T-XXX/), avaliado relativo à raiz dele.
+casosDeArquivo('Edit/Write: réplicas do dev (T-035)', ['dev-2', 'dev-3'].flatMap((agente) => [
+  [agente, 'apps/web/src/App.tsx', 'permitir'],
+  [agente, 'packages/shared/src/index.ts', 'permitir'],
+  [agente, 'apps/web/package.json', 'permitir'],
+  [agente, '.claude/worktrees/T-999/apps/web/src/App.tsx', 'permitir'],
+  [agente, 'apps/api/test/projetos.e2e-spec.ts', 'negar'],
+  [agente, '.claude/worktrees/T-999/apps/api/test/projetos.e2e-spec.ts', 'negar'],
+  [agente, 'e2e/home.spec.ts', 'negar'],
+  [agente, 'docs/03-tarefas/T-001.md', 'negar'],
+  [agente, '.claude/worktrees/T-999/docs/03-tarefas/T-001.md', 'negar'],
+  [agente, 'package.json', 'negar'],
+  [agente, 'package-lock.json', 'negar'],
+  [agente, '.claude/agents/dev.md', 'negar'],
+]));
+
+casosDeBash('Bash: réplicas do dev (T-035)', ['dev-2', 'dev-3'].flatMap((agente) => [
+  [agente, 'npm test', 'permitir'],
+  [agente, 'echo "export {}" > apps/web/src/a.ts', 'permitir'],
+  [agente, 'echo oi > docs/03-tarefas/T-001.md', 'negar'],
+  [agente, 'echo oi > e2e/a.spec.ts', 'negar'],
+  [agente, 'git commit -m "x"', 'negar'],
+]));
+
 describe('Edit/Write: detalhes', () => {
   test('Edit, MultiEdit e NotebookEdit seguem a mesma regra do Write', () => {
     assert.equal(escrever('qa', 'apps/web/src/App.tsx', 'Edit'), 'negar');
@@ -249,6 +274,8 @@ casosDeBash('Bash: code-reviewer somente leitura (critério 27)', [
   ['code-reviewer', 'npm test', 'permitir'],
   ['code-reviewer', 'npm run lint', 'permitir'],
   ['code-reviewer', 'npm run test:e2e', 'permitir'],
+  ['code-reviewer', 'E2E_PORTA_FRONT=5174 npm run test:e2e', 'permitir'], // e2e no worktree da tarefa (T-035)
+  ['code-reviewer', 'git -C .claude/worktrees/T-999 diff main...HEAD', 'permitir'],
   ['code-reviewer', 'npm run build', 'permitir'],
   ['code-reviewer', 'npx vitest run', 'permitir'],
   ['code-reviewer', 'PYTHONUTF8=1 python scripts/validar_estrutura.py', 'permitir'],

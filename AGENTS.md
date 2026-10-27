@@ -17,7 +17,7 @@ Nomes no código seguem a convenção da stack escolhida.
 
 ```
 AGENTS.md / CLAUDE.md   contexto principal
-.claude/agents/         subagentes (dev, code-reviewer, qa, instrutor, devops, documentador)
+.claude/agents/         subagentes (dev, dev-2, dev-3, code-reviewer, qa, instrutor, devops, documentador)
 .claude/skills/         skills compartilhadas e de orquestração
 .claude/commands/       /nova-tarefa, /executar-tarefa, /estudar, /estudar-consolidar
 .claude/worktrees/      worktrees temporários dos subagentes isolados (ignorado pelo git)
@@ -77,6 +77,7 @@ Subagentes não decidem: registram a decisão no handoff e devolvem com `AGUARDA
 | Agente | Papel | Pode alterar |
 |---|---|---|
 | dev | Implementa a tarefa com TDD | Código e testes da tarefa |
+| dev-2, dev-3 | Réplicas do `dev` (mesmo papel, instruções e área), para implementar outras tarefas **em paralelo**, cada uma no seu git worktree (T-035; seção "Tarefas em paralelo" da `orquestrar-tarefa`). Tudo o que estas regras e as skills dizem do `dev` vale também para eles | Igual ao dev |
 | code-reviewer | Revisa o diff (convenções, segurança, legibilidade, área de cada agente) | Nada (somente leitura) |
 | qa | Valida critérios de aceite, responsividade e acessibilidade | Apenas arquivos de teste |
 | instrutor | Mentor do George no modo `eu-faco` (guia sem escrever o código; não fecha a tarefa); sob demanda tira dúvidas na hora, de forma interativa (`/estudar`), e cria ou atualiza a nota por conceito. Não consolida | Apenas `docs/04-estudos/` |
@@ -93,7 +94,7 @@ Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. De
 
 | Agente | Caminhos permitidos |
 |---|---|
-| dev | `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (que é do qa). Inclui os **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`), que ficam junto do código, e as configs de cada app/pacote (ex.: `apps/web/vite.config.ts`, `apps/api/package.json`) |
+| dev, dev-2, dev-3 | `apps/**` e `packages/**`, **exceto `apps/api/test/**`** (que é do qa). Inclui os **testes unitários** (`*.spec.ts`, `*.test.ts`, `*.test.tsx`), que ficam junto do código, e as configs de cada app/pacote (ex.: `apps/web/vite.config.ts`, `apps/api/package.json`) |
 | qa | **Testes de aceitação/e2e**: `e2e/**` (Playwright) e `apps/api/test/**` (testes de rotas da API com Supertest). Na revisão documental (tag `revisao`), nenhum arquivo |
 | instrutor | `docs/04-estudos/**` (lê e grava) |
 | documentador | `docs/04-estudos/**` (lê e grava, igual ao instrutor), no worktree dele. Produto: o diário da tarefa recebida (`docs/04-estudos/tarefas/T-XXX.md`) ou, na consolidação, as notas por conceito e o campo `consolidado` dos diários |
@@ -103,11 +104,11 @@ Usadas pelo orquestrador para conferir os arquivos alterados por cada agente. De
 
 Uma alteração em `.claude/agents/**` (a definição de um agente) exige **aprovação do George**, mesmo dentro da área do devops: nenhum agente altera a própria definição por conta própria. Na tarefa que pedir essa mudança, a aprovação é a decisão do George registrada em `## Decisões`.
 
-Dev e qa não se sobrepõem: `apps/api/test/**` está dentro de `apps/**`, mas pertence só ao qa.
+Dev (e as réplicas dev-2 e dev-3) e qa não se sobrepõem: `apps/api/test/**` está dentro de `apps/**`, mas pertence só ao qa.
 
 **Hooks** (T-001): o hook `PreToolUse` em `.claude/hooks/restringir-escrita.mjs` aplica esta tabela aos subagentes (Edit/Write e Bash); a sessão principal nunca é bloqueada. Mudou a tabela, atualize `.claude/hooks/areas.mjs` e os testes (`npm run test:hooks`). Detalhes em `.claude/hooks/README.md`.
 
-**`package-lock.json` é arquivo gerado** (decisão do George na T-005): o implementador da tarefa (dev ou devops) pode alterá-lo quando instala ou atualiza dependências (`npm install`), mesmo fora da sua área; ninguém o edita à mão. O code-reviewer confere o diff do lock (pacotes novos ou removidos devem corresponder às mudanças nos `package.json`).
+**`package-lock.json` é arquivo gerado** (decisão do George na T-005): o implementador da tarefa (dev, dev-2, dev-3 ou devops) pode alterá-lo quando instala ou atualiza dependências (`npm install`), mesmo fora da sua área; ninguém o edita à mão. O code-reviewer confere o diff do lock (pacotes novos ou removidos devem corresponder às mudanças nos `package.json`).
 
 **Lint** ([ADR-0002](docs/02-arquitetura/ADR-0002-lint.md)): a configuração do ESLint é única, em `eslint.config.mjs` na raiz (área do devops). Os workspaces não têm configuração própria; o script `lint` de cada um é `eslint .`.
 
