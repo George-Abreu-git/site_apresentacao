@@ -1,7 +1,7 @@
 ---
 id: T-022
 titulo: Tocar na marca no celular fecha a lista do menu
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -46,3 +46,4 @@ Severidade: baixa.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-27 — orquestrador: em-andamento — branch feat/T-022-marca-fecha-menu-celular; dev chamado
