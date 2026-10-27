@@ -4,8 +4,26 @@
 // Os caminhos relativos daqui (testDir, outputDir) partem desta pasta (e2e/).
 import { defineConfig, devices } from '@playwright/test';
 
-// Porta do servidor de desenvolvimento do Vite (a padrão dele).
-const PORTA_DO_FRONT = 5173;
+// Porta padrão do servidor de desenvolvimento do Vite.
+const PORTA_PADRAO = 5173;
+
+// Lê a porta de uma variável de ambiente; vazia ou ausente → a padrão.
+// Valor que não é uma porta válida para a execução com um erro claro, em vez
+// de subir o front numa porta inesperada.
+export function lerPorta(valor: string | undefined, padrao: number): number {
+  if (valor === undefined || valor.trim() === '') return padrao;
+  const porta = Number(valor.trim());
+  if (!Number.isInteger(porta) || porta < 1 || porta > 65535) {
+    throw new Error(`E2E_PORTA_FRONT inválida: "${valor}" (use um inteiro de 1 a 65535)`);
+  }
+  return porta;
+}
+
+// Porta do front nos testes. Cada checkout que roda o e2e ao mesmo tempo (ex.:
+// um worktree de tarefa em paralelo, T-035) usa a sua, via E2E_PORTA_FRONT;
+// senão o `reuseExistingServer` reaproveitaria o servidor do outro checkout
+// e os testes rodariam contra o código errado. Sem a variável, nada muda: 5173.
+const PORTA_DO_FRONT = lerPorta(process.env.E2E_PORTA_FRONT, PORTA_PADRAO);
 const ENDERECO_DO_FRONT = `http://localhost:${PORTA_DO_FRONT}`;
 
 export default defineConfig({
