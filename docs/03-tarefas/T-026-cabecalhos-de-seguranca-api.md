@@ -1,7 +1,7 @@
 ---
 id: T-026
 titulo: Cabeçalhos de segurança nas respostas da API
-status: backlog
+status: concluida
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -36,9 +36,44 @@ Severidade: baixa.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Instalei o `helmet` (ADR-0003) como dependência de produção de `apps/api` e liguei com `app.use(helmet())` em `criarApp()`, antes do prefixo global; vale para toda resposta, inclusive 404 e 400 do Nest. Escrevi 5 cenários unitários em `criar-app.spec.ts` (TDD: 4 falharam antes, todos passam depois). Os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts` agora "passam inesperadamente" (correção confirmada); não editei porque é área do qa. Lint, build e validador passaram; fora esses 2, a suíte passou toda.
+Arquivos alterados: apps/api/package.json, apps/api/src/criar-app.ts, apps/api/src/criar-app.spec.ts, package-lock.json (gerado pelo npm install; só entradas do helmet)
+Pendências:
+1. qa: converter em testes normais os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts` ("sem X-Powered-By" e "nosniff") — critério 3 e parte do 5.
+2. Para a T-013 (CORS/deploy): o `helmet` também envia `Cross-Origin-Resource-Policy: same-origin` e um `Content-Security-Policy` padrão; pela especificação do Fetch o CORP não bloqueia `fetch` em modo CORS, mas vale confirmar no e2e quando o CORS for ligado (consequência já prevista na ADR-0003).
+3. O `npm install` mostrou aviso de `npm audit`; fica para o devops conferir.
+Decisão pendente: nenhuma
+Conceitos para estudo: cabeçalhos HTTP de segurança (X-Content-Type-Options/MIME sniffing, X-Powered-By e fingerprinting, X-Frame-Options/clickjacking, CORP e CSP); middleware no Express/Nest (`app.use`) e ordem de registro; pacote helmet; TDD com Supertest em teste unitário da fábrica da app; `it.fails` do Vitest
+
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O helmet foi ligado em `criarApp()` como a ADR-0003 manda e vale para toda resposta, inclusive os erros do Nest. O diff do lock só traz o helmet (8.3.0, MIT, sem dependências) e bate com `apps/api/package.json`. O dev ficou na área dele. Os 5 cenários unitários passam e o lint passou. Os únicos 2 testes que falham são os `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts`, que agora passam de verdade e precisam ser convertidos.
+Arquivos alterados: nenhum
+Pendências:
+1. qa: converter em testes normais os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts:97` e `:106` (critérios 3 e 5).
+2. *opcional*: na T-013 (CORS), conferir no e2e que o `Cross-Origin-Resource-Policy: same-origin` e o CSP padrão do helmet não atrapalham o `fetch` do front (previsto na ADR-0003).
+3. *opcional*: o devops avaliar o aviso de `npm audit`.
+Decisão pendente: nenhuma
+Conceitos para estudo: middleware no Nest/Express (`app.use`) e a ordem em que é registrado; cabeçalhos de segurança (nosniff/MIME sniffing, X-Powered-By/fingerprinting, X-Frame-Options/clickjacking); `it.fails` do Vitest como marcador de bug conhecido; revisão do diff do package-lock
+
 ## QA
+
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Converti em testes normais os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts` e ampliei os dois para 6 tipos de resposta (200, HEAD, 404 de rota, 404 de método, 400 malformado e fora do /api). Também acrescentei um teste de que os códigos de status não mudam. Os critérios 1 a 5 foram atendidos. API 291/291, hooks 412/412, lint ok, validador ok, e2e 361 passaram e 21 foram pulados. Sem interface: responsividade e acessibilidade não se aplicam.
+Arquivos alterados: apps/api/test/health.e2e-spec.ts
+Pendências:
+1. *opcional*: na T-013 (CORS), confirmar no e2e que o `Cross-Origin-Resource-Policy: same-origin` e o CSP padrão do helmet não atrapalham o `fetch` do front.
+2. *opcional*: o devops avaliar o aviso de `npm audit`.
+Decisão pendente: nenhuma
+Conceitos para estudo: converter `it.fails` em teste normal quando o bug é corrigido; testes de rota com tabela de casos (vários métodos e status com o Supertest); cabeçalhos de segurança em respostas de erro geradas pelo framework
 
 ## Estudo
 
@@ -47,3 +82,10 @@ Severidade: baixa.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-27 — orquestrador: em-andamento — branch feat/T-026-cabecalhos-de-seguranca-api; dev chamado
+- 2026-10-27 — dev: CONCLUIDO — helmet ligado em criarApp(); 5 cenários unitários; it.fails do BUG-Q5 ficam para o qa
+- 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-27 — code-reviewer: APROVADO — helmet conforme a ADR-0003; lock só com helmet; dentro da área
+- 2026-10-27 — orquestrador: em-qa — qa chamado
+- 2026-10-27 — qa: PASSOU — it.fails do BUG-Q5 viraram testes normais, ampliados para 6 tipos de resposta
+- 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração

@@ -91,23 +91,45 @@ describe('GET /api/health', () => {
     }
   });
 
-  // BUG CONHECIDO (T-016): o Express envia o cabeçalho "X-Powered-By: Express" em toda resposta,
-  // revelando a tecnologia do servidor a quem fizer qualquer requisição (facilita procurar falhas
-  // conhecidas da versão). Esperado: nenhum cabeçalho que anuncie o servidor. Obtido: "X-Powered-By: Express".
-  it.fails('as respostas não anunciam a tecnologia do servidor (sem X-Powered-By)', async () => {
-    const resposta = await request(app.getHttpServer()).get('/api/health');
+  // Cabeçalhos de segurança (BUG-Q5 da T-016, corrigido na T-026 com o helmet — ADR-0003).
+  // Cada requisição abaixo produz um tipo diferente de resposta: sucesso, HEAD sem corpo,
+  // 404 de rota inexistente, 404 de método não aceito, 400 de endereço malformado e rota fora do /api.
+  const REQUISICOES_DE_TODO_TIPO = [
+    { metodo: 'get', rota: '/api/health' },
+    { metodo: 'head', rota: '/api/health' },
+    { metodo: 'get', rota: '/api/rota-que-nao-existe' },
+    { metodo: 'post', rota: '/api/health' },
+    { metodo: 'get', rota: '/api/%E0%A4%A' },
+    { metodo: 'get', rota: '/health' },
+  ] as const;
 
-    expect(resposta.headers).not.toHaveProperty('x-powered-by');
+  // O Express envia "X-Powered-By: Express" por padrão, revelando a tecnologia do servidor a quem
+  // fizer qualquer requisição (facilita procurar falhas conhecidas da versão).
+  it('as respostas não anunciam a tecnologia do servidor (sem X-Powered-By)', async () => {
+    for (const { metodo, rota } of REQUISICOES_DE_TODO_TIPO) {
+      const resposta = await request(app.getHttpServer())[metodo](rota);
+
+      expect(resposta.headers, `${metodo} ${rota}`).not.toHaveProperty('x-powered-by');
+    }
   });
 
-  // BUG CONHECIDO (T-016), mesma causa (a API não define cabeçalhos de segurança): sem
-  // "X-Content-Type-Options: nosniff", o navegador pode tentar adivinhar o tipo de uma resposta
-  // em vez de respeitar o Content-Type. Esperado: "nosniff" em toda resposta. Obtido: cabeçalho ausente.
-  it.fails('as respostas pedem ao navegador para não adivinhar o tipo (X-Content-Type-Options: nosniff)', async () => {
-    for (const rota of ['/api/health', '/api/rota-que-nao-existe']) {
-      const resposta = await request(app.getHttpServer()).get(rota);
+  // Sem "X-Content-Type-Options: nosniff", o navegador pode tentar adivinhar o tipo de uma resposta
+  // em vez de respeitar o Content-Type.
+  it('as respostas pedem ao navegador para não adivinhar o tipo (X-Content-Type-Options: nosniff)', async () => {
+    for (const { metodo, rota } of REQUISICOES_DE_TODO_TIPO) {
+      const resposta = await request(app.getHttpServer())[metodo](rota);
 
-      expect(resposta.headers['x-content-type-options'], rota).toBe('nosniff');
+      expect(resposta.headers['x-content-type-options'], `${metodo} ${rota}`).toBe('nosniff');
+    }
+  });
+
+  it('os cabeçalhos de segurança não mudam os códigos de status das respostas', async () => {
+    const esperados = [200, 200, 404, 404, 400, 404];
+
+    for (const [i, { metodo, rota }] of REQUISICOES_DE_TODO_TIPO.entries()) {
+      const resposta = await request(app.getHttpServer())[metodo](rota);
+
+      expect(resposta.status, `${metodo} ${rota}`).toBe(esperados[i]);
     }
   });
 });
