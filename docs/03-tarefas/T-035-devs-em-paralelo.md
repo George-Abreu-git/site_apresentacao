@@ -1,7 +1,7 @@
 ---
 id: T-035
 titulo: Mais dois subagentes dev (dev-2 e dev-3) para codar em paralelo
-status: aguardando-decisao
+status: em-andamento
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -22,6 +22,7 @@ Para rodar em paralelo, cada tarefa precisa do seu próprio checkout (git worktr
 - [ ] Os três têm a mesma área de escrita: `.claude/hooks/areas.mjs` (com testes em `.claude/hooks/tests/`), a tabela "Áreas por caminho" e a de "Papéis dos agentes" do `AGENTS.md`, a lista de agentes do `CLAUDE.md` e o `scripts/validar_estrutura.py` reconhecem `dev-2` e `dev-3`. Tudo que vale para o `dev` (ex.: `package-lock.json`, carregar-contexto, definition-of-done, code-reviewer conferindo a área) vale para eles.
 - [ ] O e2e aceita a porta do front por variável de ambiente (padrão 5173, sem mudar nada para quem não a define), para que dois worktrees rodem o e2e ao mesmo tempo sem reaproveitar o servidor um do outro.
 - [ ] A skill `orquestrar-tarefa` ganha uma seção "Tarefas em paralelo" com o passo a passo do orquestrador: quando duas tarefas podem rodar juntas (implementadores diferentes e sem arquivos em comum previstos), como criar o worktree da tarefa (`git worktree add .claude/worktrees/T-XXX -b feat/T-XXX-<slug> main`) e instalar as dependências nele, que porta do e2e passar a cada implementador, como conferir a área e commitar com `git -C`, e como integrar (encerramento um de cada vez: rebase na `main` atual, suíte completa e validador verdes no worktree, merge, push, remoção do worktree). Code-reviewer e qa de cada tarefa trabalham no worktree dela.
+- [ ] (decisão do George, Q1) O qa só altera arquivos de teste: os arquivos de configuração dentro de `e2e/` (`playwright.config.ts`, e `tsconfig*.json`/`package.json` se surgirem) são da área do devops — `AGENTS.md` (Papéis e Áreas por caminho), `.claude/hooks/areas.mjs` e testes do hook refletem isso.
 - [ ] `npm run test:hooks` e `python3 scripts/validar_estrutura.py` verdes; `npm test` e `npm run test:e2e` continuam verdes.
 
 ## Contexto relevante
@@ -35,6 +36,7 @@ Para rodar em paralelo, cada tarefa precisa do seu próprio checkout (git worktr
 ## Decisões
 
 - 2026-10-27 — George: criar mais 2 subagentes dev (réplicas do `dev`) para codar em paralelo ("Pode replicar e criar mais 2 subagentes dev para codar em paralelo"). Vale como a aprovação exigida pelo `AGENTS.md` para alterar `.claude/agents/**` nesta tarefa.
+- 2026-10-27 — George (Q1 do devops, quem altera `e2e/playwright.config.ts`): "O QA somente aplica mudanças em arquivos de testes, se necessário; mudanças em arquivos de ambiente e desenvolvimento devem ser de um dev, ou do devops se for infraestrutura." Consequência nesta tarefa: os arquivos de configuração dentro de `e2e/` (hoje `e2e/playwright.config.ts`; também `tsconfig*.json` e `package.json` que surgirem lá) passam para a área do devops; o qa fica com `e2e/testes/**`, `e2e/apoio/**` e `apps/api/test/**`. O devops atualiza a tabela "Áreas por caminho" e "Papéis" do `AGENTS.md`, `.claude/hooks/areas.mjs` e os testes, e aplica a porta por `E2E_PORTA_FRONT`.
 
 ## Dev
 
@@ -64,3 +66,5 @@ Conceitos para estudo: git worktree (vários checkouts de um repositório), vari
 - 2026-10-27 — orquestrador: em-andamento — worktree .claude/worktrees/T-035, branch feat/T-035-devs-em-paralelo; devops chamado
 - 2026-10-27 — devops: AGUARDANDO-DECISAO — dev-2 e dev-3 criados; porta do e2e bloqueada (e2e/** é área do qa)
 - 2026-10-27 — orquestrador: aguardando-decisao — Q1 apresentada ao George
+- 2026-10-27 — George: Q1 — qa só altera testes; config do e2e vira área do devops (registrado em Decisões)
+- 2026-10-27 — orquestrador: em-andamento — devops retoma (rodada 1, após decisão)
