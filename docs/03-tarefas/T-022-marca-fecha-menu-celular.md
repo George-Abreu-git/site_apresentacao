@@ -60,6 +60,15 @@ Conceitos para estudo: componente controlado x não controlado; elevar o estado 
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os 5 critérios de aceite foram atendidos. O `test.fail` do BUG-Q1 virou teste normal e passa. Somei 3 cenários e2e no celular (Enter na marca, reabrir a lista depois da marca, marca com a lista fechada) aos 5 cenários unitários do dev. O Tab depois do Enter na marca segue pelo Início, sem passar pela lista escondida. Unitários, hooks, lint, e2e completo (361 passaram, 0 falharam) e validador estão verdes.
+Arquivos alterados: e2e/testes/navegacao.spec.ts
+Pendências: nenhuma. Observação: o cenário unitário "o foco fica na marca" do `Cabecalho.test.tsx` vale só no jsdom; no navegador real, seguir a âncora leva o foco para o `body` e o ponto de partida do Tab para `#inicio` (comportamento nativo, igual nos links do menu). Fica a critério do George renomear o cenário numa tarefa futura.
+Decisão pendente: nenhuma
+Conceitos para estudo: `test.fail` do Playwright x teste normal; ponto de partida da navegação sequencial por foco ao seguir uma âncora (fragment navigation); limitações do jsdom (Enter→clique e âncoras); `aria-expanded`; `toBeInViewport`
+
 ## Estudo
 
 ## DevOps
@@ -72,3 +81,4 @@ Conceitos para estudo: componente controlado x não controlado; elevar o estado 
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
 - 2026-10-27 — code-reviewer: APROVADO — Menu controlado, marca fecha a lista, dentro da área
 - 2026-10-27 — orquestrador: em-qa — qa chamado
+- 2026-10-27 — qa: PASSOU — test.fail do BUG-Q1 virou teste normal; 3 cenários e2e de teclado e regressão
