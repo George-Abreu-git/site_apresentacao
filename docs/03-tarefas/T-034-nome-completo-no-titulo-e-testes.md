@@ -71,6 +71,15 @@ Conceitos para estudo: `test.fail(condição)` no Playwright (falha esperada con
 
 ## Estudo
 
+### Diário de estudo
+
+Resultado: CONCLUIDO
+Resumo: Diário criado em `docs/04-estudos/tarefas/T-034.md` com `consolidado: false`. As fontes foram a nota da tarefa (handoffs de Dev, Revisão e QA), os testes do Cabeçalho e do Rodapé e o trecho do `conteudo.test.tsx` que compara o `<title>` do `index.html` com o arquivo de conteúdo. A lição central é usar uma fonte única de dados também nos testes: o teste lê `conteudo.pessoa.nome` em vez de copiar o texto. O diário explica ainda por que o `<title>` do `index.html` não acompanha o React. Reaproveita conceitos já existentes (ex.: `fonte-unica-de-dados-no-front`, `consultas-por-papel-na-testing-library`) e cria três novos: `index-html-estatico-do-vite`, `importacao-raw-no-vite` e `title-como-nome-da-pagina`. Tem 2 exercícios e links para a tarefa, as notas e os diários da T-008 e da T-009.
+Arquivos alterados: docs/04-estudos/tarefas/T-034.md
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: fonte-unica-de-dados-no-front, arquivo-de-conteudo-e-i18n, index-html-estatico-do-vite, importacao-raw-no-vite, title-como-nome-da-pagina, consultas-por-papel-na-testing-library, teste-que-protege-convencao, tdd, bug-conhecido-com-it-fails-e-test-fail, tipos-de-teste-unitario-rota-e2e
+
 ## DevOps
 
 ## Log
@@ -83,3 +92,4 @@ Conceitos para estudo: `test.fail(condição)` no Playwright (falha esperada con
 - 2026-10-27 — orquestrador: em-qa — qa chamado
 - 2026-10-27 — qa: PASSOU — 4 critérios atendidos; npm test, e2e, lint e validador verdes
 - 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
+- 2026-10-27 — documentador: CONCLUIDO — diário integrado
