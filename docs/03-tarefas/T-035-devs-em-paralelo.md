@@ -37,6 +37,7 @@ Para rodar em paralelo, cada tarefa precisa do seu próprio checkout (git worktr
 
 - 2026-10-27 — George: criar mais 2 subagentes dev (réplicas do `dev`) para codar em paralelo ("Pode replicar e criar mais 2 subagentes dev para codar em paralelo"). Vale como a aprovação exigida pelo `AGENTS.md` para alterar `.claude/agents/**` nesta tarefa.
 - 2026-10-27 — George (Q1 do devops, quem altera `e2e/playwright.config.ts`): "O QA somente aplica mudanças em arquivos de testes, se necessário; mudanças em arquivos de ambiente e desenvolvimento devem ser de um dev, ou do devops se for infraestrutura." Consequência nesta tarefa: os arquivos de configuração dentro de `e2e/` (hoje `e2e/playwright.config.ts`; também `tsconfig*.json` e `package.json` que surgirem lá) passam para a área do devops; o qa fica com `e2e/testes/**`, `e2e/apoio/**` e `apps/api/test/**`. O devops atualiza a tabela "Áreas por caminho" e "Papéis" do `AGENTS.md`, `.claude/hooks/areas.mjs` e os testes, e aplica a porta por `E2E_PORTA_FRONT`.
+- 2026-10-27 — George (Q3, como gravar o `e2e/playwright.config.ts` bloqueado pelo hook do checkout principal, que ainda tem a área antiga): opção A — o orquestrador copia, uma única vez, o arquivo escrito e testado pelo devops (scratchpad `proposta/playwright.config.ts`) para o worktree. Exceção pontual por causa da ordem de ativação do hook; não vale como precedente. Code-reviewer e qa revisam e validam normalmente.
 
 ## Dev
 
@@ -82,3 +83,4 @@ Conceitos para estudo: área de escrita por caminho (glob) e separação teste �
 - 2026-10-27 — orquestrador: em-andamento — devops retoma (rodada 1, após decisão)
 - 2026-10-27 — devops: CONCLUIDO — área do qa só com testes; config do e2e do devops; porta do e2e bloqueada pelo hook do checkout principal (área antiga)
 - 2026-10-27 — orquestrador: aguardando-decisao — Q3 apresentada ao George (como gravar a config do e2e)
+- 2026-10-27 — George: Q3 — A; orquestrador copia o playwright.config.ts do devops para o worktree (exceção registrada em Decisões)
