@@ -1,7 +1,7 @@
 ---
 id: T-034
 titulo: Nome completo do George no título da aba e nos testes do cabeçalho e do rodapé
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -49,6 +49,15 @@ Conceitos para estudo: fonte única da verdade em testes (o teste lê o dado do 
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff cumpre os critérios de aceite: o `<title>` passou a "George Abreu de Siqueira" e os testes do Cabecalho e do Rodape leem `conteudo.pessoa.nome` (o mesmo objeto que `ptBR`), em vez de texto fixo. Testes unitários do web (189 passaram, mais 1 falha esperada) e dos hooks verdes; lint verde. O dev ficou dentro da área dele (`apps/web/**`) e não há escopo extra nem segredos.
+Arquivos alterados: nenhum
+Pendências: 1. *opcional*: os comentários do `e2e/testes/texto-ampliado.spec.ts` (linhas 12, 492 e 503) citam "George Siqueira" porque explicam as medidas feitas com `NOME_CURTO`; estão corretos e não precisam mudar nesta tarefa.
+Decisão pendente: nenhuma
+Conceitos para estudo: fonte única da verdade em testes; consultas por papel e nome acessível no Testing Library; `index.html` estático do Vite e o teste que confere se ele bate com o conteúdo
+
 ## QA
 
 ## Estudo
@@ -61,3 +70,5 @@ Conceitos para estudo: fonte única da verdade em testes (o teste lê o dado do 
 - 2026-10-27 — orquestrador: em-andamento — branch feat/T-034-nome-completo-no-titulo-e-testes; dev chamado
 - 2026-10-27 — dev: CONCLUIDO — título da aba com o nome completo; testes do Cabecalho e do Rodape leem conteudo.pessoa.nome
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-27 — code-reviewer: APROVADO — critérios atendidos, dentro da área, sem escopo extra
+- 2026-10-27 — orquestrador: em-qa — qa chamado
