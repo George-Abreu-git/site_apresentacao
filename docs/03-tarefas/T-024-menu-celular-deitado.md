@@ -1,7 +1,7 @@
 ---
 id: T-024
 titulo: Lista do menu cabe ou rola no celular deitado com pouca altura
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -47,3 +47,4 @@ Severidade: média (ampliada na T-029: também afeta o celular em pé com o text
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-27 — orquestrador: em-andamento — branch feat/T-024-menu-celular-deitado; dev chamado
