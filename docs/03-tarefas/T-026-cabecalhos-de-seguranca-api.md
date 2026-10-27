@@ -1,7 +1,7 @@
 ---
 id: T-026
 titulo: Cabeçalhos de segurança nas respostas da API
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -47,3 +47,4 @@ Severidade: baixa.
 ## Log
 
 - 2026-10-16 — tarefa criada
+- 2026-10-27 — orquestrador: em-andamento — branch feat/T-026-cabecalhos-de-seguranca-api; dev chamado
