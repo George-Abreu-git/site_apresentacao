@@ -1,7 +1,7 @@
 ---
 id: T-034
 titulo: Nome completo do George no título da aba e nos testes do cabeçalho e do rodapé
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -38,6 +38,15 @@ O e2e (`npm run test:e2e`) já passa: o `texto-ampliado.spec.ts` usa nomes de te
 
 ## Dev
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: O `<title>` de `apps/web/index.html` agora é "George Abreu de Siqueira". Os testes do Cabeçalho e do Rodapé leem `conteudo.pessoa.nome` (o mesmo objeto que `ptBR`, pelo ponto único `apps/web/src/conteudo/index.ts`) em vez do nome escrito à mão. Pela ordem do TDD, primeiro troquei os testes e só o do título continuou falhando; depois corrigi o HTML. `npm test`, `npm run test:e2e`, `npm run lint` e `python3 scripts/validar_estrutura.py` passam.
+Arquivos alterados: apps/web/index.html; apps/web/src/componentes/Cabecalho/Cabecalho.test.tsx; apps/web/src/componentes/Rodape/Rodape.test.tsx
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: fonte única da verdade em testes (o teste lê o dado do mesmo lugar que o componente, sem copiar o texto); consultas por papel e nome acessível no Testing Library (`getByRole('link', { name })`); `index.html` estático do Vite (o `<title>` não vem do React, por isso há um teste que compara os dois)
+
 ## Revisão
 
 ## QA
@@ -50,3 +59,5 @@ O e2e (`npm run test:e2e`) já passa: o `texto-ampliado.spec.ts` usa nomes de te
 
 - 2026-10-27 — tarefa criada
 - 2026-10-27 — orquestrador: em-andamento — branch feat/T-034-nome-completo-no-titulo-e-testes; dev chamado
+- 2026-10-27 — dev: CONCLUIDO — título da aba com o nome completo; testes do Cabecalho e do Rodape leem conteudo.pessoa.nome
+- 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
