@@ -1,7 +1,7 @@
 ---
 id: T-026
 titulo: Cabeçalhos de segurança nas respostas da API
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -50,6 +50,18 @@ Conceitos para estudo: cabeçalhos HTTP de segurança (X-Content-Type-Options/MI
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O helmet foi ligado em `criarApp()` como a ADR-0003 manda e vale para toda resposta, inclusive os erros do Nest. O diff do lock só traz o helmet (8.3.0, MIT, sem dependências) e bate com `apps/api/package.json`. O dev ficou na área dele. Os 5 cenários unitários passam e o lint passou. Os únicos 2 testes que falham são os `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts`, que agora passam de verdade e precisam ser convertidos.
+Arquivos alterados: nenhum
+Pendências:
+1. qa: converter em testes normais os 2 `it.fails` do BUG-Q5 em `apps/api/test/health.e2e-spec.ts:97` e `:106` (critérios 3 e 5).
+2. *opcional*: na T-013 (CORS), conferir no e2e que o `Cross-Origin-Resource-Policy: same-origin` e o CSP padrão do helmet não atrapalham o `fetch` do front (previsto na ADR-0003).
+3. *opcional*: o devops avaliar o aviso de `npm audit`.
+Decisão pendente: nenhuma
+Conceitos para estudo: middleware no Nest/Express (`app.use`) e a ordem em que é registrado; cabeçalhos de segurança (nosniff/MIME sniffing, X-Powered-By/fingerprinting, X-Frame-Options/clickjacking); `it.fails` do Vitest como marcador de bug conhecido; revisão do diff do package-lock
+
 ## QA
 
 ## Estudo
@@ -62,3 +74,5 @@ Conceitos para estudo: cabeçalhos HTTP de segurança (X-Content-Type-Options/MI
 - 2026-10-27 — orquestrador: em-andamento — branch feat/T-026-cabecalhos-de-seguranca-api; dev chamado
 - 2026-10-27 — dev: CONCLUIDO — helmet ligado em criarApp(); 5 cenários unitários; it.fails do BUG-Q5 ficam para o qa
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-27 — code-reviewer: APROVADO — helmet conforme a ADR-0003; lock só com helmet; dentro da área
+- 2026-10-27 — orquestrador: em-qa — qa chamado
