@@ -10,7 +10,7 @@ export const ptBR: Conteudo = {
     email: 'PREENCHER@exemplo.com',
   },
   pessoa: {
-    nome: 'George Siqueira',
+    nome: 'George Abreu de Siqueira',
   },
   geral: {
     abreEmNovaAba: '(abre em nova aba)',
