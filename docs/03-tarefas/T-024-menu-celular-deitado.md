@@ -1,7 +1,7 @@
 ---
 id: T-024
 titulo: Lista do menu cabe ou rola no celular deitado com pouca altura
-status: aguardando-decisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -33,6 +33,7 @@ Severidade: média (ampliada na T-029: também afeta o celular em pé com o text
 ## Decisões
 
 - 2026-10-16 — George: bugs e erros do pente-fino viram tarefas, em modo `agente-faz` (pedido de 2026-10-15).
+- 2026-10-27 — George (Q2, bug do anel de foco achado pelo qa): opção B — fechar a T-024 e abrir tarefa nova (T-036) para o anel de foco do último link cortado embaixo em 568x320.
 
 ## Dev
 
@@ -87,3 +88,4 @@ Conceitos para estudo: contêiner de rolagem e scrollHeight vs clientHeight, rol
 - 2026-10-27 — orquestrador: em-qa — qa chamado
 - 2026-10-27 — qa: PASSOU — 3 test.fail viraram testes normais; 5 cenários e2e novos; bug baixo novo (anel de foco do último link cortado embaixo) registrado em test.fail
 - 2026-10-27 — orquestrador: aguardando-decisao — George decide se o bug do anel de foco é corrigido agora ou vira tarefa nova
+- 2026-10-27 — George: Q2 — B, o bug vira a T-036; a T-024 segue para o encerramento
