@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import type { ItemDeSecao } from '../../secoes';
 import Menu from './Menu';
@@ -27,6 +28,22 @@ const ITENS: ItemDeSecao[] = [
   { id: 'contato', titulo: 'Contato' },
 ];
 
+/**
+ * O Menu é controlado (o estado "aberto" vem de quem o usa, o Cabecalho; T-022).
+ * Este invólucro guarda o estado como o Cabecalho faz, para testar o Menu sozinho.
+ */
+function MenuComEstado({ itens }: { itens: readonly ItemDeSecao[] }) {
+  const [aberto, setAberto] = useState(false);
+  return (
+    <Menu
+      itens={itens}
+      aberto={aberto}
+      aoAlternar={() => setAberto((estavaAberto) => !estavaAberto)}
+      aoFechar={() => setAberto(false)}
+    />
+  );
+}
+
 /** O botão que abre e fecha a lista no celular. */
 function botaoDoMenu() {
   return screen.getByRole('button', { name: 'Menu' });
@@ -34,13 +51,13 @@ function botaoDoMenu() {
 
 describe('Menu', () => {
   it('é uma navegação com nome, para o leitor de tela anunciar "Navegação principal"', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     expect(screen.getByRole('navigation', { name: 'Navegação principal' })).toBeInTheDocument();
   });
 
   it('tem um link para cada seção, apontando para a âncora do id', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     const navegacao = screen.getByRole('navigation');
     expect(within(navegacao).getByRole('link', { name: 'Início' })).toHaveAttribute('href', '#inicio');
@@ -48,7 +65,7 @@ describe('Menu', () => {
   });
 
   it('começa fechado e diz qual lista o botão controla', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     const botao = botaoDoMenu();
     expect(botao).toHaveAttribute('aria-expanded', 'false');
@@ -60,7 +77,7 @@ describe('Menu', () => {
   });
 
   it('abre e fecha a lista ao clicar no botão', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     fireEvent.click(botaoDoMenu());
     expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'true');
@@ -70,7 +87,7 @@ describe('Menu', () => {
   });
 
   it('fecha a lista ao escolher uma seção', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     fireEvent.click(botaoDoMenu());
     fireEvent.click(screen.getByRole('link', { name: 'Contato' }));
@@ -79,7 +96,7 @@ describe('Menu', () => {
   });
 
   it('fecha com Esc e devolve o foco ao botão, para quem navega pelo teclado', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     fireEvent.click(botaoDoMenu());
     const link = screen.getByRole('link', { name: 'Início' });
@@ -91,7 +108,7 @@ describe('Menu', () => {
   });
 
   it('Esc com a lista fechada não mexe no foco (não "rouba" o foco de quem está em outro lugar)', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     const link = screen.getByRole('link', { name: 'Contato' });
     link.focus();
@@ -102,7 +119,7 @@ describe('Menu', () => {
   });
 
   it('outras teclas (Enter, Tab) não fecham a lista aberta', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     fireEvent.click(botaoDoMenu());
     const link = screen.getByRole('link', { name: 'Início' });
@@ -113,7 +130,7 @@ describe('Menu', () => {
   });
 
   it('escolher uma seção com a lista fechada (desktop) não a abre', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     fireEvent.click(screen.getByRole('link', { name: 'Início' }));
 
@@ -126,7 +143,7 @@ describe('Menu', () => {
       { id: 'stacks', titulo: 'Stacks' },
       { id: 'projetos', titulo: 'Projetos' },
     ];
-    render(<Menu itens={itens} />);
+    render(<MenuComEstado itens={itens} />);
 
     const itensDaLista = within(screen.getByRole('list')).getAllByRole('listitem');
     expect(itensDaLista.map((item) => item.textContent)).toEqual(['Sobre', 'Stacks', 'Projetos']);
@@ -136,7 +153,7 @@ describe('Menu', () => {
   });
 
   it('com a lista aberta, a lista ganha a classe "aberta" (que o CSS usa para mostrá-la no celular)', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     // Nos testes o CSS não é processado, mas o nome da classe continua no className.
     expect(screen.getByRole('list').className).not.toMatch(/aberta/);
@@ -145,7 +162,7 @@ describe('Menu', () => {
   });
 
   it('usa elementos nativos (button e a href), que já recebem foco pelo Tab', () => {
-    render(<Menu itens={ITENS} />);
+    render(<MenuComEstado itens={ITENS} />);
 
     expect(botaoDoMenu().tagName).toBe('BUTTON');
     expect(botaoDoMenu()).toHaveAttribute('type', 'button');

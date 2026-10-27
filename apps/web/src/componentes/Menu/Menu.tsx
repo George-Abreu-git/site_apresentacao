@@ -1,35 +1,35 @@
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useId, useRef, type KeyboardEvent } from 'react';
 import { conteudo } from '../../conteudo';
 import type { ItemDeSecao } from '../../secoes';
 import estilos from './Menu.module.css';
 
 interface MenuProps {
   itens: readonly ItemDeSecao[];
+  /** Se a lista está aberta (só faz diferença no celular). */
+  aberto: boolean;
+  /** Chamado pelo botão "Menu" para abrir ou fechar a lista. */
+  aoAlternar: () => void;
+  /** Chamado ao escolher uma seção ou apertar Esc. */
+  aoFechar: () => void;
 }
 
 /**
  * Navegação principal (RF-01). No celular, a lista fica escondida atrás do botão "Menu";
  * a partir de 48rem (tablet/desktop) o CSS esconde o botão e mostra a lista sempre.
+ *
+ * O estado "aberto" vem de fora (componente controlado): assim o Cabecalho também consegue
+ * fechar a lista quando a marca, que fica fora do menu, é escolhida (T-022).
  */
-function Menu({ itens }: MenuProps) {
-  const [aberto, setAberto] = useState(false);
+function Menu({ itens, aberto, aoAlternar, aoFechar }: MenuProps) {
   // `useId` gera um id único por instância, para ligar o botão à lista (aria-controls).
   const idDaLista = useId();
   const botaoRef = useRef<HTMLButtonElement>(null);
-
-  function alternar() {
-    setAberto((estavaAberto) => !estavaAberto);
-  }
-
-  function fechar() {
-    setAberto(false);
-  }
 
   // Esc fecha a lista e devolve o foco ao botão: sem isso, quem usa teclado
   // ficaria com o foco "perdido" num link que acabou de sumir da tela.
   function aoTeclar(evento: KeyboardEvent<HTMLElement>) {
     if (evento.key === 'Escape' && aberto) {
-      fechar();
+      aoFechar();
       botaoRef.current?.focus();
     }
   }
@@ -42,7 +42,7 @@ function Menu({ itens }: MenuProps) {
         className={estilos.botao}
         aria-expanded={aberto}
         aria-controls={idDaLista}
-        onClick={alternar}
+        onClick={aoAlternar}
       >
         {conteudo.navegacao.botaoMenu}
       </button>
@@ -51,7 +51,7 @@ function Menu({ itens }: MenuProps) {
         {itens.map((item) => (
           <li key={item.id}>
             {/* Link comum com âncora: funciona até sem JavaScript, e o navegador cuida da rolagem. */}
-            <a href={`#${item.id}`} className={estilos.link} onClick={fechar}>
+            <a href={`#${item.id}`} className={estilos.link} onClick={aoFechar}>
               {item.titulo}
             </a>
           </li>

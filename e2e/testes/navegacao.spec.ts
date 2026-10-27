@@ -401,18 +401,71 @@ test.describe('navegação: bordas e regressão (pente-fino da T-016)', () => {
     await expect(linksDoMenu(page).first()).toBeHidden();
   });
 
-  // BUG CONHECIDO (T-016): no celular, com a lista do menu aberta, tocar na marca (nome do George)
-  // leva ao Início mas a lista continua aberta, cobrindo o começo da página. Os links do menu fecham
-  // a lista ao serem escolhidos; a marca, que também navega, não fecha (o `fechar` do Menu só está
-  // ligado aos links da lista). Esperado: lista fechada (aria-expanded="false"). Obtido: "true".
+  // Corrigido na T-022 (BUG-Q1 da T-016): a marca também navega (leva ao Início) e, como os links
+  // do menu, fecha a lista aberta no celular; senão a lista cobriria o começo da página.
   test('no celular, tocar na marca com a lista aberta fecha o menu', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'comportamento só do celular');
-    test.fail();
     await page.goto('/#contato');
+    await esperarSecaoNaTela(page, 'contato');
+    await botaoMenu(page).click();
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'true');
+
+    await marca(page).click();
+
+    await expect(page).toHaveURL(/#inicio$/);
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(linksDoMenu(page).first()).toBeHidden();
+    // Com a lista fechada, o começo da página (o título do Início) fica à vista.
+    await expect(page.getByRole('heading', { level: 1 })).toBeInViewport();
+  });
+
+  test('no celular, Enter na marca com a lista aberta fecha o menu e o Tab segue a partir do Início', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'comportamento só do celular');
+    await page.goto('/#contato');
+    await esperarSecaoNaTela(page, 'contato');
+    await botaoMenu(page).click();
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'true');
+
+    // Do botão Menu, Shift+Tab volta à marca (ela vem antes no cabeçalho).
+    await page.keyboard.press('Shift+Tab');
+    await esperarFocoVisivel(marca(page));
+    await page.keyboard.press('Enter');
+
+    await expect(page).toHaveURL(/#inicio$/);
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(linksDoMenu(page).first()).toBeHidden();
+    // Ao seguir uma âncora, o navegador leva o ponto de partida do Tab para a seção de destino (igual
+    // aos links do menu): o próximo Tab cai dentro do Início, e não num link da lista escondida.
+    await page.keyboard.press('Tab');
+    const focoNoInicio = await page.evaluate(() => document.getElementById('inicio')!.contains(document.activeElement));
+    expect(focoNoInicio).toBe(true);
+    expect(await linksDoMenu(page).evaluateAll((links) => links.includes(document.activeElement as HTMLAnchorElement))).toBe(false);
+  });
+
+  test('no celular, depois de a marca fechar a lista, o botão Menu volta a abri-la e os links funcionam', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'comportamento só do celular');
     await botaoMenu(page).click();
     await marca(page).click();
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false');
+
+    await botaoMenu(page).click();
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'true');
+    await linkDoMenu(page, 'Projetos').click();
+    await expect(page).toHaveURL(/#projetos$/);
+    await esperarSecaoNaTela(page, 'projetos');
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('no celular, tocar na marca com a lista fechada não abre o menu', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'comportamento só do celular');
+    await page.goto('/#sobre');
+    await esperarSecaoNaTela(page, 'sobre');
+
+    await marca(page).click();
+
     await expect(page).toHaveURL(/#inicio$/);
-    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false', { timeout: 2000 });
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(linksDoMenu(page).first()).toBeHidden();
   });
 });
 
