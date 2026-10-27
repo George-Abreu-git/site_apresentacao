@@ -1,7 +1,7 @@
 ---
 id: T-034
 titulo: Nome completo do George no título da aba e nos testes do cabeçalho e do rodapé
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -82,3 +82,4 @@ Conceitos para estudo: `test.fail(condição)` no Playwright (falha esperada con
 - 2026-10-27 — code-reviewer: APROVADO — critérios atendidos, dentro da área, sem escopo extra
 - 2026-10-27 — orquestrador: em-qa — qa chamado
 - 2026-10-27 — qa: PASSOU — 4 critérios atendidos; npm test, e2e, lint e validador verdes
+- 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
