@@ -25,7 +25,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-019-data-invalida-do-github|T-019]] | Data inválida do GitHub não derruba o card de projeto | concluida | agente-faz | front-end, back-end, api |
 | [[docs/03-tarefas/T-020-chave-duplicada-em-projetos|T-020]] | Projetos com o mesmo título não geram chave duplicada no React | concluida | agente-faz | front-end, back-end |
 | [[docs/03-tarefas/T-021-projetos-json-com-bom|T-021]] | Arquivo curado salvo em UTF-8 com BOM é lido normalmente | concluida | agente-faz | back-end, api |
-| [[docs/03-tarefas/T-022-marca-fecha-menu-celular|T-022]] | Tocar na marca no celular fecha a lista do menu | em-qa | agente-faz | front-end |
+| [[docs/03-tarefas/T-022-marca-fecha-menu-celular|T-022]] | Tocar na marca no celular fecha a lista do menu | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-023-ancora-na-primeira-visita|T-023]] | Abrir o site direto numa âncora rola até a seção | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-024-menu-celular-deitado|T-024]] | Lista do menu cabe ou rola no celular deitado com pouca altura | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-025-texto-longo-nos-cards|T-025]] | Texto longo nos cards de projeto não causa rolagem lateral | concluida | agente-faz | front-end |

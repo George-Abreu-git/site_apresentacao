@@ -1,7 +1,7 @@
 ---
 id: T-022
 titulo: Tocar na marca no celular fecha a lista do menu
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -82,3 +82,4 @@ Conceitos para estudo: `test.fail` do Playwright x teste normal; ponto de partid
 - 2026-10-27 — code-reviewer: APROVADO — Menu controlado, marca fecha a lista, dentro da área
 - 2026-10-27 — orquestrador: em-qa — qa chamado
 - 2026-10-27 — qa: PASSOU — test.fail do BUG-Q1 virou teste normal; 3 cenários e2e de teclado e regressão
+- 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
