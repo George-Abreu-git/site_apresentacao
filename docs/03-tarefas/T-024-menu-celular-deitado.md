@@ -76,6 +76,15 @@ Conceitos para estudo: contêiner de rolagem e scrollHeight vs clientHeight, rol
 
 ## Estudo
 
+### Diário de estudo
+
+Resultado: CONCLUIDO
+Resumo: Diário escrito a partir da nota da tarefa (handoffs de Dev, Revisão e QA), de `Menu.module.css`, de `Menu.test.tsx` e de `navegacao.spec.ts`. Explica o bug (lista `absolute` dentro do cabeçalho `sticky`) e a correção só no CSS (`max-height` com `calc`/`dvh` e variável, rolagem interna, `overscroll-behavior` e sombra no lugar da borda). Traz também o bug novo do anel de foco, que virou a T-036 (`scroll-padding`), e dois exercícios no DevTools. `consolidado: false`. Nenhuma outra nota de estudo foi criada ou alterada.
+Arquivos alterados: docs/04-estudos/tarefas/T-024.md
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: absolute-dentro-de-sticky, max-height-com-calc-e-variavel-css, unidade-dvh, rolagem-interna-overflow, overscroll-behavior, borda-vs-box-shadow, rolagem-ate-o-foco-e-scroll-padding, testar-css-como-texto, test-fail-como-registro-de-bug
+
 ## DevOps
 
 ## Log
@@ -90,3 +99,4 @@ Conceitos para estudo: contêiner de rolagem e scrollHeight vs clientHeight, rol
 - 2026-10-27 — orquestrador: aguardando-decisao — George decide se o bug do anel de foco é corrigido agora ou vira tarefa nova
 - 2026-10-27 — George: Q2 — B, o bug vira a T-036; a T-024 segue para o encerramento
 - 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
+- 2026-10-27 — documentador: CONCLUIDO — diário integrado
