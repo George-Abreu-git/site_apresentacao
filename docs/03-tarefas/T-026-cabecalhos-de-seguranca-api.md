@@ -1,7 +1,7 @@
 ---
 id: T-026
 titulo: Cabeçalhos de segurança nas respostas da API
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [back-end, api]
 rodadas: 0
@@ -88,3 +88,4 @@ Conceitos para estudo: converter `it.fails` em teste normal quando o bug é corr
 - 2026-10-27 — code-reviewer: APROVADO — helmet conforme a ADR-0003; lock só com helmet; dentro da área
 - 2026-10-27 — orquestrador: em-qa — qa chamado
 - 2026-10-27 — qa: PASSOU — it.fails do BUG-Q5 viraram testes normais, ampliados para 6 tipos de resposta
+- 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
