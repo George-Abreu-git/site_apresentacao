@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { conteudo } from '../../conteudo';
 import { SECOES } from '../../secoes';
@@ -45,5 +45,72 @@ describe('Cabecalho', () => {
     // Ao seguir uma âncora, o título da seção não fica escondido atrás do cabeçalho
     // (a altura medida vem do useAlturaDoCabecalho; T-030).
     expect(estilosGlobais).toMatch(/scroll-padding-top:\s*var\(--altura-real-do-cabecalho\)/);
+  });
+
+  // T-022 (BUG-Q1 da T-016): a marca também navega (leva ao Início), então, como os links do menu,
+  // ela fecha a lista aberta no celular, que senão cobriria o começo da página.
+  describe('a marca e a lista do menu (T-022)', () => {
+    function marca() {
+      return screen.getByRole('link', { name: conteudo.pessoa.nome });
+    }
+
+    function botaoDoMenu() {
+      return screen.getByRole('button', { name: 'Menu' });
+    }
+
+    it('tocar na marca com a lista aberta fecha a lista', () => {
+      render(<Cabecalho />);
+
+      fireEvent.click(botaoDoMenu());
+      expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(marca());
+
+      expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.getByRole('list').className).not.toMatch(/aberta/);
+    });
+
+    it('tocar na marca com a lista fechada (desktop) não a abre', () => {
+      render(<Cabecalho />);
+
+      fireEvent.click(marca());
+
+      expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('depois de a marca fechar a lista, o botão Menu volta a abri-la', () => {
+      render(<Cabecalho />);
+
+      fireEvent.click(botaoDoMenu());
+      fireEvent.click(marca());
+      fireEvent.click(botaoDoMenu());
+
+      expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('pelo teclado, o foco fica na marca escolhida (não é levado para outro lugar)', () => {
+      render(<Cabecalho />);
+
+      fireEvent.click(botaoDoMenu());
+      marca().focus();
+      // Enter num link dispara o evento de clique; o jsdom não faz essa conversão, então simulamos o clique.
+      fireEvent.click(marca());
+
+      expect(marca()).toHaveFocus();
+      expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('Esc continua fechando a lista e devolvendo o foco ao botão', () => {
+      render(<Cabecalho />);
+
+      fireEvent.click(botaoDoMenu());
+      fireEvent.click(marca());
+      fireEvent.click(botaoDoMenu());
+      const link = within(screen.getByRole('navigation')).getByRole('link', { name: 'Contato' });
+      link.focus();
+      fireEvent.keyDown(link, { key: 'Escape' });
+
+      expect(botaoDoMenu()).toHaveAttribute('aria-expanded', 'false');
+      expect(botaoDoMenu()).toHaveFocus();
+    });
   });
 });
