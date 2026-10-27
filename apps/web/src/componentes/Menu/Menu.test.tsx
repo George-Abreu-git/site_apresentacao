@@ -2,6 +2,25 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { ItemDeSecao } from '../../secoes';
 import Menu from './Menu';
+// `?raw` traz o CSS como texto: o jsdom não calcula layout, então o teste confere as regras.
+import estilosDoMenu from './Menu.module.css?raw';
+
+/** O CSS sem comentários, para um exemplo dentro de um comentário não contar como regra. */
+const cssDoMenu = estilosDoMenu.replace(/\/\*[\s\S]*?\*\//g, '');
+
+/** O corpo da primeira regra de um seletor exato (ex.: `.aberta`), fora das media queries. */
+function regraDoCelular(seletor: string): string {
+  const inicioDaMedia = cssDoMenu.indexOf('@media');
+  const base = inicioDaMedia === -1 ? cssDoMenu : cssDoMenu.slice(0, inicioDaMedia);
+  const regra = [...base.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, nome]) => nome.trim() === seletor);
+  return regra?.[2] ?? '';
+}
+
+/** O texto do bloco `@media (min-width: 48rem)` (tablet/desktop). */
+function blocoDoDesktop(): string {
+  const inicio = cssDoMenu.indexOf('@media (min-width: 48rem)');
+  return inicio === -1 ? '' : cssDoMenu.slice(inicio);
+}
 
 const ITENS: ItemDeSecao[] = [
   { id: 'inicio', titulo: 'Início' },
@@ -133,5 +152,38 @@ describe('Menu', () => {
     for (const link of screen.getAllByRole('link')) {
       expect(link.tagName).toBe('A');
     }
+  });
+
+  // T-024 (BUG-Q3 da T-016): a lista aberta é `absolute` dentro do cabeçalho preso ao topo (sticky),
+  // então rolar a página não a move. Numa tela baixa (celular deitado, ou o texto a 200%), ela
+  // precisa caber na altura que sobra abaixo do cabeçalho e rolar por dentro.
+  describe('lista aberta numa tela baixa (T-024)', () => {
+    it('no celular, a altura máxima é a da janela menos a do cabeçalho (medida de verdade, T-030)', () => {
+      expect(regraDoCelular('.aberta')).toMatch(
+        /max-height:\s*calc\(100dvh - var\(--altura-real-do-cabecalho\) \+ 1px\)/,
+      );
+    });
+
+    it('no celular, o que não cabe rola por dentro da lista (e nada é escondido)', () => {
+      expect(regraDoCelular('.aberta')).toMatch(/overflow-y:\s*auto/);
+      expect(regraDoCelular('.aberta')).not.toMatch(/overflow(-y)?:\s*(hidden|clip)/);
+    });
+
+    it('ao chegar ao fim da lista, a rolagem não passa para a página por baixo', () => {
+      expect(regraDoCelular('.aberta')).toMatch(/overscroll-behavior:\s*contain/);
+    });
+
+    it('a linha de baixo da lista não ocupa espaço da área que rola (sombra, não borda)', () => {
+      expect(regraDoCelular('.aberta')).toMatch(/box-shadow:\s*0 1px 0 var\(--cor-borda\)/);
+      expect(regraDoCelular('.aberta')).not.toMatch(/border-bottom/);
+    });
+
+    it('a partir de 48rem a lista fica em linha, sem limite de altura nem rolagem própria', () => {
+      const desktop = blocoDoDesktop();
+
+      expect(desktop).toMatch(/\.lista,\s*\.aberta\s*\{[^}]*max-height:\s*none/);
+      expect(desktop).toMatch(/\.lista,\s*\.aberta\s*\{[^}]*overflow-y:\s*visible/);
+      expect(desktop).toMatch(/\.lista,\s*\.aberta\s*\{[^}]*box-shadow:\s*none/);
+    });
   });
 });

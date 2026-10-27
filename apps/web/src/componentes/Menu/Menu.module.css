@@ -39,8 +39,23 @@
   top: 100%;
   left: 0;
   right: 0;
+  /*
+   * Tela baixa (celular deitado, texto a 200%; T-024): rolar a página não move a lista, porque ela
+   * vive dentro do cabeçalho preso ao topo. Então ela ocupa no máximo a altura que sobra abaixo
+   * do cabeçalho (a medida de verdade, publicada pelo useAlturaDoCabecalho) e rola por dentro.
+   * O `+ 1px`: o `top: 100%` conta a partir da borda interna do <header>, então a lista começa
+   * 1px acima do fim dele (cobre a borda de baixo do cabeçalho) e pode terminar 1px mais abaixo.
+   */
+  max-height: calc(100dvh - var(--altura-real-do-cabecalho) + 1px);
+  overflow-y: auto;
+  /* No fim da lista, o dedo continua rolando a lista e não a página por baixo dela. */
+  overscroll-behavior: contain;
   background-color: var(--cor-superficie);
-  border-bottom: 1px solid var(--cor-borda);
+  /*
+   * A linha de baixo é sombra, não borda: uma borda ficaria dentro da caixa que rola e cortaria
+   * o último link quando a lista ocupa a tela até o fim (ex.: 640x360).
+   */
+  box-shadow: 0 1px 0 var(--cor-borda);
 }
 
 .link {
@@ -68,9 +83,12 @@
     flex-wrap: wrap;
     gap: 0.25rem;
     position: static;
+    /* Em linha, a lista não tem altura própria a limitar nem rola sozinha. */
+    max-height: none;
+    overflow-y: visible;
     padding: 0;
     background-color: transparent;
-    border-bottom: none;
+    box-shadow: none;
   }
 
   .link {
