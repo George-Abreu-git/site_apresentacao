@@ -1,7 +1,7 @@
 ---
 id: T-024
 titulo: Lista do menu cabe ou rola no celular deitado com pouca altura
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -49,6 +49,17 @@ Conceitos para estudo: position absolute dentro de sticky (bloco de contenção)
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: Correção só no CSS do Menu (max-height com calc(100dvh - --altura-real-do-cabecalho + 1px), overflow-y: auto, overscroll-behavior: contain, borda de baixo trocada por box-shadow), desfeita no bloco de 48rem. A variável tem valor padrão no tema.css, então o calc nunca fica inválido. 5 testes unitários novos, no padrão `?raw` que o projeto já usa. Unitários (194 ok + 1 it.fails antigo de Projetos), lint e validador verdes. O dev ficou na sua área (apps/web/**).
+Arquivos alterados: nenhum
+Pendências:
+1. (qa) Transformar em testes normais os 3 `test.fail` que agora passam: `e2e/testes/navegacao.spec.ts:563` e `e2e/testes/texto-ampliado.spec.ts:504` (celular e desktop). Os critérios 3, 4 e 6 dependem disso.
+2. (opcional, qa) Conferir no e2e que o anel de foco dos links não fica cortado dentro da lista que rola (o overflow-y: auto também faz o overflow-x virar auto).
+Decisão pendente: nenhuma
+Conceitos para estudo: bloco de contenção de absolute dentro de sticky, max-height com calc() e variável de CSS com valor padrão, unidade dvh, overflow-y: auto e efeito no overflow-x, overscroll-behavior, borda vs. box-shadow em caixa que rola, limites de testar CSS como texto no jsdom
+
 ## QA
 
 ## Estudo
@@ -61,3 +72,5 @@ Conceitos para estudo: position absolute dentro de sticky (bloco de contenção)
 - 2026-10-27 — orquestrador: em-andamento — branch feat/T-024-menu-celular-deitado; dev chamado
 - 2026-10-27 — dev: CONCLUIDO — lista aberta com max-height e rolagem interna; 3 test.fail do e2e passam e ficam para o qa
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-27 — code-reviewer: APROVADO — correção só no CSS, dentro da área; test.fail do e2e ficam para o qa
+- 2026-10-27 — orquestrador: em-qa — qa chamado
