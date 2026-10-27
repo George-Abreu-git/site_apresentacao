@@ -38,5 +38,6 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-032-e2e-no-build-de-producao|T-032]] | e2e também contra o build de produção (vite preview) | backlog | agente-faz | infra |
 | [[docs/03-tarefas/T-033-foco-apos-ancora-inicial|T-033]] | Tab começa na seção ao abrir o site direto numa âncora | backlog | agente-faz | front-end |
 | [[docs/03-tarefas/T-034-nome-completo-no-titulo-e-testes|T-034]] | Nome completo do George no título da aba e nos testes do cabeçalho e do rodapé | concluida | agente-faz | front-end |
+| [[docs/03-tarefas/T-036-anel-de-foco-na-lista-que-rola|T-036]] | Anel de foco do último link não fica cortado na lista do menu que rola | backlog | agente-faz | front-end |
 
 > Ordem: T-004 → T-005 → **T-014** → T-006 → T-001 → T-007 → T-008 → T-009 → T-010 → T-011 → T-012 → **T-017** → **T-016** → bugs do pente-fino (média primeiro: T-025 ✔, T-029 ✔, T-018 ✔, T-023 ✔, T-028 ✔, T-030 ✔; depois T-019 ✔, T-020 ✔, T-021 ✔, T-022, T-024, T-026, T-027, T-031, T-032, T-033) → **T-015** → T-013. Requisitos e ADR de stack já concluídos ([[docs/02-arquitetura/ADR-0001-stack|ADR-0001]]); a T-001 agora depende só da T-005 (pastas criadas).
