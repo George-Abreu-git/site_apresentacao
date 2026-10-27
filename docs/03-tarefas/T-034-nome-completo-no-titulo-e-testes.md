@@ -60,6 +60,15 @@ Conceitos para estudo: fonte única da verdade em testes; consultas por papel e 
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Todos os critérios de aceite foram atendidos. O `<title>` de `apps/web/index.html` é "George Abreu de Siqueira", igual a `ptBR.pessoa.nome`, e o unitário `conteudo.test.tsx` e o e2e `pagina-inicial.spec.ts:40` (celular e desktop) passam. Os testes do Cabecalho e do Rodape leem `conteudo.pessoa.nome`. `npm test` está verde (web 189 + 1 falha esperada; api 283 + 2 falhas esperadas; shared 5; hooks 412). `npm run test:e2e` está verde: 352 passaram, 12 foram pulados e o único "x" é o bug conhecido da T-029, marcado com `test.fail()`. Lint e validador estão verdes. Não houve mudança visual além do título da aba, e os e2e de responsividade, teclado e texto a 200% continuam passando.
+Arquivos alterados: nenhum
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: `test.fail(condição)` no Playwright (falha esperada condicional); `<title>` como nome acessível da página; artefatos de build ignorados pelo git (`dist/`)
+
 ## Estudo
 
 ## DevOps
@@ -72,3 +81,4 @@ Conceitos para estudo: fonte única da verdade em testes; consultas por papel e 
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
 - 2026-10-27 — code-reviewer: APROVADO — critérios atendidos, dentro da área, sem escopo extra
 - 2026-10-27 — orquestrador: em-qa — qa chamado
+- 2026-10-27 — qa: PASSOU — 4 critérios atendidos; npm test, e2e, lint e validador verdes
