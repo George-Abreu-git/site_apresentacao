@@ -555,13 +555,11 @@ test.describe('menu do celular em paisagem com pouca altura (pente-fino da T-016
     }
   });
 
-  // BUG CONHECIDO (T-016): com a tela mais baixa que o cabeçalho + a lista (~360 px), como um
-  // celular pequeno deitado (568x320), o fim da lista fica fora da janela e não há como rolar até
-  // ele: a lista é `position: absolute` dentro do cabeçalho preso ao topo (sticky), então rolar a
-  // página não a move. Esperado: todos os links inteiros na tela (ou a lista rolando por dentro).
-  // Obtido: o link "Contato" termina em y=360, abaixo da janela de 320 px (só ~8 px dele aparecem).
+  // Corrigido na T-024 (BUG-Q3 da T-016): a lista aberta é `position: absolute` dentro do cabeçalho
+  // preso ao topo (sticky), então rolar a página não a move. Antes, em 568x320 o link "Contato"
+  // terminava em y=360, fora da janela. Agora a lista ocupa no máximo a altura que sobra abaixo do
+  // cabeçalho e rola por dentro.
   test('568x320 (celular pequeno deitado): a lista aberta cabe na tela ou rola por dentro', async ({ page }) => {
-    test.fail();
     await page.setViewportSize({ width: 568, height: 320 });
     await page.goto('/');
     await botaoMenu(page).click();
@@ -569,4 +567,131 @@ test.describe('menu do celular em paisagem com pouca altura (pente-fino da T-016
     await ultimo.scrollIntoViewIfNeeded();
     await expect(ultimo).toBeInViewport({ ratio: 1, timeout: 2000 });
   });
+
+  test('568x320: a lista termina no fim da janela e rola por dentro, sem rolar a página', async ({ page }) => {
+    await page.setViewportSize({ width: 568, height: 320 });
+    await page.goto('/');
+    await botaoMenu(page).click();
+    const medida = await listaAberta(page);
+    expect(medida.base, 'a lista não pode passar do fim da janela').toBeLessThanOrEqual(320 + 1);
+    expect(medida.alturaDoConteudo, 'o conteúdo da lista deveria ser maior que a área visível').toBeGreaterThan(medida.alturaVisivel);
+    expect(medida.rolagem).toBe('auto');
+
+    // Rolar a lista por dentro mostra o último link, e a página continua no topo.
+    await lista(page).evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
+    await expect(linkDoMenu(page, 'Contato')).toBeInViewport({ ratio: 1 });
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
+  test('568x320: pelo teclado, cada link focado aparece inteiro, sem o anel de foco cortado dos lados', async ({ page }) => {
+    await page.setViewportSize({ width: 568, height: 320 });
+    await page.goto('/');
+    await botaoMenu(page).focus();
+    await page.keyboard.press('Enter');
+    await expect(botaoMenu(page)).toHaveAttribute('aria-expanded', 'true');
+
+    for (const { titulo } of SECOES) {
+      await page.keyboard.press('Tab');
+      const link = linkDoMenu(page, titulo);
+      await esperarFocoVisivel(link);
+      await expect(link).toBeInViewport({ ratio: 1 });
+      // O anel de foco (contorno + afastamento) fica dentro da lista que rola, dos lados:
+      // o `overflow-y: auto` também corta o que passa para os lados.
+      const corte = await link.evaluate((el) => {
+        const estilo = getComputedStyle(el);
+        const anel = parseFloat(estilo.outlineWidth) + parseFloat(estilo.outlineOffset);
+        const caixaDoLink = el.getBoundingClientRect();
+        const caixaDaLista = el.closest('ul')!.getBoundingClientRect();
+        return {
+          esquerda: caixaDoLink.left - anel - caixaDaLista.left,
+          direita: caixaDaLista.right - (caixaDoLink.right + anel),
+        };
+      });
+      expect(corte.esquerda, `anel de foco de "${titulo}" cortado à esquerda`).toBeGreaterThanOrEqual(0);
+      expect(corte.direita, `anel de foco de "${titulo}" cortado à direita`).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  // BUG CONHECIDO (qa da T-024, severidade baixa): com a lista rolando por dentro, o Tab até o
+  // último link rola a lista só o bastante para mostrar a caixa do link, e não o anel de foco, que
+  // fica 6px para fora dele (3px de contorno + 3px de afastamento). A parte de baixo do anel de
+  // "Contato" fica cortada pela lista. O foco continua visível nos outros três lados.
+  // Esperado: o anel inteiro dentro da área visível da lista. Obtido: 6px cortados embaixo.
+  test('568x320: pelo teclado, o anel de foco do último link não fica cortado embaixo', async ({ page }) => {
+    test.fail();
+    await page.setViewportSize({ width: 568, height: 320 });
+    await page.goto('/');
+    await botaoMenu(page).focus();
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < SECOES.length; i++) await page.keyboard.press('Tab');
+    const ultimo = linkDoMenu(page, 'Contato');
+    await esperarFocoVisivel(ultimo);
+    const sobraEmbaixo = await ultimo.evaluate((el) => {
+      const estilo = getComputedStyle(el);
+      const anel = parseFloat(estilo.outlineWidth) + parseFloat(estilo.outlineOffset);
+      return el.closest('ul')!.getBoundingClientRect().bottom - (el.getBoundingClientRect().bottom + anel);
+    });
+    expect(sobraEmbaixo, 'anel de foco de "Contato" cortado embaixo').toBeGreaterThanOrEqual(0);
+  });
+
+  test('640x360 (regressão): os links ficam onde estavam, sem depender da rolagem interna', async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 360 });
+    await page.goto('/');
+    await botaoMenu(page).click();
+    const medida = await listaAberta(page);
+    // A lista começa fechada no topo e termina no fim da janela, com o último link inteiro nela.
+    expect(medida.base).toBeLessThanOrEqual(360 + 1);
+    expect(medida.posicaoDaRolagem).toBe(0);
+    await expect(linkDoMenu(page, 'Contato')).toBeInViewport({ ratio: 1 });
+    // Só o respiro de baixo da lista (padding) fica de fora: nenhum link depende da rolagem interna.
+    expect(medida.alturaDoConteudo - medida.alturaVisivel).toBeLessThanOrEqual(medida.respiroDeBaixo);
+  });
+
+  test('360x800 em pé (regressão): a lista aberta fica inteira, sem rolagem própria', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await page.goto('/');
+    await botaoMenu(page).click();
+    const medida = await listaAberta(page);
+    expect(medida.alturaDoConteudo).toBeLessThanOrEqual(medida.alturaVisivel);
+    for (const { titulo } of SECOES) {
+      await expect(linkDoMenu(page, titulo)).toBeInViewport({ ratio: 1 });
+    }
+  });
 });
+
+test.describe('menu em linha no desktop com pouca altura (regressão da T-024)', () => {
+  test.skip(({ isMobile }) => isMobile, 'comportamento só do desktop');
+
+  test('1280x320: a lista em linha não tem limite de altura nem rolagem própria', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 320 });
+    await page.goto('/');
+    const medida = await listaAberta(page);
+    expect(medida.alturaMaxima).toBe('none');
+    expect(medida.rolagem).toBe('visible');
+    expect(medida.alturaDoConteudo).toBeLessThanOrEqual(medida.alturaVisivel);
+    for (const { titulo } of SECOES) {
+      await expect(linkDoMenu(page, titulo)).toBeInViewport({ ratio: 1 });
+    }
+  });
+});
+
+/** A lista de links do menu (o <ul> dentro da navegação). */
+function lista(page: Page): Locator {
+  return navegacao(page).locator('ul');
+}
+
+/** Medidas da lista: onde termina na janela, quanto mostra, quanto tem e como rola. */
+async function listaAberta(page: Page) {
+  return lista(page).evaluate((el) => {
+    const estilo = getComputedStyle(el);
+    return {
+      base: el.getBoundingClientRect().bottom,
+      alturaVisivel: el.clientHeight,
+      alturaDoConteudo: el.scrollHeight,
+      rolagem: estilo.overflowY,
+      alturaMaxima: estilo.maxHeight,
+      posicaoDaRolagem: el.scrollTop,
+      respiroDeBaixo: parseFloat(estilo.paddingBottom),
+    };
+  });
+}

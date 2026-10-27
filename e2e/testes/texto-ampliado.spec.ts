@@ -487,20 +487,15 @@ test.describe('Âncora e foco abaixo do cabeçalho, qualquer que seja a altura d
   });
 });
 
-test.describe('Cabeçalho em várias linhas a 200%: bug conhecido (achado da T-029)', () => {
-  // O bug só aparece quando o cabeçalho fica alto, o que depende da fonte e do nome: com a DejaVu
-  // Sans (CI) e "George Siqueira", o cabeçalho tem ~249px e o bug aparece; com a Segoe UI (Windows),
-  // ~201px e não aparece. Por isso a marca recebe o NOME_LONGO (cabeçalho de ~300px ou mais) e o
-  // teste confere a condição do bug ANTES do `test.fail()`: se ela não valer, o teste falha de
-  // verdade (não "como esperado"). Assim o "Expected to fail, but passed" só aparece quando o bug
-  // for corrigido, e aí é hora de tirar o `test.fail()`.
+test.describe('Cabeçalho em várias linhas a 200%: lista do menu (achado da T-029, corrigido na T-024)', () => {
+  // O problema só aparece quando o cabeçalho fica alto, o que depende da fonte e do nome: com a
+  // DejaVu Sans (CI) e "George Siqueira", o cabeçalho tem ~249px; com a Segoe UI (Windows), ~201px.
+  // Por isso a marca recebe o NOME_LONGO (cabeçalho de ~300px ou mais) e o teste confere a condição
+  // do problema antes: se ela não valer, o teste não está testando nada e falha.
 
-  // BUG CONHECIDO (achado no qa da T-029; mesma causa da T-024): a lista aberta é `position:
-  // absolute` dentro do cabeçalho preso ao topo (sticky), então rolar a página não a move. Com o
-  // cabeçalho em várias linhas, a lista começa mais abaixo e, em 360x800 com o texto a 200%, o
-  // último link ("Contato") termina abaixo da janela, sem como rolar até ele.
-  // Esperado: todos os links inteiros na tela (ou a lista rolando por dentro). Obtido: "Contato" vai
-  // até y≈841 (DejaVu Sans, "George Siqueira") ou y≈937 (NOME_LONGO).
+  // Antes da T-024 a lista aberta (`position: absolute` dentro do cabeçalho sticky) não acompanhava
+  // a rolagem da página: em 360x800 a 200%, "Contato" terminava abaixo da janela (y≈841 a 937).
+  // Agora a lista ocupa no máximo a altura que sobra abaixo do cabeçalho e rola por dentro.
   test('360x800 a 200%, com um nome longo na marca: a lista aberta cabe na tela ou rola por dentro', async ({ page }) => {
     await abrirAmpliada(page);
     await trocarNomeDaMarca(page, NOME_LONGO);
@@ -508,14 +503,13 @@ test.describe('Cabeçalho em várias linhas a 200%: bug conhecido (achado da T-0
     const links = navegacao(page).getByRole('link');
     await expect(links).toHaveCount(6);
 
-    // Condição do bug: o cabeçalho e os seis links, um embaixo do outro, somam mais que a altura da
+    // Condição do problema: o cabeçalho e os seis links, um embaixo do outro, somam mais que a altura da
     // janela. Só cabe tudo se a lista rolar por dentro (ou mudar de forma).
     const baseDoCabecalho = (await caixa(cabecalho(page))).base;
     const alturaDosLinks = (await links.evaluateAll((lista) => lista.map((el) => el.getBoundingClientRect().height))).reduce((soma, altura) => soma + altura, 0);
     const alturaDaJanela = await page.evaluate(() => window.innerHeight);
     expect(baseDoCabecalho + alturaDosLinks, 'o cabeçalho e os links deveriam somar mais que a janela').toBeGreaterThan(alturaDaJanela);
 
-    test.fail();
     const ultimo = navegacao(page).getByRole('link', { name: 'Contato', exact: true });
     await ultimo.scrollIntoViewIfNeeded();
     await expect(ultimo).toBeInViewport({ ratio: 1, timeout: 2000 });
