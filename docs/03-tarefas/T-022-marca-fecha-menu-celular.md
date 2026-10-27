@@ -1,7 +1,7 @@
 ---
 id: T-022
 titulo: Tocar na marca no celular fecha a lista do menu
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -47,6 +47,17 @@ Conceitos para estudo: componente controlado x não controlado (React); elevar o
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff resolve o BUG-Q1: o estado da lista subiu para o Cabecalho, o Menu virou controlado e a marca fecha a lista. O foco e o Esc continuam corretos. Há 5 cenários novos que testam comportamento, e os testes antigos do Menu foram adaptados com um invólucro com estado. Os testes do web passaram (199, mais 1 falha esperada antiga de Projetos) e o lint está limpo. O dev só alterou a área dele.
+Arquivos alterados: nenhum
+Pendências:
+1. (qa) Critério de aceite 3: tirar o `test.fail()` de `e2e/testes/navegacao.spec.ts:410` e atualizar o comentário "BUG CONHECIDO (T-016)"; depois rodar o e2e e o validador.
+2. *opcional* — O cenário "pelo teclado" em `Cabecalho.test.tsx` simula o Enter com um clique (limitação do jsdom); vale o qa cobrir o Enter de verdade na marca no e2e do celular.
+Decisão pendente: nenhuma
+Conceitos para estudo: componente controlado x não controlado; elevar o estado (lifting state up); props de callback; invólucro de teste com estado; `aria-expanded`; `test.fail` do Playwright x `it.fails` do Vitest
+
 ## QA
 
 ## Estudo
@@ -59,3 +70,5 @@ Conceitos para estudo: componente controlado x não controlado (React); elevar o
 - 2026-10-27 — orquestrador: em-andamento — branch feat/T-022-marca-fecha-menu-celular; dev chamado
 - 2026-10-27 — dev: CONCLUIDO — estado do menu elevado ao Cabecalho; a marca fecha a lista; test.fail do e2e fica para o qa
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-27 — code-reviewer: APROVADO — Menu controlado, marca fecha a lista, dentro da área
+- 2026-10-27 — orquestrador: em-qa — qa chamado
