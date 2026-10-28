@@ -1,7 +1,7 @@
 ---
 id: T-035
 titulo: Mais dois subagentes dev (dev-2 e dev-3) para codar em paralelo
-status: aguardando-decisao
+status: em-revisao
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -84,3 +84,5 @@ Conceitos para estudo: área de escrita por caminho (glob) e separação teste �
 - 2026-10-27 — devops: CONCLUIDO — área do qa só com testes; config do e2e do devops; porta do e2e bloqueada pelo hook do checkout principal (área antiga)
 - 2026-10-27 — orquestrador: aguardando-decisao — Q3 apresentada ao George (como gravar a config do e2e)
 - 2026-10-27 — George: Q3 — A; orquestrador copia o playwright.config.ts do devops para o worktree (exceção registrada em Decisões)
+- 2026-10-27 — orquestrador: rebase na main (conflito só no backlog, linhas T-035/T-036 mantidas); npm ci; npm test, e2e na porta 5174 (361 passaram, 0 falhas), lint e validador verdes no worktree
+- 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
