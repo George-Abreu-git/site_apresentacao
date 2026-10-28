@@ -72,6 +72,17 @@ Conceitos para estudo: git worktree; leitura de configuração por variável de 
 
 ## Estudo
 
+### Diário de estudo
+
+Resultado: CONCLUIDO
+Resumo: Diário da T-035 (`consolidado: false`): dev-2 e dev-3, tarefas em paralelo em worktrees, porta do e2e por `E2E_PORTA_FRONT`, a decisão Q1 (qa só altera arquivos de teste, ADR-0004) e a Q3 (o hook ativo é o do checkout principal). 8 conceitos e 2 exercícios. Também acrescentou em `docs/04-estudos/areas-por-caminho-de-escrita.md` um aviso curto, logo depois da tabela T-003/T-004, de que a T-035 e a ADR-0004 mudaram a área do qa e de que existem dev-2 e dev-3 (a linha antiga fica como registro histórico).
+Arquivos alterados: docs/04-estudos/tarefas/T-035.md (novo); docs/04-estudos/areas-por-caminho-de-escrita.md (edição pontual)
+Pendências:
+1. A spec `docs/02-arquitetura/specs/2026-10-09-orquestracao-agentes-design.md:41` ainda diz "qa → `e2e/**`" (área do devops).
+2. Conceitos novos para o `/estudar-consolidar`: execucao-paralela-de-tarefas, configuracao-por-variavel-de-ambiente, porta-do-servidor-e-reuse-existing-server, hook-ativo-do-checkout-principal.
+Decisão pendente: nenhuma
+Conceitos para estudo: execução paralela de tarefas; git worktree; configuração por variável de ambiente com falha rápida; `reuseExistingServer` e `--strictPort`; áreas por caminho (separar teste de configuração); hook carregado do checkout principal; rebase e fast-forward
+
 ## DevOps
 
 ### Rodada 1
@@ -116,3 +127,4 @@ Conceitos para estudo: área de escrita por caminho (glob) e separação teste �
 - 2026-10-27 — qa: PASSOU — 6 critérios conferidos; e2e a repetir no encerramento
 - 2026-10-27 — orquestrador: ADR-0004 registrada (Q1); nota na ADR-0001 apontando para ela
 - 2026-10-27 — orquestrador: concluida — verificação verde no worktree (npm test, e2e na 5174, lint, validador); diário de estudo disparado após a integração
+- 2026-10-27 — documentador: CONCLUIDO — diário integrado
