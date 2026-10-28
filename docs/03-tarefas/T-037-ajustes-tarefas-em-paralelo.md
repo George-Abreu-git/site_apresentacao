@@ -1,7 +1,7 @@
 ---
 id: T-037
 titulo: Ajustes no fluxo de tarefas em paralelo (backlog, remoção do worktree no Windows e textos da ADR-0004)
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -43,6 +43,17 @@ Severidade: baixa.
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff atende aos 4 critérios de conteúdo. A tarefa nova entra na `main` antes do worktree (com alternativa pelo worktree aberto em `main`), a limpeza no Windows é segura (rmdir sem seguir as junctions, conferência de que a pasta sumiu, nada de `git -C` depois da remoção), a spec aponta para a ADR-0004 e o `lerPorta` deixou de ser exportado. Validador, hooks (465), lint e testes unitários verdes, rodados de novo no worktree. Não rodou o e2e de novo (a única mudança de código foi tirar um `export`); vale o resultado do devops na 5174, e os 21 pulados são por projeto (`test.skip` celular/desktop). Tudo dentro da área do devops.
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional*: confirmar na limpeza do worktree da T-037 que o `cmd /c rmdir /s /q` remove as junctions da `node_modules` sem segui-las, e registrar no Log.
+2. *opcional*: no `/nova-tarefa`, quando a tarefa nasce pelo worktree aberto em `main`, calcular o próximo id a partir da `main` atualizada.
+Decisão pendente: nenhuma
+Conceitos para estudo: junctions do Windows e `rmdir /s` sem seguir links; como o git sobe as pastas procurando um repositório; worktree aberto em `main` e depois `switch -c`; `test.skip` condicional por projeto no Playwright
+
 ## QA
 
 ## Estudo
@@ -66,3 +77,5 @@ Conceitos para estudo: git worktree (criar em `main` e trocar para uma branch no
 - 2026-10-28 — orquestrador: em-andamento — em paralelo com a T-039; worktree .claude/worktrees/T-037, branch feat/T-037-ajustes-tarefas-em-paralelo, porta do e2e 5174; devops chamado
 - 2026-10-28 — devops: CONCLUIDO — fluxo paralelo ajustado (backlog antes do worktree, limpeza no Windows, spec, lerPorta)
 - 2026-10-28 — orquestrador: em-revisao — code-reviewer chamado (no worktree)
+- 2026-10-28 — code-reviewer: APROVADO — 4 critérios atendidos, dentro da área
+- 2026-10-28 — orquestrador: em-qa — qa chamado (no worktree)
