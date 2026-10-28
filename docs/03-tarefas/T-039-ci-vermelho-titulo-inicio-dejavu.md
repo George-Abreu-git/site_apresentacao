@@ -1,7 +1,7 @@
 ---
 id: T-039
 titulo: CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -54,6 +54,17 @@ Pendências:
 Decisão pendente: Q7 — como fazer o nome completo caber abaixo do cabeçalho alto (A: entrelinha 1,2 só no `<h1>` de Início, base 748; B: entrelinha 1,2 em todos os títulos; C: `padding-top` do Início de 3rem para 1,5rem, base 777). Recomendação do dev: A.
 Conceitos para estudo: line-height (entrelinha) em títulos e em texto corrido; métricas de fonte (DejaVu Sans × Segoe UI) e quebra de linha; position: sticky e cabeçalho que cobre conteúdo; scroll-padding-top; reprodução de bug dependente de fonte num container Linux (Docker)
 
+### Rodada 1 (retomada após a decisão Q7)
+
+Resultado: CONCLUIDO
+Resumo: Opção A da Q7 aplicada: `line-height: 1.2` só no `.titulo` de Início, sem unidade, com comentário do porquê. 5 cenários unitários lendo o CSS com `?raw` (título com 1.2; valor sem unidade; demais classes do Início sem entrelinha própria; `body` continua 1.5; font-size do título inalterado); os 1 e 2 falharam antes do CSS (TDD) e os 3 a 5 protegem o que não pode mudar. Suíte unitária (web 204 + 1 falha esperada, API 291, shared 5, hooks 465), lint, build e validador verdes. `texto-ampliado.spec.ts:375` passou 20/20 no Windows (`--repeat-each=5`) e 12/12 no container Linux com a DejaVu (`--repeat-each=3 --retries=0`; antes falhava em 360px). Suíte e2e inteira no Linux: 361 passaram, 21 pulados, nenhum instável. Container `t029-linux` parado.
+Arquivos alterados: apps/web/src/componentes/Inicio/Inicio.module.css; apps/web/src/componentes/Inicio/Inicio.test.tsx
+Pendências:
+1. (encerramento) CI da `main` verde depois do push.
+2. Fora do escopo: o `min-height` de `.inicio` desconta `--altura-cabecalho` em vez de `--altura-real-do-cabecalho`.
+Decisão pendente: nenhuma
+Conceitos para estudo: line-height sem unidade × com unidade (herança do valor calculado); entrelinha de títulos × texto corrido; testar regras de CSS como texto (`?raw` do Vite) quando o jsdom não calcula layout; testes de guarda (regressão) dentro do TDD; reprodução de bug dependente de fonte num container Linux (Docker)
+
 ## Revisão
 
 ## QA
@@ -69,3 +80,5 @@ Conceitos para estudo: line-height (entrelinha) em títulos e em texto corrido; 
 - 2026-10-28 — dev: AGUARDANDO-DECISAO — causa é layout (título de Início com 4 linhas de 96px na DejaVu); correção visual é decisão do George
 - 2026-10-28 — orquestrador: aguardando-decisao — Q7 apresentada ao George
 - 2026-10-28 — George: Q7 — A (entrelinha 1,2 no título de Início); orquestrador: em-andamento — dev retoma (rodada 1, após decisão)
+- 2026-10-28 — dev: CONCLUIDO — entrelinha 1,2 no título de Início; teste da T-030 verde no Linux (12/12) e no Windows (20/20); e2e inteiro no Linux verde
+- 2026-10-28 — orquestrador: em-revisao — code-reviewer chamado
