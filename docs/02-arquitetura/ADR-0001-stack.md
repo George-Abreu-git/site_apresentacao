@@ -69,7 +69,7 @@ Escolhida pelo George: React + Vite + TS no front; NestJS (Node + TS) como monol
 ## Consequências
 
 - **Estrutura:** `apps/web/` (React), `apps/api/` (NestJS, um módulo por domínio — v1: `projetos` e `github`), `packages/shared/` (tipos compartilhados, ex.: `Projeto`), `e2e/` (Playwright).
-- **Áreas por caminho** (atualizar o `AGENTS.md`): dev → `apps/**` e `packages/**` (incluindo testes unitários `*.spec.ts`/`*.test.ts(x)` junto do código); qa → `e2e/**` e testes de rotas da API (`apps/api/test/**`); devops → plataforma (inalterado) + configs de deploy e CI.
+- **Áreas por caminho** (atualizar o `AGENTS.md`): dev → `apps/**` e `packages/**` (incluindo testes unitários `*.spec.ts`/`*.test.ts(x)` junto do código); qa → `e2e/**` e testes de rotas da API (`apps/api/test/**`); devops → plataforma (inalterado) + configs de deploy e CI. *(Atualizado pela [[docs/02-arquitetura/ADR-0004-qa-so-altera-testes|ADR-0004]]: o qa fica só com os testes — `e2e/testes/**`, `e2e/apoio/**` e `apps/api/test/**` — e a configuração do e2e passa ao devops.)*
 - **Partida a frio:** o front nunca bloqueia o conteúdo estático esperando a API (RNF-03); a seção Projetos mostra estado de carregamento.
 - **CORS:** a API aceita só a origem do front publicado (RNF-05).
 - **Segredos:** token do GitHub só em variável de ambiente no Render.
