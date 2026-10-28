@@ -1,7 +1,7 @@
 ---
 id: T-039
 titulo: CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans
-status: em-andamento
+status: aguardando-decisao
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -41,6 +41,18 @@ Severidade: média (deixa o CI da `main` vermelho).
 
 ## Dev
 
+### Rodada 1
+
+Resultado: AGUARDANDO-DECISAO
+Resumo: Causa confirmada: defeito de layout. Com o nome completo no `<h1>` de Início, a 200% e em 360px, o título quebra em 4 linhas de 96px com a DejaVu Sans (3 com a Segoe UI; entrelinha 1,5 herdada do `body`). A seção começa em 441px (cabeçalho de 345 mais `padding-top` de 96), então a base do título fica em 825px, além do limite de 801. A página já está no topo, sem rolagem que resolva. Reproduzido no container Linux (celular e desktop falham só em 360px; 768px passa). No Windows o teste passou 20/20 (`--repeat-each=5`), base em 729px. Medidas: "George Siqueira" no Linux dava 2 linhas (base 633). Nada foi implementado.
+Arquivos alterados: nenhum
+Pendências:
+1. Depois da decisão: 5 cenários unitários (TDD), CSS em `Inicio.module.css` (ou `index.css`), suíte inteira e validador, `texto-ampliado.spec.ts:375` no Linux (`--repeat-each=3 --retries=0`) e no Windows (`--repeat-each=5`), suíte e2e inteira no Linux.
+2. Fora do escopo: o `min-height` de `.inicio` desconta `--altura-cabecalho` em vez de `--altura-real-do-cabecalho` (não causa esta falha).
+3. A instabilidade antiga do teste no Windows não vem da altura do título; deve ser a rolagem suave interrompida (T-038).
+Decisão pendente: Q7 — como fazer o nome completo caber abaixo do cabeçalho alto (A: entrelinha 1,2 só no `<h1>` de Início, base 748; B: entrelinha 1,2 em todos os títulos; C: `padding-top` do Início de 3rem para 1,5rem, base 777). Recomendação do dev: A.
+Conceitos para estudo: line-height (entrelinha) em títulos e em texto corrido; métricas de fonte (DejaVu Sans × Segoe UI) e quebra de linha; position: sticky e cabeçalho que cobre conteúdo; scroll-padding-top; reprodução de bug dependente de fonte num container Linux (Docker)
+
 ## Revisão
 
 ## QA
@@ -53,3 +65,5 @@ Severidade: média (deixa o CI da `main` vermelho).
 
 - 2026-10-28 — tarefa criada
 - 2026-10-28 — orquestrador: em-andamento — branch feat/T-039-ci-vermelho-titulo-inicio-dejavu (checkout principal); dev chamado
+- 2026-10-28 — dev: AGUARDANDO-DECISAO — causa é layout (título de Início com 4 linhas de 96px na DejaVu); correção visual é decisão do George
+- 2026-10-28 — orquestrador: aguardando-decisao — Q7 apresentada ao George
