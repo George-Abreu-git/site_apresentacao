@@ -10,7 +10,7 @@ const PORTA_PADRAO = 5173;
 // Lê a porta de uma variável de ambiente; vazia ou ausente → a padrão.
 // Valor que não é uma porta válida para a execução com um erro claro, em vez
 // de subir o front numa porta inesperada.
-export function lerPorta(valor: string | undefined, padrao: number): number {
+function lerPorta(valor: string | undefined, padrao: number): number {
   if (valor === undefined || valor.trim() === '') return padrao;
   const porta = Number(valor.trim());
   if (!Number.isInteger(porta) || porta < 1 || porta > 65535) {
