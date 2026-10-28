@@ -70,6 +70,8 @@ A [[docs/02-arquitetura/ADR-0001-stack|ADR-0001]] trocou `src/` por um monorepo 
 
 O aviso de "provisórias" saiu, porque as pastas agora estão definidas por uma ADR aceita.
 
+> **Atualização (T-035, ADR-0004):** a linha do qa mudou. Ele ficou só com **arquivos de teste** (`e2e/testes/**`, `e2e/apoio/**` e `apps/api/test/**`); as configurações dentro de `e2e/` (`playwright.config.*`, `tsconfig*.json`, `package.json`) passaram para o devops. A T-035 também criou `dev-2` e `dev-3`, com a mesma área do `dev`. Veja [[docs/02-arquitetura/ADR-0004-qa-so-altera-testes|ADR-0004]] e [[docs/04-estudos/tarefas/T-035]].
+
 #### A exceção explícita
 
 Aqui aparece um caso clássico: **uma pasta dentro da outra**. `apps/api/test/**` está *dentro* de `apps/**`. Se a linha do dev dissesse só "`apps/**`", o arquivo `apps/api/test/projetos.e2e-spec.ts` teria **dois donos** (dev e qa), e a propriedade 1 ("sem sobreposição") quebraria.
