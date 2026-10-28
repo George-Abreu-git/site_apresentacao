@@ -1,7 +1,7 @@
 ---
 id: T-039
 titulo: CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans
-status: em-andamento
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -38,12 +38,59 @@ Severidade: média (deixa o CI da `main` vermelho).
 ## Decisões
 
 - 2026-10-17 — George: bugs e erros encontrados viram tarefas, em modo `agente-faz`.
+- 2026-10-28 — George (Q7, como fazer o nome completo caber abaixo do cabeçalho alto): opção A — entrelinha 1,2 só no `<h1>` de Início (`.titulo` em `Inicio.module.css`); no pior caso medido (Linux/DejaVu, 360px a 200%) a base do título vai para 748px, com 52px de folga.
 
 ## Dev
 
+### Rodada 1
+
+Resultado: AGUARDANDO-DECISAO
+Resumo: Causa confirmada: defeito de layout. Com o nome completo no `<h1>` de Início, a 200% e em 360px, o título quebra em 4 linhas de 96px com a DejaVu Sans (3 com a Segoe UI; entrelinha 1,5 herdada do `body`). A seção começa em 441px (cabeçalho de 345 mais `padding-top` de 96), então a base do título fica em 825px, além do limite de 801. A página já está no topo, sem rolagem que resolva. Reproduzido no container Linux (celular e desktop falham só em 360px; 768px passa). No Windows o teste passou 20/20 (`--repeat-each=5`), base em 729px. Medidas: "George Siqueira" no Linux dava 2 linhas (base 633). Nada foi implementado.
+Arquivos alterados: nenhum
+Pendências:
+1. Depois da decisão: 5 cenários unitários (TDD), CSS em `Inicio.module.css` (ou `index.css`), suíte inteira e validador, `texto-ampliado.spec.ts:375` no Linux (`--repeat-each=3 --retries=0`) e no Windows (`--repeat-each=5`), suíte e2e inteira no Linux.
+2. Fora do escopo: o `min-height` de `.inicio` desconta `--altura-cabecalho` em vez de `--altura-real-do-cabecalho` (não causa esta falha).
+3. A instabilidade antiga do teste no Windows não vem da altura do título; deve ser a rolagem suave interrompida (T-038).
+Decisão pendente: Q7 — como fazer o nome completo caber abaixo do cabeçalho alto (A: entrelinha 1,2 só no `<h1>` de Início, base 748; B: entrelinha 1,2 em todos os títulos; C: `padding-top` do Início de 3rem para 1,5rem, base 777). Recomendação do dev: A.
+Conceitos para estudo: line-height (entrelinha) em títulos e em texto corrido; métricas de fonte (DejaVu Sans × Segoe UI) e quebra de linha; position: sticky e cabeçalho que cobre conteúdo; scroll-padding-top; reprodução de bug dependente de fonte num container Linux (Docker)
+
+### Rodada 1 (retomada após a decisão Q7)
+
+Resultado: CONCLUIDO
+Resumo: Opção A da Q7 aplicada: `line-height: 1.2` só no `.titulo` de Início, sem unidade, com comentário do porquê. 5 cenários unitários lendo o CSS com `?raw` (título com 1.2; valor sem unidade; demais classes do Início sem entrelinha própria; `body` continua 1.5; font-size do título inalterado); os 1 e 2 falharam antes do CSS (TDD) e os 3 a 5 protegem o que não pode mudar. Suíte unitária (web 204 + 1 falha esperada, API 291, shared 5, hooks 465), lint, build e validador verdes. `texto-ampliado.spec.ts:375` passou 20/20 no Windows (`--repeat-each=5`) e 12/12 no container Linux com a DejaVu (`--repeat-each=3 --retries=0`; antes falhava em 360px). Suíte e2e inteira no Linux: 361 passaram, 21 pulados, nenhum instável. Container `t029-linux` parado.
+Arquivos alterados: apps/web/src/componentes/Inicio/Inicio.module.css; apps/web/src/componentes/Inicio/Inicio.test.tsx
+Pendências:
+1. (encerramento) CI da `main` verde depois do push.
+2. Fora do escopo: o `min-height` de `.inicio` desconta `--altura-cabecalho` em vez de `--altura-real-do-cabecalho`.
+Decisão pendente: nenhuma
+Conceitos para estudo: line-height sem unidade × com unidade (herança do valor calculado); entrelinha de títulos × texto corrido; testar regras de CSS como texto (`?raw` do Vite) quando o jsdom não calcula layout; testes de guarda (regressão) dentro do TDD; reprodução de bug dependente de fonte num container Linux (Docker)
+
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff aplica a opção A da Q7 (`line-height: 1.2` sem unidade, só no `.titulo` de Início), com um comentário claro e 5 cenários unitários que conferem as regras do CSS via `?raw`. Só mexe em arquivos da área do dev. Suíte web verde (204 passaram; a falha esperada é o `it.fails` antigo de `Projetos.test.tsx`), lint e validador OK. Não reexecutou o e2e; as medidas no Linux e no Windows são do relato do dev (prova com o qa).
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — O cenário 2 (valor sem unidade) é redundante enquanto o cenário 1 exige exatamente `1.2`.
+2. *opcional* — O helper `regra()` só encontra regras de nível superior (não veria `.titulo` dentro de `@media`).
+3. Fora do escopo: o `min-height` de `.inicio` usa `--altura-cabecalho` em vez de `--altura-real-do-cabecalho`.
+Decisão pendente: nenhuma
+Conceitos para estudo: line-height sem unidade × com unidade; testar regras de CSS como texto (`?raw` do Vite) quando o jsdom não calcula layout; testes de guarda contra regressão
+
 ## QA
+
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: `texto-ampliado.spec.ts:375` passou 12/12 no container Linux com a DejaVu Sans (`--repeat-each=3 --retries=0`) e 20/20 no Windows (`--repeat-each=5`), nos projetos celular e desktop. Contraprova: sem o `line-height: 1.2`, o mesmo teste falha no Linux com a base do título em 825px contra o limite de 801px — o teste continua protegendo o título e a correção é o que o deixa verde. Suíte e2e inteira verde no Linux e no Windows (361 passaram, 21 pulados). Unitários (shared 5, API 291, web 204 mais 1 falha esperada, hooks 465), lint e validador verdes. Não criou teste novo: o teste da T-030 já cobre o critério. Container parado.
+Arquivos alterados: nenhum
+Pendências:
+1. (encerramento) CI da `main` verde depois do push: o orquestrador confere.
+2. Fora do escopo: o `min-height` de `.inicio` usa `--altura-cabecalho` em vez de `--altura-real-do-cabecalho`.
+Decisão pendente: nenhuma
+Conceitos para estudo: contraprova (reverter a correção e ver o teste falhar de novo); reprodução de bug dependente de fonte num container Linux (Docker); line-height sem unidade em títulos
 
 ## Estudo
 
@@ -53,3 +100,12 @@ Severidade: média (deixa o CI da `main` vermelho).
 
 - 2026-10-28 — tarefa criada
 - 2026-10-28 — orquestrador: em-andamento — branch feat/T-039-ci-vermelho-titulo-inicio-dejavu (checkout principal); dev chamado
+- 2026-10-28 — dev: AGUARDANDO-DECISAO — causa é layout (título de Início com 4 linhas de 96px na DejaVu); correção visual é decisão do George
+- 2026-10-28 — orquestrador: aguardando-decisao — Q7 apresentada ao George
+- 2026-10-28 — George: Q7 — A (entrelinha 1,2 no título de Início); orquestrador: em-andamento — dev retoma (rodada 1, após decisão)
+- 2026-10-28 — dev: CONCLUIDO — entrelinha 1,2 no título de Início; teste da T-030 verde no Linux (12/12) e no Windows (20/20); e2e inteiro no Linux verde
+- 2026-10-28 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-28 — code-reviewer: APROVADO — opção A aplicada só no título; dentro da área
+- 2026-10-28 — orquestrador: em-qa — qa chamado
+- 2026-10-28 — qa: PASSOU — teste da T-030 verde no Linux (12/12) e no Windows (20/20); contraprova sem a correção falha (825 > 801)
+- 2026-10-28 — orquestrador: concluida — verificação verde (npm test, e2e, lint, validador); diário de estudo e conferência do CI ficam para a próxima sessão (George precisou desligar o notebook)

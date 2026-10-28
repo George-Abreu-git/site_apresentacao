@@ -13,6 +13,13 @@
   margin: 0;
   /* Cresce com a largura da tela, entre 2rem (celular) e 3.5rem (desktop). */
   font-size: clamp(2rem, 6vw, 3.5rem);
+  /*
+   * O nome completo quebra em várias linhas no celular com texto ampliado (até 4 com a
+   * DejaVu Sans do Linux). A entrelinha 1.5 do texto corrido deixava o título tão alto que a
+   * base dele saía da janela; 1.2 é confortável para um título curto (T-039). Sem unidade,
+   * acompanha o font-size do clamp.
+   */
+  line-height: 1.2;
 }
 
 .tituloProfissional {
