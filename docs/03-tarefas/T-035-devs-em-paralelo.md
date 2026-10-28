@@ -36,7 +36,7 @@ Para rodar em paralelo, cada tarefa precisa do seu próprio checkout (git worktr
 ## Decisões
 
 - 2026-10-27 — George: criar mais 2 subagentes dev (réplicas do `dev`) para codar em paralelo ("Pode replicar e criar mais 2 subagentes dev para codar em paralelo"). Vale como a aprovação exigida pelo `AGENTS.md` para alterar `.claude/agents/**` nesta tarefa.
-- 2026-10-27 — George (Q1 do devops, quem altera `e2e/playwright.config.ts`): "O QA somente aplica mudanças em arquivos de testes, se necessário; mudanças em arquivos de ambiente e desenvolvimento devem ser de um dev, ou do devops se for infraestrutura." Consequência nesta tarefa: os arquivos de configuração dentro de `e2e/` (hoje `e2e/playwright.config.ts`; também `tsconfig*.json` e `package.json` que surgirem lá) passam para a área do devops; o qa fica com `e2e/testes/**`, `e2e/apoio/**` e `apps/api/test/**`. O devops atualiza a tabela "Áreas por caminho" e "Papéis" do `AGENTS.md`, `.claude/hooks/areas.mjs` e os testes, e aplica a porta por `E2E_PORTA_FRONT`.
+- 2026-10-27 — George (Q1 do devops, quem altera `e2e/playwright.config.ts`): "O QA somente aplica mudanças em arquivos de testes, se necessário; mudanças em arquivos de ambiente e desenvolvimento devem ser de um dev, ou do devops se for infraestrutura." Consequência nesta tarefa: os arquivos de configuração dentro de `e2e/` (hoje `e2e/playwright.config.ts`; também `tsconfig*.json` e `package.json` que surgirem lá) passam para a área do devops; o qa fica com `e2e/testes/**`, `e2e/apoio/**` e `apps/api/test/**`. O devops atualiza a tabela "Áreas por caminho" e "Papéis" do `AGENTS.md`, `.claude/hooks/areas.mjs` e os testes, e aplica a porta por `E2E_PORTA_FRONT`. Registrada na [[docs/02-arquitetura/ADR-0004-qa-so-altera-testes|ADR-0004]].
 - 2026-10-27 — George (Q3, como gravar o `e2e/playwright.config.ts` bloqueado pelo hook do checkout principal, que ainda tem a área antiga): opção A — o orquestrador copia, uma única vez, o arquivo escrito e testado pelo devops (scratchpad `proposta/playwright.config.ts`) para o worktree. Exceção pontual por causa da ordem de ativação do hook; não vale como precedente. Code-reviewer e qa revisam e validam normalmente.
 
 ## Dev
@@ -57,6 +57,18 @@ Decisão pendente: nenhuma
 Conceitos para estudo: git worktree e hook carregado do checkout principal (a regra nova só vale depois do merge); lista de variáveis de ambiente permitidas num hook de segurança; leitura de configuração por variável de ambiente com padrão e falha rápida; `--strictPort` e `reuseExistingServer` do Playwright; integração fast-forward de várias branches em sequência (rebase antes do merge)
 
 ## QA
+
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os 6 critérios de aceite foram conferidos nos arquivos e nos comandos do worktree. As réplicas dev-2 e dev-3 são idênticas ao dev (corpo igual; só name, description e cor mudam) e têm a mesma área no hook, nos testes, no AGENTS.md, no CLAUDE.md, no validador e nas skills. A área do qa ficou só com testes (Q1). A config do e2e resolve 5173 sem a variável e 5174 com ela, e para com erro claro para valor inválido (conferido sem subir servidor). test:hooks (465), npm test, lint e validador verdes. O e2e não foi rodado, a pedido do orquestrador.
+Arquivos alterados: nenhum
+Pendências:
+1. (encerramento, orquestrador) Repetir `E2E_PORTA_FRONT=5174 npm run test:e2e` no worktree e `npm run test:e2e` (padrão 5173) depois do merge, com o hook novo ativo.
+2. (baixa) Textos que ainda dizem "qa → `e2e/**`": ADR-0001 linha 72 (via `registrar-decisao`), a spec `docs/02-arquitetura/specs/2026-10-09-orquestracao-agentes-design.md:41` (devops) e a nota `docs/04-estudos/areas-por-caminho-de-escrita.md:68` (documentador/instrutor).
+3. (baixa) T-027: o critério 3 diz "qa, dono de `e2e/**`" e a tarefa cria `e2e/tsconfig*.json`, que agora é do devops; rever o texto antes de executá-la.
+Decisão pendente: nenhuma
+Conceitos para estudo: git worktree; leitura de configuração por variável de ambiente com padrão e falha rápida; `--strictPort` e `reuseExistingServer` do Playwright; área de escrita por glob (teste × configuração); hook carregado do checkout principal versus mudança no worktree
 
 ## Estudo
 
@@ -101,3 +113,5 @@ Conceitos para estudo: área de escrita por caminho (glob) e separação teste �
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
 - 2026-10-27 — code-reviewer: APROVADO — critérios atendidos; e2e não rodado (hook do checkout principal nega a variável até o merge)
 - 2026-10-27 — orquestrador: em-qa — qa chamado (no worktree, sem rodar o e2e)
+- 2026-10-27 — qa: PASSOU — 6 critérios conferidos; e2e a repetir no encerramento
+- 2026-10-27 — orquestrador: ADR-0004 registrada (Q1); nota na ADR-0001 apontando para ela
