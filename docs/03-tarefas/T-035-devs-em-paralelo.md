@@ -1,7 +1,7 @@
 ---
 id: T-035
 titulo: Mais dois subagentes dev (dev-2 e dev-3) para codar em paralelo
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -42,6 +42,19 @@ Para rodar em paralelo, cada tarefa precisa do seu próprio checkout (git worktr
 ## Dev
 
 ## Revisão
+
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: Os dev-2 e dev-3 replicam o dev, têm a mesma área no hook, nos testes, no AGENTS.md, no CLAUDE.md, no validador e nas skills. A config do e2e lê a porta de `E2E_PORTA_FRONT` (padrão 5173, com `--strictPort`). A área do qa ficou só com testes, como decidido na Q1. A seção "Tarefas em paralelo" cobre todos os passos do critério 4. As linhas nas 5 definições de agente estão cobertas pela aprovação de `.claude/agents/**` nesta tarefa e pela Q1. `E2E_PORTA_FRONT` nas variáveis seguras é necessária e inofensiva. A cópia da config segue a Q3. test:hooks (465), npm test, lint e validador verdes. Não rodou o e2e porque o hook que vale ainda é o do checkout principal e negou o comando com a variável; vale a execução do orquestrador na porta 5174.
+Arquivos alterados: nenhum
+Pendências:
+1. (encerramento, orquestrador) A ADR-0001 (`docs/02-arquitetura/ADR-0001-stack.md:72`) ainda diz "qa → `e2e/**`"; registrar a atualização da Q1 com `registrar-decisao`.
+2. *opcional*: `lerPorta` é exportada em `e2e/playwright.config.ts:9` mas ninguém a importa; tirar o `export` ou criar teste unitário (devops, numa próxima tarefa).
+3. *opcional*: na seção "Tarefas em paralelo", dizer que a linha nova do backlog (criada por `/nova-tarefa`) entra na `main` antes de criar o worktree, para evitar o conflito visto no rebase desta tarefa.
+4. *opcional*: depois do merge, com o hook novo ativo, confirmar `E2E_PORTA_FRONT=5174 npm run test:e2e` num worktree.
+Decisão pendente: nenhuma
+Conceitos para estudo: git worktree e hook carregado do checkout principal (a regra nova só vale depois do merge); lista de variáveis de ambiente permitidas num hook de segurança; leitura de configuração por variável de ambiente com padrão e falha rápida; `--strictPort` e `reuseExistingServer` do Playwright; integração fast-forward de várias branches em sequência (rebase antes do merge)
 
 ## QA
 
@@ -86,3 +99,5 @@ Conceitos para estudo: área de escrita por caminho (glob) e separação teste �
 - 2026-10-27 — George: Q3 — A; orquestrador copia o playwright.config.ts do devops para o worktree (exceção registrada em Decisões)
 - 2026-10-27 — orquestrador: rebase na main (conflito só no backlog, linhas T-035/T-036 mantidas); npm ci; npm test, e2e na porta 5174 (361 passaram, 0 falhas), lint e validador verdes no worktree
 - 2026-10-27 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-27 — code-reviewer: APROVADO — critérios atendidos; e2e não rodado (hook do checkout principal nega a variável até o merge)
+- 2026-10-27 — orquestrador: em-qa — qa chamado (no worktree, sem rodar o e2e)
