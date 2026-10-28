@@ -1,7 +1,7 @@
 ---
 id: T-039
 titulo: CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans
-status: aguardando-decisao
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -38,6 +38,7 @@ Severidade: média (deixa o CI da `main` vermelho).
 ## Decisões
 
 - 2026-10-17 — George: bugs e erros encontrados viram tarefas, em modo `agente-faz`.
+- 2026-10-28 — George (Q7, como fazer o nome completo caber abaixo do cabeçalho alto): opção A — entrelinha 1,2 só no `<h1>` de Início (`.titulo` em `Inicio.module.css`); no pior caso medido (Linux/DejaVu, 360px a 200%) a base do título vai para 748px, com 52px de folga.
 
 ## Dev
 
@@ -67,3 +68,4 @@ Conceitos para estudo: line-height (entrelinha) em títulos e em texto corrido; 
 - 2026-10-28 — orquestrador: em-andamento — branch feat/T-039-ci-vermelho-titulo-inicio-dejavu (checkout principal); dev chamado
 - 2026-10-28 — dev: AGUARDANDO-DECISAO — causa é layout (título de Início com 4 linhas de 96px na DejaVu); correção visual é decisão do George
 - 2026-10-28 — orquestrador: aguardando-decisao — Q7 apresentada ao George
+- 2026-10-28 — George: Q7 — A (entrelinha 1,2 no título de Início); orquestrador: em-andamento — dev retoma (rodada 1, após decisão)
