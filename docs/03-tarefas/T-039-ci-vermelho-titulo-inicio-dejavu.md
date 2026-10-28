@@ -81,6 +81,17 @@ Conceitos para estudo: line-height sem unidade × com unidade; testar regras de 
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: `texto-ampliado.spec.ts:375` passou 12/12 no container Linux com a DejaVu Sans (`--repeat-each=3 --retries=0`) e 20/20 no Windows (`--repeat-each=5`), nos projetos celular e desktop. Contraprova: sem o `line-height: 1.2`, o mesmo teste falha no Linux com a base do título em 825px contra o limite de 801px — o teste continua protegendo o título e a correção é o que o deixa verde. Suíte e2e inteira verde no Linux e no Windows (361 passaram, 21 pulados). Unitários (shared 5, API 291, web 204 mais 1 falha esperada, hooks 465), lint e validador verdes. Não criou teste novo: o teste da T-030 já cobre o critério. Container parado.
+Arquivos alterados: nenhum
+Pendências:
+1. (encerramento) CI da `main` verde depois do push: o orquestrador confere.
+2. Fora do escopo: o `min-height` de `.inicio` usa `--altura-cabecalho` em vez de `--altura-real-do-cabecalho`.
+Decisão pendente: nenhuma
+Conceitos para estudo: contraprova (reverter a correção e ver o teste falhar de novo); reprodução de bug dependente de fonte num container Linux (Docker); line-height sem unidade em títulos
+
 ## Estudo
 
 ## DevOps
@@ -96,3 +107,4 @@ Conceitos para estudo: line-height sem unidade × com unidade; testar regras de 
 - 2026-10-28 — orquestrador: em-revisao — code-reviewer chamado
 - 2026-10-28 — code-reviewer: APROVADO — opção A aplicada só no título; dentro da área
 - 2026-10-28 — orquestrador: em-qa — qa chamado
+- 2026-10-28 — qa: PASSOU — teste da T-030 verde no Linux (12/12) e no Windows (20/20); contraprova sem a correção falha (825 > 801)
