@@ -1,7 +1,7 @@
 ---
 id: T-039
 titulo: CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans
-status: em-revisao
+status: em-qa
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -67,6 +67,18 @@ Conceitos para estudo: line-height sem unidade × com unidade (herança do valor
 
 ## Revisão
 
+### Rodada 1
+
+Resultado: APROVADO
+Resumo: O diff aplica a opção A da Q7 (`line-height: 1.2` sem unidade, só no `.titulo` de Início), com um comentário claro e 5 cenários unitários que conferem as regras do CSS via `?raw`. Só mexe em arquivos da área do dev. Suíte web verde (204 passaram; a falha esperada é o `it.fails` antigo de `Projetos.test.tsx`), lint e validador OK. Não reexecutou o e2e; as medidas no Linux e no Windows são do relato do dev (prova com o qa).
+Arquivos alterados: nenhum
+Pendências:
+1. *opcional* — O cenário 2 (valor sem unidade) é redundante enquanto o cenário 1 exige exatamente `1.2`.
+2. *opcional* — O helper `regra()` só encontra regras de nível superior (não veria `.titulo` dentro de `@media`).
+3. Fora do escopo: o `min-height` de `.inicio` usa `--altura-cabecalho` em vez de `--altura-real-do-cabecalho`.
+Decisão pendente: nenhuma
+Conceitos para estudo: line-height sem unidade × com unidade; testar regras de CSS como texto (`?raw` do Vite) quando o jsdom não calcula layout; testes de guarda contra regressão
+
 ## QA
 
 ## Estudo
@@ -82,3 +94,5 @@ Conceitos para estudo: line-height sem unidade × com unidade (herança do valor
 - 2026-10-28 — George: Q7 — A (entrelinha 1,2 no título de Início); orquestrador: em-andamento — dev retoma (rodada 1, após decisão)
 - 2026-10-28 — dev: CONCLUIDO — entrelinha 1,2 no título de Início; teste da T-030 verde no Linux (12/12) e no Windows (20/20); e2e inteiro no Linux verde
 - 2026-10-28 — orquestrador: em-revisao — code-reviewer chamado
+- 2026-10-28 — code-reviewer: APROVADO — opção A aplicada só no título; dentro da área
+- 2026-10-28 — orquestrador: em-qa — qa chamado
