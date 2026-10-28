@@ -1,7 +1,7 @@
 ---
 id: T-035
 titulo: Mais dois subagentes dev (dev-2 e dev-3) para codar em paralelo
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -115,3 +115,4 @@ Conceitos para estudo: área de escrita por caminho (glob) e separação teste �
 - 2026-10-27 — orquestrador: em-qa — qa chamado (no worktree, sem rodar o e2e)
 - 2026-10-27 — qa: PASSOU — 6 critérios conferidos; e2e a repetir no encerramento
 - 2026-10-27 — orquestrador: ADR-0004 registrada (Q1); nota na ADR-0001 apontando para ela
+- 2026-10-27 — orquestrador: concluida — verificação verde no worktree (npm test, e2e na 5174, lint, validador); diário de estudo disparado após a integração
