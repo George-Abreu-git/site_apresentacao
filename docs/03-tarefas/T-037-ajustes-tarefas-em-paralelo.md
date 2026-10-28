@@ -56,6 +56,16 @@ Conceitos para estudo: junctions do Windows e `rmdir /s` sem seguir links; como 
 
 ## QA
 
+### Rodada 1
+
+Resultado: PASSOU
+Resumo: Os 5 critérios de aceite estão atendidos: tarefa nova na `main` antes do worktree, limpeza segura do worktree no Windows (rmdir sem seguir os atalhos, conferência de que a pasta sumiu, sem `git -C` depois da remoção), spec apontando para a ADR-0004 e `lerPorta` sem `export` e sem quem a importe. No worktree, validador, hooks (465), lint, testes unitários e e2e na 5174 (361 passaram, 21 pulados) ficaram verdes. Os pulados são os `test.skip` condicionais por projeto que já existiam. Sem interface: responsividade e acessibilidade não se aplicam.
+Arquivos alterados: nenhum
+Pendências:
+1. O `cmd /c rmdir /s /q` sobre os atalhos de `node_modules` só foi conferido no texto; o orquestrador confirma na limpeza real do worktree da T-037 e registra no Log.
+Decisão pendente: nenhuma
+Conceitos para estudo: `test.skip` condicional por projeto no Playwright; junctions do Windows e `rmdir /s` sem seguir links; como o git sobe as pastas procurando um repositório; porta própria por worktree no e2e (`E2E_PORTA_FRONT`)
+
 ## Estudo
 
 ## DevOps
@@ -79,3 +89,4 @@ Conceitos para estudo: git worktree (criar em `main` e trocar para uma branch no
 - 2026-10-28 — orquestrador: em-revisao — code-reviewer chamado (no worktree)
 - 2026-10-28 — code-reviewer: APROVADO — 4 critérios atendidos, dentro da área
 - 2026-10-28 — orquestrador: em-qa — qa chamado (no worktree)
+- 2026-10-28 — qa: PASSOU — 5 critérios atendidos; suítes verdes no worktree
