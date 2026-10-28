@@ -1,7 +1,7 @@
 ---
 id: T-037
 titulo: Ajustes no fluxo de tarefas em paralelo (backlog, remoção do worktree no Windows e textos da ADR-0004)
-status: em-andamento
+status: em-revisao
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -49,7 +49,20 @@ Severidade: baixa.
 
 ## DevOps
 
+### Rodada 1
+
+Resultado: CONCLUIDO
+Resumo: Na seção "Tarefas em paralelo" da `orquestrar-tarefa`, a tarefa nova (nota e linha do backlog) entra na `main` com push antes do worktree, com uma alternativa pelo próprio worktree aberto em `main` quando o checkout principal está ocupado; o `/nova-tarefa` aponta para essa exceção. A limpeza do worktree ganhou um passo a passo seguro para o Windows: parar os servidores, `cmd /c rmdir /s /q` na `node_modules` (remove o atalho sem segui-lo) antes do `git worktree remove`, conferir que a pasta sumiu e nunca usar `git -C "$WT"` depois da remoção. A spec de orquestração aponta para a ADR-0001 e a ADR-0004. O `lerPorta` perdeu o `export` (nada o importava). Validador, hooks (465), lint, testes unitários e e2e (porta 5174: 361 passaram, 21 pulados) verdes no worktree.
+Arquivos alterados: .claude/skills/orquestrar-tarefa/SKILL.md; .claude/commands/nova-tarefa.md; docs/02-arquitetura/specs/2026-10-09-orquestracao-agentes-design.md; e2e/playwright.config.ts
+Pendências:
+1. O `rmdir /s /q` sobre junctions não foi testado de verdade (o hook bloqueia `cmd` para subagentes); confirmar na primeira limpeza real de um worktree com `node_modules` (pode ser a desta tarefa).
+2. O e2e terminou com 21 pulados; não conferido se já eram pulados antes (nenhum teste foi alterado).
+Decisão pendente: nenhuma
+Conceitos para estudo: git worktree (criar em `main` e trocar para uma branch nova depois); junctions do npm workspaces no Windows e por que `rmdir /s` não os segue; como o git sobe as pastas procurando o repositório (o risco do `git -C` numa pasta sem `.git`); conflito de rebase em linhas próximas de um arquivo
+
 ## Log
 
 - 2026-10-27 — tarefa criada
 - 2026-10-28 — orquestrador: em-andamento — em paralelo com a T-039; worktree .claude/worktrees/T-037, branch feat/T-037-ajustes-tarefas-em-paralelo, porta do e2e 5174; devops chamado
+- 2026-10-28 — devops: CONCLUIDO — fluxo paralelo ajustado (backlog antes do worktree, limpeza no Windows, spec, lerPorta)
+- 2026-10-28 — orquestrador: em-revisao — code-reviewer chamado (no worktree)
