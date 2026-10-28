@@ -1,7 +1,7 @@
 ---
 id: T-037
 titulo: Ajustes no fluxo de tarefas em paralelo (backlog, remoção do worktree no Windows e textos da ADR-0004)
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -90,3 +90,4 @@ Conceitos para estudo: git worktree (criar em `main` e trocar para uma branch no
 - 2026-10-28 — code-reviewer: APROVADO — 4 critérios atendidos, dentro da área
 - 2026-10-28 — orquestrador: em-qa — qa chamado (no worktree)
 - 2026-10-28 — qa: PASSOU — 5 critérios atendidos; suítes verdes no worktree
+- 2026-10-28 — orquestrador: concluida — verificação verde no worktree (npm test, e2e na 5174, lint, validador); diário de estudo disparado após a integração

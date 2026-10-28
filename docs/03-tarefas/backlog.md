@@ -40,7 +40,7 @@ Atualizado pelo orquestrador (skill `atualizar-tarefa`). Novas tarefas: `/nova-t
 | [[docs/03-tarefas/T-034-nome-completo-no-titulo-e-testes|T-034]] | Nome completo do George no título da aba e nos testes do cabeçalho e do rodapé | concluida | agente-faz | front-end |
 | [[docs/03-tarefas/T-035-devs-em-paralelo|T-035]] | Mais dois subagentes dev (dev-2 e dev-3) para codar em paralelo | concluida | agente-faz | orquestracao |
 | [[docs/03-tarefas/T-036-anel-de-foco-na-lista-que-rola|T-036]] | Anel de foco do último link não fica cortado na lista do menu que rola | backlog | agente-faz | front-end |
-| [[docs/03-tarefas/T-037-ajustes-tarefas-em-paralelo|T-037]] | Ajustes no fluxo de tarefas em paralelo (backlog, remoção do worktree no Windows e textos da ADR-0004) | em-andamento | agente-faz | orquestracao |
+| [[docs/03-tarefas/T-037-ajustes-tarefas-em-paralelo|T-037]] | Ajustes no fluxo de tarefas em paralelo (backlog, remoção do worktree no Windows e textos da ADR-0004) | concluida | agente-faz | orquestracao |
 | [[docs/03-tarefas/T-038-rolagem-suave-para-no-meio|T-038]] | Link do menu leva até a seção mesmo quando a rolagem suave é interrompida | backlog | agente-faz | front-end |
 | [[docs/03-tarefas/T-039-ci-vermelho-titulo-inicio-dejavu|T-039]] | CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans | em-andamento | agente-faz | front-end |
 
