@@ -77,6 +77,15 @@ Conceitos para estudo: converter `it.fails` em teste normal quando o bug é corr
 
 ## Estudo
 
+### Diário de estudo
+
+Resultado: CONCLUIDO
+Resumo: Diário `docs/04-estudos/tarefas/T-026.md` (`consolidado: false`), escrito a partir da nota da tarefa, de `apps/api/src/criar-app.ts`, de `apps/api/src/criar-app.spec.ts` e de `apps/api/test/health.e2e-spec.ts`. Explica o BUG-Q5, a correção com o helmet (ADR-0003) e como o bug foi testado: primeiro marcado com `it.fails`, depois convertido em testes normais com uma tabela de casos. Traz 2 exercícios. Nenhuma outra nota de estudo foi criada ou alterada.
+Arquivos alterados: docs/04-estudos/tarefas/T-026.md
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: cabecalhos-http-de-seguranca, middleware-no-express-e-nest, it-fails-como-marcador-de-bug, tipos-de-teste-unitario-rota-e2e, revisao-do-package-lock
+
 ## DevOps
 
 ## Log
@@ -89,3 +98,4 @@ Conceitos para estudo: converter `it.fails` em teste normal quando o bug é corr
 - 2026-10-27 — orquestrador: em-qa — qa chamado
 - 2026-10-27 — qa: PASSOU — it.fails do BUG-Q5 viraram testes normais, ampliados para 6 tipos de resposta
 - 2026-10-27 — orquestrador: concluida — verificação verde; diário de estudo disparado após a integração
+- 2026-10-27 — documentador: CONCLUIDO — diário integrado
