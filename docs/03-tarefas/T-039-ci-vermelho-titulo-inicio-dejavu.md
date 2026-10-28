@@ -1,7 +1,7 @@
 ---
 id: T-039
 titulo: CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -52,3 +52,4 @@ Severidade: média (deixa o CI da `main` vermelho).
 ## Log
 
 - 2026-10-28 — tarefa criada
+- 2026-10-28 — orquestrador: em-andamento — branch feat/T-039-ci-vermelho-titulo-inicio-dejavu (checkout principal); dev chamado

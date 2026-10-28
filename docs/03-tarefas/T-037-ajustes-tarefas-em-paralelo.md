@@ -1,7 +1,7 @@
 ---
 id: T-037
 titulo: Ajustes no fluxo de tarefas em paralelo (backlog, remoção do worktree no Windows e textos da ADR-0004)
-status: backlog
+status: em-andamento
 modo: agente-faz
 tags: [orquestracao]
 rodadas: 0
@@ -52,3 +52,4 @@ Severidade: baixa.
 ## Log
 
 - 2026-10-27 — tarefa criada
+- 2026-10-28 — orquestrador: em-andamento — em paralelo com a T-039; worktree .claude/worktrees/T-037, branch feat/T-037-ajustes-tarefas-em-paralelo, porta do e2e 5174; devops chamado
