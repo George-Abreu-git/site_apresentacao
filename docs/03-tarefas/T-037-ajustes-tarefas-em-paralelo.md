@@ -68,6 +68,15 @@ Conceitos para estudo: `test.skip` condicional por projeto no Playwright; juncti
 
 ## Estudo
 
+### Diário de estudo
+
+Resultado: CONCLUIDO
+Resumo: Diário da T-037 escrito a partir da nota da tarefa (descrição, critérios e os handoffs de DevOps, Revisão e QA), do trecho "Tarefas em paralelo" da skill `orquestrar-tarefa` e do `lerPorta` em `e2e/playwright.config.ts`. 7 conceitos com o porquê, 2 exercícios e links. Nenhuma outra nota de estudo alterada.
+Arquivos alterados: docs/04-estudos/tarefas/T-037.md
+Pendências: nenhuma
+Decisão pendente: nenhuma
+Conceitos para estudo: git-worktree; conflito-de-rebase-em-linhas-proximas; junctions-do-windows; descoberta-do-repositorio-git; porta-do-e2e-por-worktree; test-skip-condicional-playwright; adr-como-fonte-unica
+
 ## DevOps
 
 ### Rodada 1
@@ -91,3 +100,5 @@ Conceitos para estudo: git worktree (criar em `main` e trocar para uma branch no
 - 2026-10-28 — orquestrador: em-qa — qa chamado (no worktree)
 - 2026-10-28 — qa: PASSOU — 5 critérios atendidos; suítes verdes no worktree
 - 2026-10-28 — orquestrador: concluida — verificação verde no worktree (npm test, e2e na 5174, lint, validador); diário de estudo disparado após a integração
+- 2026-10-28 — orquestrador: limpeza real do worktree da T-037 pelo passo a passo novo — cmd /c rmdir /s /q apagou a `node_modules` sem seguir as junctions (106 arquivos em `apps/*/src` e `packages/shared/src` antes e depois), `git worktree remove` sem sobras, pasta conferida com `Test-Path`; pendência do devops/qa confirmada
+- 2026-10-28 — documentador: CONCLUIDO — diário integrado
