@@ -1,7 +1,7 @@
 ---
 id: T-039
 titulo: CI verde de novo — título de Início abaixo do cabeçalho com o nome completo e a DejaVu Sans
-status: em-qa
+status: concluida
 modo: agente-faz
 tags: [front-end]
 rodadas: 0
@@ -108,3 +108,4 @@ Conceitos para estudo: contraprova (reverter a correção e ver o teste falhar d
 - 2026-10-28 — code-reviewer: APROVADO — opção A aplicada só no título; dentro da área
 - 2026-10-28 — orquestrador: em-qa — qa chamado
 - 2026-10-28 — qa: PASSOU — teste da T-030 verde no Linux (12/12) e no Windows (20/20); contraprova sem a correção falha (825 > 801)
+- 2026-10-28 — orquestrador: concluida — verificação verde (npm test, e2e, lint, validador); diário de estudo e conferência do CI ficam para a próxima sessão (George precisou desligar o notebook)
